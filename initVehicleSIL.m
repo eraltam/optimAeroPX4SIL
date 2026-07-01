@@ -18,6 +18,12 @@
 % opts.clearSLCache              Clear simulink cache. This deletes the work folder and will force all slx models 
 %                                to be recompiled. This can fix some Simulink errors
 % opts.flightGearFreq_Hz         Frequency of the TCP send block is sending data to flightGear
+% opts.flightGearHost            IP address used by the Simulink TCP send blocks for FlightGear.
+%                                Defaults to 127.0.0.1 for local preflight visualization.
+% opts.flightGearTelnetPort      TCP telnet port FlightGear opens for hexarotor rotor commands.
+% opts.launchPreflightVisualization
+%                                When launchFullSIL=false and visualizationType="FlightGear",
+%                                start FlightGear and wait for the TCP endpoint before returning.
 % opts.assignFailureButton:      Set to true if you want to map a vehicle failrue to a joystick button
 % opts.controllerRuntime:        "SITL" (default, unchanged behavior) or "HITL". HITL keeps the plant,
 %                                environment, and sensors in Simulink but replaces the simulated PX4
@@ -78,6 +84,9 @@ arguments
     opts.makeClean            (1,1) logical = false             % Run "make clean" before "make" - if in doubt, use if PX4 config changes made
     opts.clearSLCache         (1,1) logical = false             % Clear Simulink cache
     opts.flightGearFreq_Hz    (1,1) double  = 0.5               % Frequency of the TCP send block is sending data to flightGear
+    opts.flightGearHost       (1,1) string  = "127.0.0.1"       % Local FlightGear TCP endpoint used by preflight/SIL visualization
+    opts.flightGearTelnetPort (1,1) double  = 5400              % FlightGear telnet port used by hexarotor TCP send blocks
+    opts.launchPreflightVisualization (1,1) logical = true      % Start FlightGear for launchFullSIL=false preflight runs
     opts.assignFailureButton  (1,1) logical = false             % Set to true if you want to map a vehicle failrue to a joystick button
     opts.controllerRuntime    (1,1) string  {mustBeMember(opts.controllerRuntime, ["SITL","HITL"])} = "SITL"
     opts.hardwareTarget       (1,1) string  {mustBeMember(opts.hardwareTarget, ["CubeOrangePlus"])} = "CubeOrangePlus"
@@ -91,6 +100,8 @@ vehicleParams.type                   = opts.vehicleType;
 vehicleParams.controllerType         = opts.controllerType;
 vehicleParams.failureType            = opts.failureType;
 visualizationParams.flightGearFreq_Hz      = opts.flightGearFreq_Hz;
+visualizationParams.flightGearHost         = opts.flightGearHost;
+visualizationParams.flightGearTelnetPort   = opts.flightGearTelnetPort;
 
 % HITL requires an explicit serial port -- "auto" detection isn't implemented (Cube Orange Plus
 % enumerates as a generic USB-serial device; which COM port it lands on depends on what else is
@@ -178,6 +189,7 @@ Simulink.fileGenControl('set', ...
     'createDir', true)
 
 load('standardSILConfigurationParams.mat')
+assignin('base', 'standardSILConfigurationParams', standardSILConfigurationParams);
 stepSize_s = 0.004; % step size used in standardSILConfugrationParams.mat file
 
 % Conversions
@@ -198,14 +210,16 @@ setUpActuators
 % set up winds
 setUpEnvironment
 
-% Controller runtime selector read by VehicleSilSimulation's PX4 connector subsystem (mirrors the
+% Controller runtime selector read by VehicleSilSimulation's PX4 connector selector (mirrors the
 % INS_VARIANT pattern in sensors/setUpSensors.m -- see CLAUDE.md/CLAUDE_HITL.md). 1 = SITL
 % (existing pixhawk_sil_connector path, default), 2 = HITL (real PX4 hardware over serial). The
-% "PX4 HITL Interface" subsystem is wrapped in an Enabled Subsystem gated on CONTROLLER_RUNTIME==2,
-% so its px4MAVLinkBridgelib blocks never attempt to open a serial port during a SITL run -- but
-% setUpHITLConnection must still run unconditionally, because it's what puts px4MAVLinkBridgelib on
-% the path at all, and the model needs to RESOLVE that library to compile regardless of which
-% connector ends up active at runtime.
+% connector outputs feed a Variant Source, so the inactive connector branch is not compiled during
+% diagram update. The Enable ports are retained as a runtime guard, but they are not enough by
+% themselves for the HITL MAVLink MATLAB System blocks because setupImpl can open serial at
+% simulation start.
+%
+% setUpHITLConnection still runs unconditionally, because it puts px4MAVLinkBridgelib on the path
+% so the saved model can resolve the HITL library blocks even when SITL is the active runtime.
 if strcmpi(opts.controllerRuntime, "HITL")
     CONTROLLER_RUNTIME = 2;
 else
@@ -267,7 +281,6 @@ evalin("base", 'load workspace.mat')
 delete workspace.mat
 
 % Variant Models
-% Note: When using the FlightGear option, you must start Flightgear manually by running runFlightGear.m
 if strcmpi(opts.visualizationType, 'Matlab')
     load_system('VehicleSilSimulation.slx')
     warning("When using Matlab visualization the SIL simulator runs slower than FlightGear. Recommend setting simulink model to" + ...
@@ -278,6 +291,15 @@ if strcmpi(opts.visualizationType, 'Matlab')
     else
         set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
             'FixedWing');
+    end
+elseif strcmpi(opts.visualizationType, 'FlightGear')
+    load_system('VehicleSilSimulation.slx')
+    configureFlightGearTcpEndpoint('VehicleSilSimulation', opts.flightGearHost, opts.flightGearTelnetPort, opts.vehicleType);
+    if ~opts.launchFullSIL && opts.launchPreflightVisualization
+        if ~isTcpEndpointOpen(opts.flightGearHost, opts.flightGearTelnetPort)
+            evalin("base", 'runFlightGear')
+        end
+        waitForFlightGearTcpEndpoint(opts.flightGearHost, opts.flightGearTelnetPort, 20, opts.vehicleType);
     end
 end
 % Launch full SIL/HITL if requested
@@ -376,25 +398,66 @@ if opts.launchFullSIL
     cd(currLoc)
     open VehicleSilSimulation.slx
 
-    % Check to see if FlightGear is open and ready for TCP send
-    tStart = tic;   % start timer
-    isTCPOpen = false;
-    % Wait 15 seconds to establish TCP connection
-    while toc(tStart) < 15 && ~isTCPOpen
-        try
-            tcpclient("127.0.0.1", 5400); %#ok<NASGU>
-            isTCPOpen = true;
-        catch
-            pause(2);  % retry delay 
-        end
-    end
-
-    if ~isTCPOpen && strcmpi(opts.vehicleType,"hexarotor") && strcmpi(opts.visualizationType,"FlightGear")
-        error("TCP port for hexarotor visualization in FlightGear not open. Run flight gear manually and" + ...
-            " then run VehicleSILSImulation.slx")
+    if strcmpi(opts.visualizationType,"FlightGear")
+        waitForFlightGearTcpEndpoint(opts.flightGearHost, opts.flightGearTelnetPort, 15, opts.vehicleType);
     end
     % Run simulink model
     sim VehicleSilSimulation
 end
 
+end
+
+function configureFlightGearTcpEndpoint(modelName, host, port, vehicleType)
+if ~bdIsLoaded(modelName)
+    load_system(modelName);
+end
+
+if ~strcmpi(vehicleType, "hexarotor")
+    return
+end
+
+fgSubsystem = [modelName '/visualizationVariant/FlightGearVisualizationHexarotor'];
+tcpBlocks = find_system(fgSubsystem, ...
+    'LookUnderMasks', 'all', ...
+    'FollowLinks', 'on', ...
+    'BlockType', 'Reference');
+
+for ii = 1:numel(tcpBlocks)
+    try
+        if strcmp(get_param(tcpBlocks{ii}, 'SourceType'), 'instrument.system.TCPIPSend')
+            set_param(tcpBlocks{ii}, 'Host', char(host), 'Port', num2str(port));
+        end
+    catch
+    end
+end
+end
+
+function waitForFlightGearTcpEndpoint(host, port, timeout_s, vehicleType)
+if ~strcmpi(vehicleType, "hexarotor")
+    return
+end
+
+tStart = tic;
+isTCPOpen = false;
+while toc(tStart) < timeout_s && ~isTCPOpen
+    isTCPOpen = isTcpEndpointOpen(host, port);
+    if ~isTCPOpen
+        pause(2);
+    end
+end
+
+if ~isTCPOpen
+    error("FlightGear hexarotor TCP endpoint is not open at %s:%d. Check that FlightGear launched successfully.", ...
+        char(host), port)
+end
+end
+
+function isOpen = isTcpEndpointOpen(host, port)
+isOpen = false;
+try
+    client = tcpclient(char(host), port); %#ok<NASGU>
+    clear client
+    isOpen = true;
+catch
+end
 end

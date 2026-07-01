@@ -3,7 +3,7 @@ init_long = aircraftInitial.lon_deg;
 init_altitude = aircraftInitial.alt_m;
 init_yaw_deg = aircraftInitial.yawAngle_rad;
 if ispc
-    app_path = '"C:\Program Files\FlightGear 2020.3\bin\fgfs.exe"';
+    app_path = '"C:\Program Files\FlightGear 2024.1\bin\fgfs.exe"';
 elseif ismac
     app_path = '/Applications/FlightGear.app/Contents/MacOS/fgfs';
 elseif isunix
@@ -14,16 +14,27 @@ end
 % find closest feasible frame rate given the fixed step size (rounding up)
 frameRate_Hz = floor(1 / stepSize_s);
 
+flightGearHost = "127.0.0.1";
+flightGearTelnetPort = 5400;
+if exist('visualizationParams', 'var')
+    if isfield(visualizationParams, 'flightGearHost')
+        flightGearHost = visualizationParams.flightGearHost;
+    end
+    if isfield(visualizationParams, 'flightGearTelnetPort')
+        flightGearTelnetPort = visualizationParams.flightGearTelnetPort;
+    end
+end
+
 % Check to see if F16 FlightGear visualization exist
-f16DirName = 'C:\Program Files\FlightGear 2020.3\data\Aircraft\f16';
-options = sprintf('--fdm=null --native-fdm=socket,in,%d,localhost,5502,udp --aircraft=c172p --fog-fastest --disable-clouds --disable-sound', frameRate_Hz);
+f16DirName = 'C:\Program Files\FlightGear 2024.1\data\Aircraft\f16';
+options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=c172p --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost));
 switch lower(vehicleParams.type)
     case "f-16"
         if isdir(f16DirName)
-            options = sprintf('--fdm=null --native-fdm=socket,in,%d,localhost,5502,udp --aircraft=f16-block-52 --fog-fastest --disable-clouds --disable-sound', frameRate_Hz);
+            options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=f16-block-52 --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost));
         end
     case "hexarotor"
-        options = sprintf('--fdm=null --native-fdm=socket,in,%d,localhost,5502,udp, --aircraft=bigHexy  --aircraft-dir="visualization/bigHexy" --telnet=5400 --fog-fastest --disable-clouds --disable-sound', frameRate_Hz);
+        options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=bigHexy  --aircraft-dir="visualization/bigHexy" --telnet=%d --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost), flightGearTelnetPort);
     otherwise
         warning("Unknown vehicle for display")
 end

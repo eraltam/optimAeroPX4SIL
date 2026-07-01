@@ -4,11 +4,10 @@
 % (1=SITL, default; 2=HITL) set by initVehicleSIL.m when controllerRuntime="HITL".
 %
 % Architecture notes (see CLAUDE_HITL.md for the full story):
-%   - Not a true Variant Subsystem: this MATLAB release's Variant Subsystem block requires every
-%     variant choice's port set to match the parent exactly, and no reliable programmatic API was
-%     found to force that sync headlessly (the GUI has a one-click "synchronize ports" fix-it
-%     action; no scriptable equivalent was found). Used a Multiport Switch instead -- both
-%     connectors are always present in the compiled model, one feeds downstream.
+%   - Uses a Variant Source at the connector output, not a Multiport Switch. This is critical:
+%     a Multiport Switch keeps both connectors in the compiled graph, so side-effecting connector
+%     blocks can initialize even when their output is not selected. The Variant Source makes the
+%     inactive connector branch inactive during diagram update/compile.
 %   - PX4HITLConnector is INLINED as a plain Subsystem, not referenced via a Model block:
 %     px4MAVLinkBridgelib's MAVLink Bridge Source/Sink blocks declare
 %     getSimulateUsingImpl = "Interpreted execution" only, which is incompatible with Model
@@ -16,16 +15,10 @@
 %     attempt) -- confirmed by direct compile error ("class does not support code generation").
 %     Inlining avoids that; it's also how the existing "PX4 Interface" (pixhawk_sil_connector) is
 %     already built, so this matches established precedent in this repo.
-%   - BOTH "PX4 HITL Interface" and "PX4 Interface" are wrapped in Enabled Subsystems, gated on
-%     CONTROLLER_RUNTIME==2 and ==1 respectively. This matters because unlike the sensors/ins
-%     INS_VARIANT case (pure math, harmless to compute both branches every step), both PX4
-%     connectors have REAL side effects (opening a serial port / blocking on a TCP accept()) on
-%     their first step. Without gating, a pure-SITL user would get a spurious serial-port error,
-%     and a HITL user would hang waiting for a phantom SITL connection that never comes.
-%   - The HITL side works because MATLABSystem blocks (px4MAVLinkBridgelib) connect lazily on
-%     first step() (confirmed: px4.internal.block.MAVLinkSource's setupImpl runs on first call,
-%     not at model load) -- an Enabled Subsystem that never steps correctly prevents the
-%     connection attempt entirely.
+%   - BOTH "PX4 HITL Interface" and "PX4 Interface" still have Enable ports, gated on
+%     CONTROLLER_RUNTIME==2 and ==1 respectively, as a second runtime guard. The compile-time
+%     selection comes from the Variant Source; the Enable ports alone are not sufficient for the
+%     HITL MATLABSystem blocks, whose setupImpl can open the serial channel at simulation start.
 %   - The SITL side needed a source change to work the same way: pixhawk_sil_connector.cpp is a
 %     raw S-Function, not a MATLABSystem -- its blocking TCP accept() originally happened in
 %     mdlStart, which (unlike MATLABSystem's setupImpl) is NOT skipped by Enabled Subsystem
@@ -70,15 +63,17 @@ add_line(mdl, 'Rate Transition3/1', 'PX4 HITL Interface/3', 'autorouting', 'on')
 % ---- Selector: CONTROLLER_RUNTIME picks which connector's output reaches the plant -----------
 add_block('simulink/Sources/Constant', [mdl '/CONTROLLER_RUNTIME_sel'], ...
     'Position', [pos(1)+200, pos(2)+60, pos(1)+240, pos(2)+80], 'Value', 'CONTROLLER_RUNTIME');
-add_block('simulink/Signal Routing/Multiport Switch', [mdl '/PX4_Connector_Select'], ...
+add_block('simulink/Signal Routing/Variant Source', [mdl '/PX4_Connector_Select'], ...
     'Position', [pos(1)+260, pos(2), pos(1)+320, pos(2)+150]);
-set_param([mdl '/PX4_Connector_Select'], 'Inputs', '2');
+set_param([mdl '/PX4_Connector_Select'], ...
+    'VariantControlMode', 'expression', ...
+    'VariantActivationTime', 'update diagram', ...
+    'VariantControls', {'CONTROLLER_RUNTIME == 1', 'CONTROLLER_RUNTIME == 2'});
 
 % Rewire: PX4 Interface -> Memory used to be direct; now goes through the selector.
 delete_line(mdl, 'PX4 Interface/1', 'Memory/1');
-add_line(mdl, 'CONTROLLER_RUNTIME_sel/1', 'PX4_Connector_Select/1', 'autorouting', 'on');
-add_line(mdl, 'PX4 Interface/1', 'PX4_Connector_Select/2', 'autorouting', 'on');
-add_line(mdl, 'PX4 HITL Interface/1', 'PX4_Connector_Select/3', 'autorouting', 'on');
+add_line(mdl, 'PX4 Interface/1', 'PX4_Connector_Select/1', 'autorouting', 'on');
+add_line(mdl, 'PX4 HITL Interface/1', 'PX4_Connector_Select/2', 'autorouting', 'on');
 add_line(mdl, 'PX4_Connector_Select/1', 'Memory/1', 'autorouting', 'on');
 
 % ---- Enable gate: HITL side runs only when CONTROLLER_RUNTIME==2 -----------------------------
@@ -106,4 +101,4 @@ add_line(mdl, 'SITL_Enable_const1/1', 'SITL_Enable_cond/2', 'autorouting', 'on')
 add_line(mdl, 'SITL_Enable_cond/1', 'PX4 Interface/Enable', 'autorouting', 'on');
 
 save_system(mdl);
-fprintf('VehicleSilSimulation.slx updated: PX4 connector selects SITL/HITL via CONTROLLER_RUNTIME (both sides Enable-gated).\n');
+fprintf('VehicleSilSimulation.slx updated: PX4 connector selects SITL/HITL via CONTROLLER_RUNTIME Variant Source.\n');

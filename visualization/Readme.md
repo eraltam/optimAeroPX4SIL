@@ -10,8 +10,8 @@ This guide will help you download and install FlightGear, a free and open-source
 ### Windows
 1. Go to the [FlightGear download page](https://www.flightgear.org/download/).
 2. Download the Windows installer.
-3. Run the installer and follow the on-screen instructions. You may have to specify the path to the application's data folder the first time you run the program. This path will probably be in `C:\Program Files\FlightGear 2020.3\data`.
-4. Verify the installation location of the binary is `C:\Program Files\FlightGear 2020.3\bin\fgfs.exe`.
+3. Run the installer and follow the on-screen instructions. You may have to specify the path to the application's data folder the first time you run the program. This path will probably be in `C:\Program Files\FlightGear 2024.1\data`.
+4. Verify the installation location of the binary is `C:\Program Files\FlightGear 2024.1\bin\fgfs.exe`.
 
 ### macOS
 1. Go to the [FlightGear download page](https://www.flightgear.org/download/).

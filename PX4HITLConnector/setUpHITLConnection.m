@@ -3,11 +3,11 @@
 % and pushes the HITL link parameters into the base workspace for the Simulink HITL connector
 % (PX4HITLConnector/PX4HITLConnector.slx) to read.
 %
-% Only called from initVehicleSIL.m when controllerRuntime="HITL". See CLAUDE_HITL.md for the full
-% design and why this path-lookup is needed: px4MAVLinkBridgelib does not reliably resolve just
-% because the support package shows as installed in matlab.addons.installedAddons -- its actual
-% library/class files live under MATLAB's SupportPackages folder, which is not automatically on
-% path in every session (and initVehicleSIL.m's own restoredefaultpath wipes it if it was).
+% Called from initVehicleSIL.m for both SITL and HITL. See CLAUDE_HITL.md for the full design and
+% why this path-lookup is needed: px4MAVLinkBridgelib does not reliably resolve just because the
+% support package shows as installed in matlab.addons.installedAddons -- its actual library/class
+% files live under MATLAB's SupportPackages folder, which is not automatically on path in every
+% session (and initVehicleSIL.m's own restoredefaultpath wipes it if it was).
 
 % Find the px4 support package's "core" folder (contains the +px4 namespace package with the
 % MAVLinkSource/MAVLinkSink class implementations) and "core/blocks" folder (contains
@@ -79,5 +79,9 @@ MAVLink_Input_Read_Size = 1024;   % [bytes] matches MAVLinkSource.m's own dataLe
                                     % referenced both by the MAVLink Bridge Source block's mask and
                                     % internally by the copied "Read actuator output" subsystem
 
-fprintf('HITL connection configured: serial port %s, baud %d (QGC UDP relay on port %d).\n', ...
-    hitlParams.serialPort, hitlParams.baudRate, opts.hitlQGCPort);
+if isfield(opts, 'controllerRuntime') && strcmpi(opts.controllerRuntime, "HITL")
+    fprintf('HITL connection configured: serial port %s, baud %d (QGC UDP relay on port %d).\n', ...
+        hitlParams.serialPort, hitlParams.baudRate, opts.hitlQGCPort);
+else
+    fprintf('PX4 HITL support configured for inactive SITL branch; no HITL serial connection will be opened.\n');
+end
