@@ -115,33 +115,20 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #if defined(MDL_START)
 /* Function: mdlStart =======================================================
  * Abstract:
- *    This function is called once at start of model execution. If you
- *    have states that should be initialized once, this is the place
- *    to do it.
+ *    This function is called once at start of model execution, for every
+ *    instance of this block present in the compiled diagram -- including one
+ *    sitting inside a disabled Enabled Subsystem (Enabled Subsystem semantics
+ *    only gate mdlOutputs/per-step execution, not mdlStart/initialization).
+ *    So the actual blocking TCP accept() is deliberately NOT done here
+ *    anymore -- it's deferred to the first mdlOutputs call (see below), which
+ *    DOES respect Enabled Subsystem gating. This lets the block be wrapped in
+ *    an Enabled Subsystem (e.g. gated on a SITL/HITL runtime-mode switch)
+ *    without it blocking the simulation waiting for a connection nobody
+ *    wants in that run. mdlStart here just marks "not yet connected".
  */
 static void mdlStart(SimStruct *S)
 {
-    static std::string eStatus;
-
-    try
-    {
-
-        static SILConnector sil_connector("0.0.0.0",4560);
-
-        mexPrintf("Waiting for PX4 to connect on TCP port 4560...\n");
-
-        sil_connector.open();
-
-        mexPrintf("PX4 connected on TCP port 4560.\n");
-
-        ssSetPWorkValue(S,0,(void *)&sil_connector);
-
-    }
-    catch (const std::exception &e)
-    {
-        eStatus = std::string(e.what());
-        ssSetErrorStatus(S, eStatus.c_str());
-    }
+    ssSetPWorkValue(S, 0, nullptr);
 }
 #endif /*  MDL_START */
 
@@ -159,9 +146,25 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
         try
         {
-            
+
             SILConnector *sil_connector = (SILConnector *)ssGetPWorkValue(S,0);
-            
+
+            if (sil_connector == nullptr)
+            {
+                // First real step for this instance -- connect now, lazily. Heap-allocated (not a
+                // function-local static like the old mdlStart code) so each S-Function instance
+                // owns its own connector, freed in mdlTerminate.
+                sil_connector = new SILConnector("0.0.0.0", 4560);
+
+                mexPrintf("Waiting for PX4 to connect on TCP port 4560...\n");
+
+                sil_connector->open();
+
+                mexPrintf("PX4 connected on TCP port 4560.\n");
+
+                ssSetPWorkValue(S, 0, (void *)sil_connector);
+            }
+
             InputRealPtrsType time = ssGetInputPortRealSignalPtrs(S, 0);
             InputRealPtrsType A_measured = ssGetInputPortRealSignalPtrs(S, 1);
             InputRealPtrsType omega_b_measured = ssGetInputPortRealSignalPtrs(S, 2);
@@ -293,6 +296,8 @@ static void mdlTerminate(SimStruct *S)
     if(sil_connector){
         mexPrintf("Closing SILConnector...\n");
         sil_connector->close();
+        delete sil_connector;
+        ssSetPWorkValue(S, 0, nullptr);
     }
 }
 /*======================================================*

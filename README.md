@@ -102,6 +102,61 @@ Once built, the PX4 executable should connect to the Simulink model. Ensure you 
 
 After the initial setup, the full SIL can be launched using the `initVehicleSIL` with the `launchFullSIL` argument set to true. Set all arguments as needed. Example: `initVehicleSIL("launchFullSIL", true, "vehicleType", "hexarotor", "visualizationType", "FlightGear")`. If PX4 cannot establish a connection, close the WSL terminal and run the `initVehicleSIL` function using the `simHostIP` argument (example: `initVehicleSIL("launchFullSIL",true, "vehicleType", "hexarotor","visualizationType","FlightGear","simHostIP","192.168.50.236")` ). <strong>If the PX4-Autopilot repo has been cloned on the WSL root directory use the `"PX4InWSL",true` argument.</strong>
 
+## HITL (Hardware-in-the-Loop) Mode
+
+In addition to PX4 SITL (above), the repo can run the same Simulink plant/environment/sensors
+against a **real PX4 autopilot** (currently: Cube Orange Plus) connected over USB serial, instead of
+the simulated PX4 SITL process in WSL. The controller and estimator run on the real flight
+controller; the plant, environment, and sensors stay in Simulink — same idea as SITL, just with
+real PX4 hardware standing in for the simulated PX4 process. See `CLAUDE_HITL.md` for the full
+design writeup.
+
+### Prerequisites
+
+- A Cube Orange Plus connected to your PC via USB.
+- The **UAV Toolbox Support Package for PX4 Autopilots** installed (Add-On Manager). This is
+  required even for plain SITL runs now, since `VehicleSilSimulation.slx` always contains the HITL
+  connector subsystem (selected at runtime, not compiled out) — see `CLAUDE_HITL.md` section
+  "Architecture notes" for why.
+- The board flashed with the **hardware** firmware target (different from the SITL target below):
+  ```
+  make cubepilot_cubeorangeplus_default
+  ```
+  run from the `PX4-Autopilot` directory in WSL (or the PX4 repo wherever it's checked out). This is
+  a flash-to-hardware build, not the `make px4_sitl_default ...` SITL build — do not confuse the
+  two. Flash it with the matching `make ... upload` target, or use QGroundControl's firmware
+  flashing tool, per standard PX4 instructions.
+- In QGroundControl, once connected to the board over USB, set the parameter `SYS_HITL = 1`
+  ("HIL Enabled") under Parameters, and reboot the board.
+- Note the Windows COM port the board enumerates as (Device Manager > Ports (COM & LPT)).
+
+### Running
+
+```matlab
+initVehicleSIL("launchFullSIL", false, "vehicleType", "hexarotor", ...
+    "controllerRuntime", "HITL", "hardwareTarget", "CubeOrangePlus", "hitlSerialPort", "COM5")
+```
+
+Then open and run `VehicleSilSimulation.slx` as usual. QGroundControl can connect concurrently over
+UDP port 14550 (the HITL connector relays the MAVLink stream there automatically).
+
+To go back to SITL, just omit `controllerRuntime` (defaults to `"SITL"`) or pass it explicitly.
+
+### Notes
+
+- Both connectors (`pixhawk_sil_connector` for SITL, the new MAVLink-serial connector for HITL) are
+  gated so only the one matching `controllerRuntime` actually attempts a connection — a SITL run
+  never touches the serial port, and a HITL run never blocks waiting for a phantom SITL TCP
+  connection. See `CLAUDE_HITL.md` for the implementation details (this required a small change to
+  `PX4SILConnector/pixhawk_sil_connector.cpp` — its connection logic moved from `mdlStart` to a
+  lazy first-step connect, which is what makes Enabled-Subsystem gating work for it at all).
+- If you ever need to recompile `pixhawk_sil_connector.mexw64` yourself, `make.m`'s plain `mex
+  -I./includes pixhawk_sil_connector.cpp` is missing the Windows socket libraries asio needs to
+  link against on this toolchain. Use:
+  `mex -I./includes pixhawk_sil_connector.cpp -lws2_32 -lmswsock -L<path-to-mingw>\x86_64-w64-mingw32\lib`
+  (find `<path-to-mingw>` under your MATLAB support-package install, e.g.
+  `...\SupportPackages\<release>\3P.instrset\mingw_w64.instrset`).
+
 ## SIL Connector Notes
 
 The Pixhawk SIL connector is developed by Kiril Boychev and can be found here: <https://www.mathworks.com/matlabcentral/fileexchange/114320-pixhawk-software-in-the-loop-sil-connector-for-simulink>. If the S-Function needs to be remade, and the files are downloaded from the link provided, the asio and mavlink folder along with the `asio.hpp` must be placed inside of a folder named "includes" in order for the make.m file to work properly.
@@ -121,6 +176,8 @@ If additional UTs need to be created, the makeHarness function can be used to ge
 5. UAV Toolbox
 6. Instrument control toolbox
 7. MATLAB Support for MinGW-w64 C/C++/Fortran Compiler
+8. UAV Toolbox Support Package for PX4 Autopilots (required for `VehicleSilSimulation.slx` to
+   compile at all, even for SITL-only use — see the HITL section above)
 
 ## Visualization
 

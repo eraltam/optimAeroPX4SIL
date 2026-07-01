@@ -24,3 +24,9 @@ parameters.gyro.noisePower_radps = [0.0000001 0.0000001 0.0000001];
 parameters.mag.noisePower_gauss = [0.000001 0.000001 0.000001];
 parameters.baro.noisePower_Pa = [0.001];
 parameters.thermo.noisePower_degC = [0.001];
+
+% INS source selector for sensors/ins (see sensors/components/wire_ins_variant.m
+% and optimAeroPX4SIL/CLAUDE.md). 1 = Generic (above ICM-42688-P-like model,
+% default — regression baseline), 2 = AnelloX3 (datasheet-accurate ANELLO X3
+% IMU model from sensors/components/ins_anello.slx).
+INS_VARIANT = 1;
