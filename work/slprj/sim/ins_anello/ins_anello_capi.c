@@ -26,16 +26,12 @@
 #define TARGET_STRING(s)               (s)
 #endif
 #endif
-static const rtwCAPI_SignalHierLoggingInfo rtSigHierLoggingInfo [ ] = { { ""
-, 5 , 0 } , { "signal1" , 0 , - 1 } , { "signal2" , 0 , - 1 } , { "signal3" ,
-0 , - 1 } , { "signal4" , 0 , - 1 } , { "signal5" , 0 , - 1 } , { "" , 5 , 5
-} , { "" , 5 , 10 } } ; static const uint_T rtSigHierLoggingChildIdxs [ ] = {
-1 , 2 , 3 , 4 , 5 , 1 , 2 , 3 , 4 , 5 , 1 , 2 , 3 , 4 , 5 } ; static
-rtwCAPI_Signals rtBlockSignals [ ] = { { 0 , 0 , ( NULL ) , ( NULL ) , 0 , 0
-, 0 , 0 , 0 } } ; static rtwCAPI_States rtBlockStates [ ] = { { 0 , - 1 , ( NULL
-) , ( NULL ) , ( NULL ) , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } } ; static int_T
-rt_LoggedStateIdxList [ ] = { - 1 } ; static TARGET_CONST rtwCAPI_DataTypeMap
-rtDataTypeMap [ ] = { { "" , "" , 0 , 0 , 0 , 0 , 0 , 0 , 0 } } ;
+static rtwCAPI_Signals rtBlockSignals [ ] = { { 0 , 0 , ( NULL ) , ( NULL ) ,
+0 , 0 , 0 , 0 , 0 } } ; static rtwCAPI_States rtBlockStates [ ] = { { 0 , - 1
+, ( NULL ) , ( NULL ) , ( NULL ) , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } } ;
+static int_T rt_LoggedStateIdxList [ ] = { - 1 } ; static TARGET_CONST
+rtwCAPI_DataTypeMap rtDataTypeMap [ ] = { { "" , "" , 0 , 0 , 0 , 0 , 0 , 0 ,
+0 } } ;
 #ifdef HOST_CAPI_BUILD
 #undef sizeof
 #endif
@@ -48,15 +44,15 @@ rtwCAPI_SampleTimeMap rtSampleTimeMap [ ] = { { ( NULL ) , ( NULL ) , 0 , 0 }
 } ; static int_T rtContextSystems [ 3 ] ; static rtwCAPI_LoggingMetaInfo
 loggingMetaInfo [ ] = { { 0 , 0 , "" , 0 } } ; static
 rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 3 ,
-rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 8 ,
-rtSigHierLoggingInfo , rtSigHierLoggingChildIdxs } , 0 , ( NULL ) } ; static
-rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL )
-, 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 0
-} , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap ,
-rtSampleTimeMap , rtDimensionArray } , "float" , { 3078904131U , 1279732285U
-, 2690870308U , 2687956626U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0
-, rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
-ins_anello_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
+rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
+} , 0 , ( NULL ) } ; static rtwCAPI_ModelMappingStaticInfo mmiStatic = { {
+rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
+) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
+rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
+{ 3121177276U , 3728267370U , 4039043308U , 2398301366U } , &
+mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
+rtwCAPI_ModelMappingStaticInfo * ins_anello_GetCAPIStaticMap ( void ) {
+return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
 static void ins_anello_InitializeSystemRan ( psmsewigyz * const ckf43r0kru ,
 sysRanDType * systemRan [ ] , a4mpwoagne * localDW , int_T systemTid [ ] ,

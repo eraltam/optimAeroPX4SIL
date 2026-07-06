@@ -304,8 +304,8 @@ UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitId
 #endif
 } ssSetOutputPortSampleTime ( S , 0 , mxGetInf ( ) ) ;
 ssSetOutputPortOffsetTime ( S , 0 , 0 ) ; ssSetOutputPortDiscreteValuedOutput
-( S , 0 , 0 ) ; ssSetOutputPortOkToMerge ( S , 0 , SS_NOT_OK_TO_MERGE ) ;
-ssSetOutputPortICAttributes ( S , 0 , false , false , false ) ;
+( S , 0 , 0 ) ; ssSetOutputPortOkToMerge ( S , 0 , SS_OK_TO_MERGE_CONDITIONAL
+) ; ssSetOutputPortICAttributes ( S , 0 , false , false , false ) ;
 ssSetOutputPortOptimOpts ( S , 0 , SS_NOT_REUSABLE_AND_GLOBAL ) ; if ( !
 ssSetOutputPortVectorDimension ( S , 1 , 1 ) ) return ;
 ssSetOutputPortDimensionsMode ( S , 1 , FIXED_DIMS_MODE ) ;
@@ -369,8 +369,8 @@ UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitId
 #endif
 } ssSetOutputPortSampleTime ( S , 5 , mxGetInf ( ) ) ;
 ssSetOutputPortOffsetTime ( S , 5 , 0 ) ; ssSetOutputPortDiscreteValuedOutput
-( S , 5 , 0 ) ; ssSetOutputPortOkToMerge ( S , 5 , SS_NOT_OK_TO_MERGE ) ;
-ssSetOutputPortICAttributes ( S , 5 , false , false , false ) ;
+( S , 5 , 0 ) ; ssSetOutputPortOkToMerge ( S , 5 , SS_OK_TO_MERGE_CONDITIONAL
+) ; ssSetOutputPortICAttributes ( S , 5 , false , false , false ) ;
 ssSetOutputPortOptimOpts ( S , 5 , SS_NOT_REUSABLE_AND_LOCAL ) ; if ( !
 ssSetOutputPortVectorDimension ( S , 6 , 1 ) ) return ;
 ssSetOutputPortDimensionsMode ( S , 6 , FIXED_DIMS_MODE ) ;
@@ -435,8 +435,8 @@ UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitId
 } ssSetOutputPortSampleTime ( S , 10 , mxGetInf ( ) ) ;
 ssSetOutputPortOffsetTime ( S , 10 , 0 ) ;
 ssSetOutputPortDiscreteValuedOutput ( S , 10 , 0 ) ; ssSetOutputPortOkToMerge
-( S , 10 , SS_NOT_OK_TO_MERGE ) ; ssSetOutputPortICAttributes ( S , 10 ,
-false , false , false ) ; ssSetOutputPortOptimOpts ( S , 10 ,
+( S , 10 , SS_OK_TO_MERGE_CONDITIONAL ) ; ssSetOutputPortICAttributes ( S ,
+10 , false , false , false ) ; ssSetOutputPortOptimOpts ( S , 10 ,
 SS_NOT_REUSABLE_AND_LOCAL ) ; if ( ! ssSetOutputPortVectorDimension ( S , 11
 , 1 ) ) return ; ssSetOutputPortDimensionsMode ( S , 11 , FIXED_DIMS_MODE ) ;
 ssSetOutputPortFrameData ( S , 11 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
@@ -543,9 +543,7 @@ DISALLOW_SAMPLE_TIME_INHERITANCE ) ; ssSetRuntimeThreadSafetyCompliance ( S ,
 RUNTIME_THREAD_SAFETY_COMPLIANCE_TRUE ) ; ssSetAcceptsFcnCallInputs ( S ) ;
 ssSetModelReferenceNormalModeSupport ( S ,
 MDL_START_AND_MDL_PROCESS_PARAMS_OK ) ; ssSupportsMultipleExecInstances ( S ,
-false ) ; ssRegisterMsgForNotSupportingMultiExecInst ( S ,
- "<diag_root><diag id=\"Simulink:blocks:LoggingBlockDoesNotSupportMultiExecInstancesWithCustomMsg\" pr=\"d\"><arguments><arg type=\"encoded\">aQBuAHMALwBBAGMAYwBlAGwAUwBlAG4AcwBvAHIAQgB1AHMAAAA=</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAAKADr10A=</h></hs><causes><diag id=\"Simulink:logLoadBlocks:SigLogMultiExecInsNoBusSupportMsg\" pr=\"d\"><msg encoded=\"yes\">TwBuAGwAeQAgAG4AbwBuAC0AYgB1AHMAIABzAGkAZwBuAGEAbABzACAAYwBhAG4AIABiAGUAIABsAG8AZwBnAGUAZAAgAGkAbgBzAGkAZABlACAARgBvAHIAIABFAGEAYwBoACAAcwB1AGIAcwB5AHMAdABlAG0AcwAuAAAA</msg></diag></causes></diag></diag_root>"
-) ; ssHasStateInsideForEachSS ( S , false ) ; ssSetOptions ( S ,
+true ) ; ssHasStateInsideForEachSS ( S , false ) ; ssSetOptions ( S ,
 SS_OPTION_ALLOW_CONSTANT_PORT_SAMPLE_TIME |
 SS_OPTION_SUPPORTS_ALIAS_DATA_TYPES | SS_OPTION_DISALLOW_CONSTANT_SAMPLE_TIME
 | SS_OPTION_EXCEPTION_FREE_CODE | SS_OPTION_WORKS_WITH_CODE_REUSE ) ;
@@ -580,7 +578,7 @@ static void mdlSetupRuntimeResources ( SimStruct * S ) { imyuptdnp20 * dw = ( im
 #define MDL_START
 static void mdlStart ( SimStruct * S ) { imyuptdnp20 * dw = ( imyuptdnp20 * )
 ssGetDWork ( S , 0 ) ; real_T * o_o_o_o_B_1_10 = ( real_T * )
-ssGetOutputPortSignal ( S , 0 ) ; mdlProcessParameters ( S ) ; ovcoxgbkug ( o_o_o_o_B_1_10 ) ; } static void mdlOutputs ( SimStruct * S , int_T tid ) { imyuptdnp20 * dw = ( imyuptdnp20 * ) ssGetDWork ( S , 0 ) ; real_T const * i_duciplvjp0 = ( real_T * ) ssGetInputPortSignal ( S , 0 ) ; real_T const * i_ctarcg42bp = ( real_T * ) ssGetInputPortSignal ( S , 1 ) ; real_T const * i_adshdzp2uh = ( real_T * ) ssGetInputPortSignal ( S , 16 ) ; real_T const * i_li3ly3bqo0 = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; real_T const * i_pgnvnvldbi = ( real_T * ) ssGetInputPortSignal ( S , 19 ) ; real_T const * i_fldr2ydvii = ( real_T * ) ssGetInputPortSignal ( S , 20 ) ; real_T * o_B_1_1 = ( real_T * ) ssGetOutputPortSignal ( S , 1 ) ; real_T * o_B_1_2 = ( real_T * ) ssGetOutputPortSignal ( S , 2 ) ; real_T * o_B_1_3 = ( real_T * ) ssGetOutputPortSignal ( S , 3 ) ; real_T * o_B_1_4 = ( real_T * ) ssGetOutputPortSignal ( S , 6 ) ; real_T * o_B_1_5 = ( real_T * ) ssGetOutputPortSignal ( S , 7 ) ; real_T * o_B_1_6 = ( real_T * ) ssGetOutputPortSignal ( S , 8 ) ; real_T * o_B_1_7 = ( real_T * ) ssGetOutputPortSignal ( S , 11 ) ; real_T * o_B_1_8 = ( real_T * ) ssGetOutputPortSignal ( S , 12 ) ; real_T * o_B_1_9 = ( real_T * ) ssGetOutputPortSignal ( S , 13 ) ; real_T * o_o_o_o_B_1_10 = ( real_T * ) ssGetOutputPortSignal ( S , 0 ) ; real_T * o_B_1_11 = ( real_T * ) ssGetOutputPortSignal ( S , 4 ) ; real_T * o_B_1_12 = ( real_T * ) ssGetOutputPortSignal ( S , 5 ) ; real_T * o_B_1_13 = ( real_T * ) ssGetOutputPortSignal ( S , 9 ) ; real_T * o_B_1_14 = ( real_T * ) ssGetOutputPortSignal ( S , 10 ) ; real_T * o_B_1_15 = ( real_T * ) ssGetOutputPortSignal ( S , 14 ) ; if ( tid == PARAMETER_TUNING_TID ) { insTID1 ( & ( dw -> rtm ) , o_o_o_o_B_1_10 , o_B_1_11 , o_B_1_12 , o_B_1_13 , o_B_1_14 , o_B_1_15 , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } if ( tid != CONSTANT_TID && tid != PARAMETER_TUNING_TID ) { ins ( & ( dw -> rtm ) , i_duciplvjp0 , i_ctarcg42bp , i_adshdzp2uh , i_li3ly3bqo0 , i_pgnvnvldbi , i_fldr2ydvii , o_B_1_1 , o_B_1_2 , o_B_1_3 , o_B_1_4 , o_B_1_5 , o_B_1_6 , o_B_1_7 , o_B_1_8 , o_B_1_9 , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } }
+ssGetOutputPortSignal ( S , 0 ) ; mdlProcessParameters ( S ) ; ovcoxgbkug ( o_o_o_o_B_1_10 ) ; } static void mdlOutputs ( SimStruct * S , int_T tid ) { imyuptdnp20 * dw = ( imyuptdnp20 * ) ssGetDWork ( S , 0 ) ; real_T const * i_duciplvjp0 = ( real_T * ) ssGetInputPortSignal ( S , 0 ) ; real_T const * i_ctarcg42bp = ( real_T * ) ssGetInputPortSignal ( S , 1 ) ; real_T const * i_adshdzp2uh = ( real_T * ) ssGetInputPortSignal ( S , 16 ) ; real_T const * i_li3ly3bqo0 = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; real_T const * i_pgnvnvldbi = ( real_T * ) ssGetInputPortSignal ( S , 19 ) ; real_T const * i_fldr2ydvii = ( real_T * ) ssGetInputPortSignal ( S , 20 ) ; real_T * o_B_1_1 = ( real_T * ) ssGetOutputPortSignal ( S , 1 ) ; real_T * o_B_1_2 = ( real_T * ) ssGetOutputPortSignal ( S , 2 ) ; real_T * o_B_1_3 = ( real_T * ) ssGetOutputPortSignal ( S , 3 ) ; real_T * o_B_1_4 = ( real_T * ) ssGetOutputPortSignal ( S , 6 ) ; real_T * o_B_1_5 = ( real_T * ) ssGetOutputPortSignal ( S , 7 ) ; real_T * o_B_1_6 = ( real_T * ) ssGetOutputPortSignal ( S , 8 ) ; real_T * o_B_1_7 = ( real_T * ) ssGetOutputPortSignal ( S , 11 ) ; real_T * o_B_1_8 = ( real_T * ) ssGetOutputPortSignal ( S , 12 ) ; real_T * o_B_1_9 = ( real_T * ) ssGetOutputPortSignal ( S , 13 ) ; real_T * o_o_o_o_B_1_10 = ( real_T * ) ssGetOutputPortSignal ( S , 0 ) ; real_T * o_B_1_11 = ( real_T * ) ssGetOutputPortSignal ( S , 4 ) ; real_T * o_B_1_12 = ( real_T * ) ssGetOutputPortSignal ( S , 5 ) ; real_T * o_B_1_13 = ( real_T * ) ssGetOutputPortSignal ( S , 9 ) ; real_T * o_B_1_14 = ( real_T * ) ssGetOutputPortSignal ( S , 10 ) ; real_T * o_B_1_15 = ( real_T * ) ssGetOutputPortSignal ( S , 14 ) ; if ( tid == PARAMETER_TUNING_TID ) { insTID1 ( o_o_o_o_B_1_10 , o_B_1_11 , o_B_1_12 , o_B_1_13 , o_B_1_14 , o_B_1_15 , & ( dw -> rtb ) ) ; } if ( tid != CONSTANT_TID && tid != PARAMETER_TUNING_TID ) { ins ( & ( dw -> rtm ) , i_duciplvjp0 , i_ctarcg42bp , i_adshdzp2uh , i_li3ly3bqo0 , i_pgnvnvldbi , i_fldr2ydvii , o_B_1_1 , o_B_1_2 , o_B_1_3 , o_B_1_4 , o_B_1_5 , o_B_1_6 , o_B_1_7 , o_B_1_8 , o_B_1_9 , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } }
 #define MDL_UPDATE
 static void mdlUpdate ( SimStruct * S , int_T tid ) { imyuptdnp20 * dw = ( imyuptdnp20 * ) ssGetDWork ( S , 0 ) ; nm4estrdnl ( & ( dw -> rtdw ) ) ; return ; } static void mdlTerminate ( SimStruct * S ) { imyuptdnp20 * dw = ( imyuptdnp20 * ) ssGetDWork ( S , 0 ) ; kodwqddmp4 ( & ( dw -> rtm ) ) ; return ; }
 #define MDL_CLEANUP_RUNTIME_RESOURCES

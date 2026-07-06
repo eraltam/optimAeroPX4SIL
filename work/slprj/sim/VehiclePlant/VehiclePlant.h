@@ -69,15 +69,14 @@ ssNonContDerivSigInfo nonContDerivSignal [ 31 ] ; const rtTimingBridge *
 timingBridge ; struct { rtwCAPI_ModelMappingInfo mmi ;
 rtwCAPI_ModelMapLoggingInstanceInfo mmiLogInstanceInfo ;
 rtwCAPI_ModelMappingInfo * childMMI [ 3 ] ; sysRanDType * systemRan [ 2 ] ;
-int_T systemTid [ 2 ] ; } DataMapInfo ; struct { uint8_T rtmDbBufReadBuf3 ;
-uint8_T rtmDbBufWriteBuf3 ; boolean_T rtmDbBufLastBufWr3 ; uint32_T
-rtmDbBufClockTick3 [ 2 ] ; int_T mdlref_GlobalTID [ 4 ] ; time_T tStart ; }
-Timing ; } ; typedef struct { n4i4q3iehd rtb ; j0qkcyobx0 rtdw ; hl0stsvgru
-rtm ; } owiw5mmjy2f ; extern struct_7BigaldNWGj33rb8sElmtH rtP_parameters ;
-extern real_T rtP_C_D [ 19 ] ; extern real_T rtP_C_L [ 19 ] ; extern real_T
-rtP_INS_VARIANT ; extern real_T rtP_actuatorDelay_s ; extern real_T
-rtP_airDensityAtStd_kgpm3 ; extern real_T rtP_aircraftInitialBodyRates_radps
-[ 3 ] ; extern real_T rtP_aircraftInitialEuler_rad [ 3 ] ; extern real_T
+int_T systemTid [ 2 ] ; } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 4 ]
+; time_T tStart ; } Timing ; } ; typedef struct { n4i4q3iehd rtb ; j0qkcyobx0
+rtdw ; hl0stsvgru rtm ; } owiw5mmjy2f ; extern struct_7BigaldNWGj33rb8sElmtH
+rtP_parameters ; extern real_T rtP_C_D [ 19 ] ; extern real_T rtP_C_L [ 19 ]
+; extern real_T rtP_INS_VARIANT ; extern real_T rtP_actuatorDelay_s ; extern
+real_T rtP_airDensityAtStd_kgpm3 ; extern real_T
+rtP_aircraftInitialBodyRates_radps [ 3 ] ; extern real_T
+rtP_aircraftInitialEuler_rad [ 3 ] ; extern real_T
 rtP_aircraftInitialPosInNED_m [ 3 ] ; extern real_T
 rtP_aircraftInitialVelInBody_mps [ 3 ] ; extern real_T rtP_alphaBkpts_rad [
 19 ] ; extern real_T rtP_gustAmplitude_mps [ 3 ] ; extern real_T

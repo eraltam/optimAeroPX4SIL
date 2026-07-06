@@ -26,16 +26,9 @@
 #define TARGET_STRING(s)               (s)
 #endif
 #endif
-static const rtwCAPI_SignalHierLoggingInfo rtSigHierLoggingInfo [ ] = { { ""
-, 5 , 0 } , { "device_id" , 0 , - 1 } , { "x_mps2" , 0 , - 1 } , { "y_mps2" ,
-0 , - 1 } , { "z_mps2" , 0 , - 1 } , { "temperature_degC" , 0 , - 1 } , { ""
-, 5 , 5 } , { "x_radps" , 0 , - 1 } , { "y_radps" , 0 , - 1 } , { "z_radps" ,
-0 , - 1 } , { "" , 5 , 10 } , { "x_Gauss" , 0 , - 1 } , { "y_Gauss" , 0 , - 1
-} , { "z_Gauss" , 0 , - 1 } } ; static const uint_T rtSigHierLoggingChildIdxs
-[ ] = { 1 , 2 , 3 , 4 , 5 , 1 , 7 , 8 , 9 , 5 , 1 , 11 , 12 , 13 , 5 } ;
 static rtwCAPI_Signals rtBlockSignals [ ] = { { 0 , 0 , ( NULL ) , ( NULL ) ,
 0 , 0 , 0 , 0 , 0 } } ; static rtwCAPI_States rtBlockStates [ ] = { { 0 , - 1
-, TARGET_STRING ( "ins/Three-axis Inertial\nMeasurement Unit/Three-axis Accelerometer/Dynamics/Second-order Dynamics/Discrete\nTransfer Fcn" ) , TARGET_STRING ( "states" ) , "" , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } , { 1 , - 1 , TARGET_STRING ( "ins/Three-axis Inertial\nMeasurement Unit/Three-axis Gyroscope/Dynamics/Second-order Dynamics/Discrete\nTransfer Fcn" ) , TARGET_STRING ( "states" ) , "" , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } , { 0 , - 1 , ( NULL ) , ( NULL ) , ( NULL ) , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } } ; static int_T rt_LoggedStateIdxList [ ] = { 0 , 1 } ;
+, TARGET_STRING ( "ins/Three-axis Inertial\nMeasurement Unit/Three-axis Accelerometer/Dynamics/Second-order Dynamics/Discrete\nTransfer Fcn" ) , TARGET_STRING ( "states" ) , "" , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } , { 1 , - 1 , TARGET_STRING ( "ins/Three-axis Inertial\nMeasurement Unit/Three-axis Gyroscope/Dynamics/Second-order Dynamics/Discrete\nTransfer Fcn" ) , TARGET_STRING ( "states" ) , "" , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } , { 0 , - 1 , ( NULL ) , ( NULL ) , ( NULL ) , 0 , 0 , 0 , 0 , 0 , 0 , - 1 , 0 } } ; static int_T rt_LoggedStateIdxList [ ] = { 1 , 0 } ;
 #ifndef HOST_CAPI_BUILD
 static void ins_InitializeDataAddr ( void * dataAddr [ ] , nh5zucdt3e *
 localDW ) { dataAddr [ 0 ] = ( void * ) ( & localDW -> mp3p522fzj [ 0 ] ) ;
@@ -62,7 +55,7 @@ rtwCAPI_VECTOR , 0 , 2 , 0 } } ; static uint_T rtDimensionArray [ ] = { 6 , 1
 rtwCAPI_FixPtMap rtFixPtMap [ ] = { { ( NULL ) , ( NULL ) ,
 rtwCAPI_FIX_RESERVED , 0 , 0 , ( boolean_T ) 0 } , } ; static
 rtwCAPI_SampleTimeMap rtSampleTimeMap [ ] = { { ( const void * ) &
-rtcapiStoredFloats [ 0 ] , ( const void * ) & rtcapiStoredFloats [ 1 ] , ( int8_T ) 0 , ( uint8_T ) 0 } } ; static int_T rtContextSystems [ 2 ] ; static rtwCAPI_LoggingMetaInfo loggingMetaInfo [ ] = { { 0 , 0 , "" , 0 } } ; static rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 2 , rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 14 , rtSigHierLoggingInfo , rtSigHierLoggingChildIdxs } , 0 , ( NULL ) } ; static rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 2 } , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" , { 397948258U , 271175859U , 722786767U , 896014268U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo * ins_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
+rtcapiStoredFloats [ 0 ] , ( const void * ) & rtcapiStoredFloats [ 1 ] , ( int8_T ) 0 , ( uint8_T ) 0 } } ; static int_T rtContextSystems [ 2 ] ; static rtwCAPI_LoggingMetaInfo loggingMetaInfo [ ] = { { 0 , 0 , "" , 0 } } ; static rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 2 , rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL ) } , 0 , ( NULL ) } ; static rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 2 } , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" , { 357301447U , 1974147272U , 3572348195U , 3877985512U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo * ins_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
 static void ins_InitializeSystemRan ( ntnem3iwts * const lsn0hi3qme ,
 sysRanDType * systemRan [ ] , nh5zucdt3e * localDW , int_T systemTid [ ] ,

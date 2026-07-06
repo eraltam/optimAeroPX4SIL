@@ -31,24 +31,8 @@ ajsi3uhw15h abc2mgehbv ; } e2ptrxcrjh ; struct irkooafj3n { struct
 SimStruct_tag * _mdlRefSfcnS ; struct { rtwCAPI_ModelMappingInfo mmi ;
 rtwCAPI_ModelMapLoggingInstanceInfo mmiLogInstanceInfo ;
 rtwCAPI_ModelMappingInfo * childMMI [ 4 ] ; sysRanDType * systemRan [ 2 ] ;
-int_T systemTid [ 2 ] ; } DataMapInfo ; struct { uint8_T rtmDbBufReadBuf1 ;
-uint8_T rtmDbBufWriteBuf1 ; boolean_T rtmDbBufLastBufWr1 ; uint32_T
-rtmDbBufClockTick1 [ 2 ] ; int_T mdlref_GlobalTID [ 2 ] ; } Timing ; } ;
-typedef struct { ol4emqpvsb rtb ; e2ptrxcrjh rtdw ; fcgqozqvuz rtm ; }
-b3bxwyuagcq ; extern struct_7BigaldNWGj33rb8sElmtH rtP_parameters ; extern
-real_T rtP_INS_VARIANT ; extern void a0zks0ycbp ( SimStruct * _mdlRefSfcnS ,
-int_T mdlref_TID0 , int_T mdlref_TID1 , fcgqozqvuz * const nxtbamgl1k ,
-ol4emqpvsb * localB , e2ptrxcrjh * localDW , void * sysRanPtr , int_T
-contextTid , rtwCAPI_ModelMappingInfo * rt_ParentMMI , const char_T *
-rt_ChildPath , int_T rt_ChildMMIIdx , int_T rt_CSTATEIdx ) ; extern void
-mr_sensors_MdlInfoRegFcn ( SimStruct * mdlRefSfcnS , char_T * modelName ,
-int_T * retVal ) ; extern mxArray * mr_sensors_GetDWork ( const b3bxwyuagcq *
-mdlrefDW ) ; extern void mr_sensors_SetDWork ( b3bxwyuagcq * mdlrefDW , const
-mxArray * ssDW ) ; extern void mr_sensors_RegisterSimStateChecksum ( SimStruct
-* S ) ; extern mxArray * mr_sensors_GetSimStateDisallowedBlocks ( ) ; extern
-const rtwCAPI_ModelMappingStaticInfo * sensors_GetCAPIStaticMap ( void ) ;
-extern void p5rhivt1qj ( fcgqozqvuz * const nxtbamgl1k , e2ptrxcrjh * localDW
-) ; extern void nxchj2otxt ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ;
-extern void e5og5o404u ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ;
-extern void m4f2mhs2e2 ( e2ptrxcrjh * localDW ) ; extern void ihfrza3mwz ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void ppnzf4flpg ( e2ptrxcrjh * localDW ) ; extern void sensors ( const real_T * gw2o54hyug , const real_T pc1xqipjxh [ 3 ] , const real_T * mkuinhvhra , const real_T * m2cfhwgjar , const real_T * getakumxzj , const real_T egt5e4v2sm [ 3 ] , const real_T i54drskj2d [ 3 ] , const real_T aseybhdv4v [ 3 ] , const real_T jif0c1eig0 [ 3 ] , const real_T ive15jk0dv [ 9 ] , const real_T padxf0mpd2 [ 3 ] , const real_T cq1xjt4ohl [ 3 ] , SensorsBus * clxl221l0s , ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void sensorsTID1 ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void bmwvoaufe2 ( e2ptrxcrjh * localDW , fcgqozqvuz * const nxtbamgl1k ) ;
+int_T systemTid [ 2 ] ; } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 2 ]
+; } Timing ; } ; typedef struct { ol4emqpvsb rtb ; e2ptrxcrjh rtdw ;
+fcgqozqvuz rtm ; } b3bxwyuagcq ; extern struct_7BigaldNWGj33rb8sElmtH
+rtP_parameters ; extern real_T rtP_INS_VARIANT ; extern void a0zks0ycbp ( SimStruct * _mdlRefSfcnS , int_T mdlref_TID0 , int_T mdlref_TID1 , fcgqozqvuz * const nxtbamgl1k , ol4emqpvsb * localB , e2ptrxcrjh * localDW , void * sysRanPtr , int_T contextTid , rtwCAPI_ModelMappingInfo * rt_ParentMMI , const char_T * rt_ChildPath , int_T rt_ChildMMIIdx , int_T rt_CSTATEIdx ) ; extern void mr_sensors_MdlInfoRegFcn ( SimStruct * mdlRefSfcnS , char_T * modelName , int_T * retVal ) ; extern mxArray * mr_sensors_GetDWork ( const b3bxwyuagcq * mdlrefDW ) ; extern void mr_sensors_SetDWork ( b3bxwyuagcq * mdlrefDW , const mxArray * ssDW ) ; extern void mr_sensors_RegisterSimStateChecksum ( SimStruct * S ) ; extern mxArray * mr_sensors_GetSimStateDisallowedBlocks ( ) ; extern const rtwCAPI_ModelMappingStaticInfo * sensors_GetCAPIStaticMap ( void ) ; extern void p5rhivt1qj ( fcgqozqvuz * const nxtbamgl1k , e2ptrxcrjh * localDW ) ; extern void nxchj2otxt ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void e5og5o404u ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void m4f2mhs2e2 ( e2ptrxcrjh * localDW ) ; extern void ihfrza3mwz ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void ppnzf4flpg ( e2ptrxcrjh * localDW ) ; extern void sensors ( const real_T * gw2o54hyug , const real_T pc1xqipjxh [ 3 ] , const real_T * mkuinhvhra , const real_T * m2cfhwgjar , const real_T * getakumxzj , const real_T egt5e4v2sm [ 3 ] , const real_T i54drskj2d [ 3 ] , const real_T aseybhdv4v [ 3 ] , const real_T jif0c1eig0 [ 3 ] , const real_T ive15jk0dv [ 9 ] , const real_T padxf0mpd2 [ 3 ] , const real_T cq1xjt4ohl [ 3 ] , SensorsBus * clxl221l0s , ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void sensorsTID1 ( ol4emqpvsb * localB , e2ptrxcrjh * localDW ) ; extern void bmwvoaufe2 ( e2ptrxcrjh * localDW , fcgqozqvuz * const nxtbamgl1k ) ;
 #endif

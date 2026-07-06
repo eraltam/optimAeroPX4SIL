@@ -2,7 +2,7 @@
 ## Makefile generated for component 'sensors'. 
 ## 
 ## Makefile     : sensors.mk
-## Generated on : Wed Jul 01 11:45:03 2026
+## Generated on : Mon Jul 06 13:40:59 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/sensors_msf.mexw64
 ## Product type : shared library
 ## 
