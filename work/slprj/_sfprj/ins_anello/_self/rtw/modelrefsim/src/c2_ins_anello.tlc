@@ -1,0 +1,94 @@
+%implements "chartSource" "C"
+%function ChartConfig(block, system) void
+  %createrecord chartConfiguration { ...
+          executeAtInitialization  0 ...
+  }
+  %return chartConfiguration
+%endfunction
+%function ChartDataMap(block, system) void
+  %createrecord ChartDataElements {\
+    NumChartData   10 \
+    ChartDataDefaults {\
+      RecordType   "ChartData"\
+      Dimensions   []\
+      IsTestPoint  0\
+    }\
+    ChartData {\
+      Name         "mp"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_Vehicle_fcn_SIL.m:1581-1583"\
+    }\
+    ChartData {\
+      Name         "ga_bias"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1850-1857"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "gy_bias"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1859-1866"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "mg_bias"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1868-1875"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "method"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_randn.m:683-689"\
+    }\
+    ChartData {\
+      Name         "state"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_randn.m:690-695"\
+      Dimensions   [2]\
+    }\
+    ChartData {\
+      Name         "method"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_rand.m:523-529"\
+    }\
+    ChartData {\
+      Name         "state"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_rand_mcg16807_stateful.m:164-169"\
+    }\
+    ChartData {\
+      Name         "state"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_rand_shr3cong_stateful.m:165-170"\
+      Dimensions   [2]\
+    }\
+    ChartData {\
+      Name         "state"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\Program Files\MATLAB\R2026a\toolbox\eml\lib\matlab\randfun\private\eml_rand_mt19937ar_stateful.m:166-171"\
+      Dimensions   [625]\
+    }\
+  }
+  %return ChartDataElements
+%endfunction
