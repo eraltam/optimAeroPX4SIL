@@ -1,0 +1,37 @@
+vehicle:
+  mavsdk_address: "udp://:14540"
+  pymavlink_address: "udpin:0.0.0.0:14550"
+  connect_timeout_s: 60
+  telemetry_timeout_s: 15
+  health_timeout_s: 60
+  takeoff_altitude_m: 3.0
+  auto_arm: false
+  auto_takeoff: false
+  mission_file: "mission.yaml"
+
+listener:
+  enabled: true
+  log_file: "logs/mavlink_raw_log.jsonl"
+  message_types:
+    - HEARTBEAT
+    - SYS_STATUS
+    - BATTERY_STATUS
+    - ATTITUDE
+    - LOCAL_POSITION_NED
+    - GLOBAL_POSITION_INT
+    - GPS_RAW_INT
+    - VFR_HUD
+    - ACTUATOR_OUTPUT_STATUS
+    - SERVO_OUTPUT_RAW
+    - HIL_ACTUATOR_CONTROLS
+    - HOME_POSITION
+    - COMMAND_ACK
+    - MISSION_ACK
+    - MISSION_CURRENT
+    - STATUSTEXT
+
+safety:
+  require_position_ok_for_takeoff: true
+  max_takeoff_altitude_m: 10.0
+  allow_real_vehicle_commands: false
+  allow_pymavlink_commands: false
