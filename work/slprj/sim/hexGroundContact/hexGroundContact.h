@@ -35,7 +35,7 @@ real_T P_7 ; real_T P_8 ; real_T P_9 ; real_T P_10 ; real_T P_11 ; real_T
 P_12 ; real_T P_13 ; real_T P_14 ; real_T P_15 [ 3 ] ; real_T P_16 [ 3 ] ; }
 ; struct hpzazzelz2 { struct SimStruct_tag * _mdlRefSfcnS ; struct {
 rtwCAPI_ModelMappingInfo mmi ; rtwCAPI_ModelMapLoggingInstanceInfo
-mmiLogInstanceInfo ; sysRanDType * systemRan [ 4 ] ; int_T systemTid [ 4 ] ;
+mmiLogInstanceInfo ; sysRanDType * systemRan [ 3 ] ; int_T systemTid [ 3 ] ;
 } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 2 ] ; } Timing ; } ;
 typedef struct { eau03cdx20 rtdw ; lovmqf3ufw rtm ; } dz2poepecm5 ; extern
 void bjz0njqoy1 ( SimStruct * _mdlRefSfcnS , int_T mdlref_TID0 , int_T

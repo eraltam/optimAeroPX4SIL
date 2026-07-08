@@ -4,7 +4,7 @@ call "setup_mingw.bat"
 
 cd .
 
-if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 8 -l 10 -Oline -f VehiclePlant.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 8 -l 10 -Oline -f VehiclePlant.mk %1)
+if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 16 -l 20 -Oline -f VehiclePlant.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 16 -l 20 -Oline -f VehiclePlant.mk %1)
 @if errorlevel 1 goto error_exit
 
 exit /B 0

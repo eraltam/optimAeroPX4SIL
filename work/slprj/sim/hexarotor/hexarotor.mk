@@ -2,7 +2,7 @@
 ## Makefile generated for component 'hexarotor'. 
 ## 
 ## Makefile     : hexarotor.mk
-## Generated on : Wed Jul 01 11:45:15 2026
+## Generated on : Tue Jul 07 16:41:59 2026
 ## Final product: ./hexarotorlib.lib
 ## Product type : static library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = hexarotor.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -220,7 +220,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/CGMASS~1/CGMASS~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/gravity/GRAVIT~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/HEXACT~1/HEXACT~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/HEXMOT~1/HEXMOT~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/hexAddFm/HEXADD~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/hexAero/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/HEXAER~1/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/HEXGRO~1/HEXGRO~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/INERTI~1/INERTI~1.LIB
+MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/CGMASS~1/CGMASS~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/gravity/GRAVIT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXACT~1/HEXACT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXMOT~1/HEXMOT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/hexAddFm/HEXADD~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/hexAero/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXAER~1/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXGRO~1/HEXGRO~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/INERTI~1/INERTI~1.LIB
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

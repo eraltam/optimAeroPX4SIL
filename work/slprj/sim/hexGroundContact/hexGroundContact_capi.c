@@ -41,22 +41,22 @@ rtwCAPI_SCALAR , 0 , 0 , 0 } } ; static uint_T rtDimensionArray [ ] = { 0 } ;
 static rtwCAPI_FixPtMap rtFixPtMap [ ] = { { ( NULL ) , ( NULL ) ,
 rtwCAPI_FIX_RESERVED , 0 , 0 , ( boolean_T ) 0 } , } ; static
 rtwCAPI_SampleTimeMap rtSampleTimeMap [ ] = { { ( NULL ) , ( NULL ) , 0 , 0 }
-} ; static int_T rtContextSystems [ 4 ] ; static rtwCAPI_LoggingMetaInfo
+} ; static int_T rtContextSystems [ 3 ] ; static rtwCAPI_LoggingMetaInfo
 loggingMetaInfo [ ] = { { 0 , 0 , "" , 0 } } ; static
-rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 4 ,
+rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 3 ,
 rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 } , 0 , ( NULL ) } ; static rtwCAPI_ModelMappingStaticInfo mmiStatic = { {
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 4029424234U , 1561162685U , 1059931284U , 3456139516U } , &
+{ 1907772182U , 7872596U , 2267576114U , 2385714524U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * hexGroundContact_GetCAPIStaticMap ( void ) {
 return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
 static void hexGroundContact_InitializeSystemRan ( lovmqf3ufw * const
 ji5fp3oui2 , sysRanDType * systemRan [ ] , eau03cdx20 * localDW , int_T
-systemTid [ ] , void * rootSysRanPtr , int rootTid ) { UNUSED_PARAMETER ( ji5fp3oui2 ) ; UNUSED_PARAMETER ( localDW ) ; systemRan [ 0 ] = ( sysRanDType * ) rootSysRanPtr ; systemRan [ 1 ] = ( NULL ) ; systemRan [ 2 ] = ( NULL ) ; systemRan [ 3 ] = ( NULL ) ; systemTid [ 1 ] = ji5fp3oui2 -> Timing . mdlref_GlobalTID [ 0 ] ; systemTid [ 2 ] = ji5fp3oui2 -> Timing . mdlref_GlobalTID [ 0 ] ; systemTid [ 3 ] = ji5fp3oui2 -> Timing . mdlref_GlobalTID [ 0 ] ; systemTid [ 0 ] = rootTid ; rtContextSystems [ 0 ] = 0 ; rtContextSystems [ 1 ] = 0 ; rtContextSystems [ 2 ] = 0 ; rtContextSystems [ 3 ] = 0 ; }
+systemTid [ ] , void * rootSysRanPtr , int rootTid ) { UNUSED_PARAMETER ( ji5fp3oui2 ) ; UNUSED_PARAMETER ( localDW ) ; systemRan [ 0 ] = ( sysRanDType * ) rootSysRanPtr ; systemRan [ 1 ] = ( NULL ) ; systemRan [ 2 ] = ( NULL ) ; systemTid [ 1 ] = ji5fp3oui2 -> Timing . mdlref_GlobalTID [ 0 ] ; systemTid [ 2 ] = ji5fp3oui2 -> Timing . mdlref_GlobalTID [ 0 ] ; systemTid [ 0 ] = rootTid ; rtContextSystems [ 0 ] = 0 ; rtContextSystems [ 1 ] = 0 ; rtContextSystems [ 2 ] = 0 ; }
 #endif
 #ifndef HOST_CAPI_BUILD
 void hexGroundContact_InitializeDataMapInfo ( lovmqf3ufw * const ji5fp3oui2 ,
