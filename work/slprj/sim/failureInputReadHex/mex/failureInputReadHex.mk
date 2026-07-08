@@ -2,7 +2,7 @@
 ## Makefile generated for component 'failureInputReadHex'. 
 ## 
 ## Makefile     : failureInputReadHex.mk
-## Generated on : Wed Jul 01 11:44:18 2026
+## Generated on : Tue Jul 07 12:15:23 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/failureInputReadHex_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = failureInputReadHex.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/FAILUR~1/FAILUR~1.LIB
+MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/FAILUR~1/FAILUR~1.LIB
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

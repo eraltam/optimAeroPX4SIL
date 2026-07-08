@@ -2,7 +2,7 @@
 ## Makefile generated for component 'sensors'. 
 ## 
 ## Makefile     : sensors.mk
-## Generated on : Mon Jul 06 13:40:59 2026
+## Generated on : Tue Jul 07 12:15:39 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/sensors_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = sensors.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/sensors/SENSOR~1.LIB C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/adc/adclib.lib C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/gps/gpslib.lib C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/ins/inslib.lib C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/INS_AN~1/INS_AN~1.LIB
+MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/sensors/SENSOR~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/adc/adclib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/gps/gpslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/ins/inslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/INS_AN~1/INS_AN~1.LIB
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

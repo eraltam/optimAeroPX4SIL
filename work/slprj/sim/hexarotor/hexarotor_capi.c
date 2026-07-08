@@ -57,8 +57,8 @@ rtSigHierLoggingInfo , rtSigHierLoggingChildIdxs } , 0 , ( NULL ) } ; static
 rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL )
 , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 0
 } , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap ,
-rtSampleTimeMap , rtDimensionArray } , "float" , { 248809091U , 305938768U ,
-1952358301U , 1830455402U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 ,
+rtSampleTimeMap , rtDimensionArray } , "float" , { 3415034254U , 2842885057U
+, 1337854799U , 414386213U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 ,
 rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
 hexarotor_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
