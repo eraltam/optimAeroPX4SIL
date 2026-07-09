@@ -13,10 +13,11 @@ arguments
     opts.hitlBaudRate (1,1) double = 921600
     opts.hitlQGCPort (1,1) double = 14550
     opts.vehicleType (1,1) string = "hexarotor"
-    opts.visualizationType (1,1) string = "Matlab"
+    opts.visualizationType (1,1) string = "FlightGear"
     opts.stopTime_s (1,1) double = 200
     opts.clearSLCache (1,1) logical = false
     opts.sessionRoot (1,1) string = ""
+    opts.sessionId (1,1) string = ""
     opts.preflightWindow_s (1,1) double = 10
 end
 
@@ -29,11 +30,18 @@ if strlength(opts.sessionRoot) == 0
     opts.sessionRoot = fullfile(repoRoot, "HILDiagnostics", "logs");
 end
 
-timestamp = string(datetime("now", "Format", "yyyyMMdd_HHmmss"));
-sessionDir = fullfile(opts.sessionRoot, "session_" + timestamp);
+if strlength(opts.sessionId) > 0
+    sessionName = "session_" + sanitizeSessionId(opts.sessionId);
+else
+    timestamp = string(datetime("now", "Format", "yyyyMMdd_HHmmss"));
+    sessionName = "session_" + timestamp;
+end
+
+sessionDir = fullfile(opts.sessionRoot, sessionName);
 if ~exist(sessionDir, "dir")
     mkdir(sessionDir);
 end
+writeTextFile(fullfile(opts.sessionRoot, "latest_session.txt"), sessionDir);
 
 diaryFile = fullfile(sessionDir, "matlab_diary.txt");
 diary(diaryFile);
@@ -430,6 +438,22 @@ if fid < 0
 end
 cleanup = onCleanup(@() fclose(fid));
 fprintf(fid, "%s\n", jsonencode(makeJsonSafe(data), "PrettyPrint", true));
+end
+
+function writeTextFile(path, text)
+fid = fopen(path, "w");
+if fid < 0
+    error("Could not open text output: %s", path);
+end
+cleanup = onCleanup(@() fclose(fid));
+fprintf(fid, "%s\n", char(text));
+end
+
+function sessionId = sanitizeSessionId(rawSessionId)
+sessionId = string(regexprep(strtrim(char(rawSessionId)), "[^A-Za-z0-9_.-]", "_"));
+if strlength(sessionId) == 0
+    error("sessionId cannot be empty after sanitization.");
+end
 end
 
 function out = makeJsonSafe(in)

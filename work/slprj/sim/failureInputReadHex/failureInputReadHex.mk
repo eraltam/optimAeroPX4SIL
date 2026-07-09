@@ -2,7 +2,7 @@
 ## Makefile generated for component 'failureInputReadHex'. 
 ## 
 ## Makefile     : failureInputReadHex.mk
-## Generated on : Tue Jul 07 17:20:38 2026
+## Generated on : Wed Jul 08 15:03:48 2026
 ## Final product: ./failureInputReadHexlib.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = failureInputReadHex.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/AS/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0

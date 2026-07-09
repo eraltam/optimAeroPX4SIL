@@ -1,17 +1,40 @@
 vehicle:
   mavsdk_address: "udp://:14540"
   pymavlink_address: "udpin:0.0.0.0:14550"
-  connect_timeout_s: 60
+  # UDP port the Simulink HITL connector's new "UDP Receive" block listens on, mixed
+  # into the outbound serial stream to the real PX4 board (see PX4HITLConnector.slx /
+  # VehicleSilSimulation.slx "PX4 HITL Interface" -> Combine_MAVLink_Streams 4th input).
+  simulink_command_address: "udp://127.0.0.1:14541"
+  # Also drives pymavlink's connect() timeout (see main.py listener_main()). When main.py is
+  # started as a separate process/tool call from the Simulink HITL session, there's real,
+  # variable overhead before Simulink ever produces its first HEARTBEAT (toolbox/path checks in
+  # initVehicleSIL, then model build/compile) -- 60s proved too tight in practice. Generous on
+  # purpose since waiting costs nothing but time; a genuinely broken connection still times out
+  # eventually.
+  connect_timeout_s: 180
   telemetry_timeout_s: 15
   health_timeout_s: 60
+  takeoff_timeout_s: 60
   takeoff_altitude_m: 3.0
-  auto_arm: false
-  auto_takeoff: false
+  auto_arm: true
+  auto_takeoff: true
+  auto_mission: true
   mission_file: "mission.yaml"
 
 listener:
   enabled: true
-  log_file: "logs/mavlink_raw_log.jsonl"
+  log_file: "mavlink_raw_log.jsonl"
+  # In HITL mode the Simulink PX4 connector only relays MAVLink to pymavlink_address
+  # (14550); nothing sends to mavsdk_address (14540) on its own. When true, every
+  # message this listener receives is also re-sent to vehicle.mavsdk_address so MAVSDK
+  # can connect and issue arm/takeoff/mission commands. Set to false if something else
+  # (e.g. a dedicated Simulink UDP relay block) already feeds MAVSDK's port directly.
+  forward_to_mavsdk: true
+  # MAVSDK's replies (arm/takeoff/mission commands) come back addressed to our own
+  # forward socket, not to PX4 -- nothing reads them there without this. When true,
+  # every message received back from MAVSDK on that socket is relayed on to
+  # vehicle.simulink_command_address so it reaches the real PX4 over serial.
+  relay_commands_to_simulink: true
   message_types:
     - HEARTBEAT
     - SYS_STATUS
@@ -24,14 +47,24 @@ listener:
     - ACTUATOR_OUTPUT_STATUS
     - SERVO_OUTPUT_RAW
     - HIL_ACTUATOR_CONTROLS
+    - HIL_SENSOR
+    - HIL_GPS
     - HOME_POSITION
     - COMMAND_ACK
     - MISSION_ACK
     - MISSION_CURRENT
+    - MISSION_ITEM_REACHED
+    - MISSION_COUNT
+    - MISSION_REQUEST
+    - MISSION_REQUEST_INT
+    - MISSION_ITEM
+    - MISSION_ITEM_INT
+    - EXTENDED_SYS_STATE
     - STATUSTEXT
 
 safety:
   require_position_ok_for_takeoff: true
   max_takeoff_altitude_m: 10.0
-  allow_real_vehicle_commands: false
-  allow_pymavlink_commands: false
+  max_mission_altitude_m: 10.0
+  allow_real_vehicle_commands: true
+  allow_pymavlink_commands: true

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import socket
+import threading
 import time
 from pathlib import Path
 from typing import Any, Iterable
+from urllib.parse import urlparse
 
 from pymavlink import mavutil
 
@@ -12,8 +15,38 @@ from logger import JsonlLogger
 from safety import confirm_pymavlink_commands_allowed
 
 
+def _parse_udp_forward_target(address: str | None) -> tuple[str, int] | None:
+    """Parse a MAVSDK-style 'udp://[host]:port' address into a sendto() target.
+
+    MAVSDK's 'udp://:PORT' form (no host) means "listen locally", which for our purposes
+    as a forwarding destination means localhost.
+    """
+    if not address:
+        return None
+    parsed = urlparse(address)
+    if parsed.scheme not in ("udp", "udpin", "udpout") or parsed.port is None:
+        return None
+    return (parsed.hostname or "127.0.0.1", parsed.port)
+
+
 class PymavlinkListener:
-    """Listen to selected raw MAVLink messages and write them to JSONL."""
+    """Listen to selected raw MAVLink messages, write them to JSONL, and (optionally)
+    re-broadcast the full raw stream to MAVSDK's UDP port -- and relay MAVSDK's replies
+    back to Simulink so commands actually reach the real PX4 over the HITL serial link.
+
+    This forwarding exists because in HITL mode the Simulink PX4 connector relays the
+    serial MAVLink stream to a single UDP port (vehicle.pymavlink_address, typically
+    14550). MAVSDK listens on a separate port (vehicle.mavsdk_address, typically 14540)
+    that nothing else sends to, so without the forward MAVSDK never receives a single
+    packet and instructor.connect() hangs forever.
+
+    MAVSDK replies (arm/takeoff/mission commands) get addressed back to whatever
+    ephemeral local address _forward_socket's sendto() calls appear to originate from
+    (standard MAVLink UDP "reply to last sender" behavior), so that same socket -- not a
+    new one -- is what must also recvfrom() them, then relay them on to Simulink's
+    command-inbound UDP port (vehicle.simulink_command_address, typically 14541), which
+    Simulink mixes into the outbound serial stream to the real board.
+    """
 
     def __init__(self, config: dict[str, Any], base_dir: str | Path | None = None) -> None:
         self.config = config
@@ -23,6 +56,17 @@ class PymavlinkListener:
         self.message_types = set(self.listener_config.get("message_types", []))
         log_file = Path(self.listener_config.get("log_file", "logs/mavlink_raw_log.jsonl"))
         self.log_path = log_file if log_file.is_absolute() else Path(base_dir or ".") / log_file
+        self.forward_target: tuple[str, int] | None = None
+        if self.listener_config.get("forward_to_mavsdk", True):
+            self.forward_target = _parse_udp_forward_target(self.vehicle_config.get("mavsdk_address"))
+        self.command_relay_target: tuple[str, int] | None = None
+        if self.listener_config.get("relay_commands_to_simulink", True):
+            self.command_relay_target = _parse_udp_forward_target(
+                self.vehicle_config.get("simulink_command_address")
+            )
+        self._forward_socket: socket.socket | None = None
+        self._command_relay_thread: threading.Thread | None = None
+        self._outbound_parser: Any | None = None
         self.master = None
         self.logger: JsonlLogger | None = None
         self._stop = False
@@ -39,13 +83,104 @@ class PymavlinkListener:
         )
         self.logger = JsonlLogger(self.log_path)
         self.logger.write("LISTENER_CONNECTED", {"address": self.address})
+        if self.forward_target is not None:
+            self._forward_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            print(
+                "pymavlink: forwarding raw MAVLink stream to "
+                f"{self.forward_target[0]}:{self.forward_target[1]} for MAVSDK"
+            )
+            if self.command_relay_target is not None:
+                # Timeout lets _relay_commands_to_simulink's recvfrom() notice _stop
+                # periodically; harmless to the sendto() calls above sharing this socket,
+                # since sendto() on UDP essentially never blocks.
+                self._forward_socket.settimeout(1.0)
+                # Independent decoder (not self.master's) purely to make MAVSDK's outbound
+                # commands visible in console.log/JSONL -- otherwise they vanish into the
+                # relay with zero logging, since they never pass through listen_once()'s
+                # receive path.
+                self._outbound_parser = mavutil.mavlink.MAVLink(None)
+                self._outbound_parser.robust_parsing = True
+                self._command_relay_thread = threading.Thread(
+                    target=self._relay_commands_to_simulink,
+                    name="mavsdk-command-relay",
+                    daemon=True,
+                )
+                print(
+                    "pymavlink: relaying MAVSDK's outbound commands to "
+                    f"{self.command_relay_target[0]}:{self.command_relay_target[1]} for Simulink"
+                )
+                self._command_relay_thread.start()
+
+    def _relay_commands_to_simulink(self) -> None:
+        """Background thread: capture whatever MAVSDK sends back on _forward_socket's
+        ephemeral port and relay it to Simulink's UDP Receive block, so arm/takeoff/
+        mission commands actually reach the real PX4 over the HITL serial link.
+        """
+        assert self._forward_socket is not None and self.command_relay_target is not None
+        while not self._stop:
+            try:
+                data, _addr = self._forward_socket.recvfrom(4096)
+            except socket.timeout:
+                continue
+            except ConnectionResetError:
+                # Windows-specific: sendto() to MAVSDK's port before mavsdk_server has
+                # actually bound it triggers an ICMP port-unreachable, which Windows then
+                # delivers as ECONNRESET on the *next* recv on this socket -- even though
+                # UDP is connectionless and this is harmless. Without this, the whole
+                # relay thread died permanently a few ms into the session (confirmed:
+                # first sendto() in listen_once() races mavsdk_server's own startup), so
+                # every later MAVSDK command silently went nowhere for the rest of the
+                # run. Log once and keep going instead of treating it as fatal.
+                print("pymavlink: command relay: ignoring transient ECONNRESET (UDP port-unreachable)")
+                continue
+            except OSError:
+                if self._stop:
+                    return
+                raise
+            self._log_outbound(data)
+            try:
+                self._forward_socket.sendto(data, self.command_relay_target)
+            except OSError as exc:
+                print(f"pymavlink: command relay to Simulink failed: {exc}")
+
+    def _log_outbound(self, data: bytes) -> None:
+        """Decode and print/log MAVSDK's outbound bytes before relaying them, purely for
+        visibility -- a parse failure here must never block the relay itself.
+        """
+        if self._outbound_parser is None:
+            return
+        try:
+            msgs = self._outbound_parser.parse_buffer(data) or []
+        except Exception as exc:  # noqa: BLE001 - diagnostics only, must not break the relay
+            print(f"pymavlink: MAVSDK -> PX4: <{len(data)} bytes, failed to decode: {exc}>")
+            return
+        for msg in msgs:
+            msg_type = msg.get_type()
+            print(f"{time.strftime('%H:%M:%S')} MAVSDK -> PX4: {msg_type} {msg.to_dict()}")
+            if self.logger is not None:
+                self.logger.write(f"MAVSDK_OUT_{msg_type}", msg.to_dict())
 
     def listen_once(self, timeout_s: float = 1.0) -> bool:
         if self.master is None:
             raise RuntimeError("pymavlink listener is not connected")
-        msg = self.master.recv_match(blocking=True, timeout=timeout_s)
+        try:
+            msg = self.master.recv_match(blocking=True, timeout=timeout_s)
+        except TypeError as exc:
+            # pymavlink's mavutil.add_message() can corrupt its own internal
+            # per-type instance cache when a message's instance field briefly
+            # decodes as None (see mavutil.py add_message/_instances). We never
+            # read that internal cache ourselves, so just skip this message
+            # instead of letting the whole listener thread die.
+            print(f"pymavlink: recv_match internal error, skipping message: {exc}")
+            return False
         if msg is None:
             return False
+
+        if self._forward_socket is not None and self.forward_target is not None:
+            try:
+                self._forward_socket.sendto(msg.get_msgbuf(), self.forward_target)
+            except OSError as exc:
+                print(f"pymavlink: forward to MAVSDK failed: {exc}")
 
         msg_type = msg.get_type()
         if not self.message_types or msg_type in self.message_types:
@@ -72,6 +207,12 @@ class PymavlinkListener:
         if self.logger is not None:
             self.logger.close()
             self.logger = None
+        if self._command_relay_thread is not None:
+            self._command_relay_thread.join(timeout=2.0)
+            self._command_relay_thread = None
+        if self._forward_socket is not None:
+            self._forward_socket.close()
+            self._forward_socket = None
         if self.master is not None:
             try:
                 self.master.close()
@@ -108,6 +249,8 @@ def _format_message(msg_type: str, payload: dict[str, Any]) -> str:
         "COMMAND_ACK": ("command", "result"),
         "MISSION_ACK": ("type",),
         "MISSION_CURRENT": ("seq",),
+        "MISSION_ITEM_REACHED": ("seq",),
+        "EXTENDED_SYS_STATE": ("vtol_state", "landed_state"),
         "STATUSTEXT": ("severity", "text"),
     }
     keys = compact_keys.get(msg_type)

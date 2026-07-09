@@ -9,12 +9,12 @@ from typing import Any, Mapping
 
 
 class JsonlLogger:
-    """Append timestamped records to a JSONL file."""
+    """Write timestamped records to a JSONL file."""
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._file = self.path.open("a", encoding="utf-8")
+        self._file = self.path.open("w", encoding="utf-8")
 
     def write(self, message_type: str, payload: Mapping[str, Any]) -> None:
         record = {

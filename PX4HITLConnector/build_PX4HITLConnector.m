@@ -181,10 +181,54 @@ add_line(modelName, 'Compute Timestamp/1', 'Send Heartbeat/1', 'autorouting', 'o
 %% COMBINE + SEND (no RotorParameters -- see header note)
 %% ====================================================================
 add_block('simulink/Signal Routing/Mux', [modelName '/Combine_MAVLink_Streams'], ...
-    'Position', [580, 100, 620, 460], 'Inputs', '3');
+    'Position', [580, 100, 620, 460], 'Inputs', '4');
 add_line(modelName, 'HIL Sensor/1', 'Combine_MAVLink_Streams/1', 'autorouting', 'on');
 add_line(modelName, 'HIL_GPS/1', 'Combine_MAVLink_Streams/2', 'autorouting', 'on');
 add_line(modelName, 'Send Heartbeat/1', 'Combine_MAVLink_Streams/3', 'autorouting', 'on');
+
+% ---- COMMAND INBOUND: relay MAVSDK's arm/takeoff/mission commands into the outbound serial
+% stream (added post-hoc via model_edit against the already-built .slx, NOT executed as part of
+% this from-scratch build script -- this machine's refModelPath above (line 50) does not resolve
+% here, so this script could not be re-run to regenerate PX4HITLConnector.slx. This block is
+% mirrored here only so a future from-scratch rebuild reproduces the same result. See
+% optimAeroPX4SIL/HILDiagnostics/mavlink_system/listener_pymavlink.py's
+% _relay_commands_to_simulink() for the Python side that feeds this port: MAVSDK's replies get
+% relayed here because in HITL mode nothing else gives MAVSDK a path back to the real PX4 over
+% serial -- the FieldTable UDP relay on the Sink/Source blocks above is a one-way monitoring
+% mirror only, confirmed by testing (nothing on the Simulink side binds/listens on 14550).
+add_block('dspsrcs4/UDP Receive', [modelName '/UdpRecvCmd'], 'Position', [1050, 900, 1150, 940]);
+set_param([modelName '/UdpRecvCmd'], ...
+    'localURL', '''0.0.0.0''', 'localPort', '14541', 'remoteURL', '''0.0.0.0''', 'remotePort', '-1', ...
+    'recvBufferSize', '8192', 'dims', '300', 'signalDatatype', 'uint8', 'isComplex', 'off', ...
+    'isVarSize', 'off', 'showBlockingTime', 'off', 'blockingTime', '0', 'sampletime', 'SampleTime');
+% dims=300 fits a full signed MAVLink v2 frame (up to ~280 bytes); the block's own 255 default
+% would truncate CRC/signature bytes off large frames. isVarSize='off' matches the 3 existing Mux
+% inputs, which are all fixed-width (traced HIL Sensor's serializer output straight into the Mux
+% with no Rate Transition or variable-size signal in between).
+add_block('simulink/Math Operations/Reshape', [modelName '/reshapeUdpRecvCmd'], ...
+    'Position', [1160, 1000, 1220, 1030]);
+% UDP Receive's dims=300 outputs a [300x1] COLUMN vector, but the other 3 Mux inputs are 1-D/row
+% signals -- Simulink's Mux requires all inputs to be consistently row or column (not mixed,
+% error Simulink:blocks:MuxInvalidDimsInStrictNonBusMode_Dims). Reshape's default
+% OutputDimensionality='1-D array' converts it to match.
+add_line(modelName, 'UdpRecvCmd/1', 'reshapeUdpRecvCmd/1', 'autorouting', 'on');
+
+% CRITICAL: UDP Receive does NOT zero-pad between packets -- confirmed empirically (a scratch
+% model logging its output showed a single sent packet held/repeated on 216+ consecutive ticks
+% until the next packet replaced it). Without gating, every MAVSDK command would get replayed
+% into PX4's serial input ~125x/sec (at SampleTime=0.008s) until superseded by the next command,
+% which is exactly what caused PX4's mission upload handshake to fail with repeated/duplicate
+% MISSION_ACKs and PROTOCOL_ERROR in testing. Port 2 (y2) reports the actual byte count received
+% THIS tick only (0 on every tick without a new packet) -- also confirmed empirically -- so it's
+% used here as the gate condition instead of being left unconnected.
+add_block('simulink/Signal Routing/Switch', [modelName '/gateUdpRecvCmd'], 'Position', [1250, 940, 1300, 980]);
+set_param([modelName '/gateUdpRecvCmd'], 'Criteria', 'u2 ~= 0');
+add_block('simulink/Sources/Constant', [modelName '/zeroUdpRecvCmd'], 'Position', [1160, 1000, 1220, 1030]);
+set_param([modelName '/zeroUdpRecvCmd'], 'Value', 'zeros(1,300)', 'OutDataTypeStr', 'uint8');
+add_line(modelName, 'reshapeUdpRecvCmd/1', 'gateUdpRecvCmd/1', 'autorouting', 'on');
+add_line(modelName, 'UdpRecvCmd/2', 'gateUdpRecvCmd/2', 'autorouting', 'on');
+add_line(modelName, 'zeroUdpRecvCmd/1', 'gateUdpRecvCmd/3', 'autorouting', 'on');
+add_line(modelName, 'gateUdpRecvCmd/1', 'Combine_MAVLink_Streams/4', 'autorouting', 'on');
 
 add_block('HITL_Plant_top/MAVLink Bridge Sink', [modelName '/MAVLink Bridge Sink'], ...
     'Position', [680, 250, 760, 310]);

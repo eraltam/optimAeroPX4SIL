@@ -17,6 +17,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from session_paths import resolve_session_dir
+
 MAV_MODE_FLAG_SAFETY_ARMED = 128
 DEFAULT_COORD_AGREEMENT_DEG = 0.01  # ~1.1 km at the equator
 DEFAULT_NEAR_ZERO_DEG = 0.5
@@ -304,11 +306,30 @@ def print_human_summary(report: dict[str, Any]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--session-dir", required=True, help="Session folder with mavlink_raw_log.jsonl / matlab_summary.json")
+    parser.add_argument(
+        "--session-dir",
+        default=None,
+        help="Session folder with mavlink_raw_log.jsonl / matlab_summary.json, or 'latest'",
+    )
+    parser.add_argument(
+        "--session-id",
+        default=None,
+        help="Use HILDiagnostics/logs/session_<id>, e.g. --session-id 1",
+    )
     parser.add_argument("--out", default=None, help="Output report path (default: <session-dir>/session_report.json)")
     args = parser.parse_args()
 
-    session_dir = Path(args.session_dir).resolve()
+    script_dir = Path(__file__).resolve().parent
+    try:
+        session_dir = resolve_session_dir(
+            script_dir,
+            session_dir=args.session_dir,
+            session_id=args.session_id,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        parser.error(str(exc))
+    if args.session_dir is None and args.session_id is None:
+        print(f"analyze_session: using latest MATLAB session directory: {session_dir}")
     report = build_report(session_dir)
 
     out_path = Path(args.out).resolve() if args.out else session_dir / "session_report.json"

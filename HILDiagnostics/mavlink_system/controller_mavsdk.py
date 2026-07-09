@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import math
 from pathlib import Path
 from typing import Any
 
 from mavsdk import System
 from mavsdk.action import ActionError
+from mavsdk.mission import MissionItem, MissionPlan
+from mavsdk.telemetry import LandedState
+import yaml
 
 from safety import confirm_real_vehicle_allowed, validate_takeoff_altitude
 
@@ -15,11 +19,18 @@ from safety import confirm_real_vehicle_allowed, validate_takeoff_altitude
 class MavsdkInstructor:
     """High-level controller. This is the only class that sends flight commands."""
 
-    def __init__(self, config: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        config: dict[str, Any],
+        config_dir: str | Path | None = None,
+        base_dir: str | Path | None = None,
+    ) -> None:
         self.config = config
         self.vehicle_config = config.get("vehicle", {})
         self.safety_config = config.get("safety", {})
         self.address = self.vehicle_config.get("mavsdk_address", "udp://:14540")
+        self.config_dir = Path(config_dir) if config_dir is not None else Path.cwd()
+        self.base_dir = Path(base_dir) if base_dir is not None else None
         self.drone = System()
 
     async def connect(self) -> None:
@@ -40,21 +51,28 @@ class MavsdkInstructor:
             print("MAVSDK: position health gate disabled by config")
             return
 
-        print("MAVSDK: waiting for global position and home position health")
+        # is_global_position_ok/is_home_position_ok alone are NOT sufficient: PX4 can report
+        # both true while still failing its own broader prearm checks (e.g. EKF2's "vertical
+        # velocity unstable" -- see HITL_PREARM_HEALTH_INVESTIGATION.md section 5.4/5.5), and
+        # arm() would then get rejected with COMMAND_DENIED anyway. is_armable is MAVSDK's
+        # aggregate "PX4 actually allows arming right now" flag -- wait on that too, since it's
+        # the one that reflects PX4's real prearm check result, not just position health.
+        print("MAVSDK: waiting for global/home position health and armable status")
         timeout_s = float(self.vehicle_config.get("health_timeout_s", 60.0))
         start = asyncio.get_running_loop().time()
         async for health in self.drone.telemetry.health():
-            if health.is_global_position_ok and health.is_home_position_ok:
-                print("MAVSDK: position health is OK")
+            if health.is_global_position_ok and health.is_home_position_ok and health.is_armable:
+                print("MAVSDK: position health is OK and vehicle is armable")
                 return
             if asyncio.get_running_loop().time() - start > timeout_s:
                 raise TimeoutError(
-                    "MAVSDK: timed out waiting for global/home position health "
-                    f"after {timeout_s}s"
+                    "MAVSDK: timed out waiting for global/home position health and armable "
+                    f"status after {timeout_s}s"
                 )
             print(
                 "MAVSDK: health pending "
-                f"global={health.is_global_position_ok} home={health.is_home_position_ok}"
+                f"global={health.is_global_position_ok} home={health.is_home_position_ok} "
+                f"armable={health.is_armable}"
             )
             await asyncio.sleep(1.0)
 
@@ -118,8 +136,19 @@ class MavsdkInstructor:
     async def run_demo_sequence(self) -> None:
         await self.print_basic_telemetry(samples=3)
 
-        if self.vehicle_config.get("auto_arm", False) or self.vehicle_config.get("auto_takeoff", False):
+        mission_path = self._mission_path()
+        mission_requested = bool(self.vehicle_config.get("auto_mission", False) and mission_path)
+
+        if (
+            self.vehicle_config.get("auto_arm", False)
+            or self.vehicle_config.get("auto_takeoff", False)
+            or mission_requested
+        ):
             await self.wait_until_ready()
+
+        if mission_requested:
+            await self.run_waypoint_mission(mission_path)
+            return
 
         if self.vehicle_config.get("auto_arm", False):
             await self.arm()
@@ -132,6 +161,72 @@ class MavsdkInstructor:
             await self.land()
         else:
             print("MAVSDK: auto_takeoff=false; no takeoff command requested")
+
+    async def run_waypoint_mission(self, mission_path: Path) -> None:
+        mission_config = self._load_mission_config(mission_path)
+        mission_name = str(mission_config.get("name", mission_path.stem))
+        plan = self._build_mission_plan(mission_config)
+        mission_items = plan.mission_items
+
+        print(f"MAVSDK: mission '{mission_name}' loaded from {mission_path}")
+        print(f"MAVSDK: mission contains {len(mission_items)} waypoint(s)")
+        for idx, item in enumerate(mission_items, start=1):
+            print(
+                "  waypoint "
+                f"{idx}: lat={item.latitude_deg:.7f} lon={item.longitude_deg:.7f} "
+                f"rel_alt={item.relative_altitude_m:.1f}m speed={item.speed_m_s:.1f}m/s"
+            )
+
+        if not confirm_real_vehicle_allowed(self.config):
+            print("MAVSDK DRY-RUN: clear/upload/start waypoint mission")
+            if self.vehicle_config.get("auto_arm", False):
+                print("MAVSDK DRY-RUN: arm()")
+            if self.vehicle_config.get("auto_takeoff", False):
+                print("MAVSDK DRY-RUN: takeoff before mission")
+            print("MAVSDK DRY-RUN: land after mission")
+            return
+
+        if bool(mission_config.get("clear_existing", True)):
+            print("MAVSDK: clearing existing onboard mission")
+            await self.drone.mission.clear_mission()
+
+        rtl_after_mission = bool(mission_config.get("rtl_after_mission", False))
+        print(f"MAVSDK: RTL after mission set to {rtl_after_mission}")
+        await self.drone.mission.set_return_to_launch_after_mission(rtl_after_mission)
+
+        print("MAVSDK: uploading mission")
+        await self.drone.mission.upload_mission(plan)
+        await self.drone.mission.set_current_mission_item(0)
+        print("MAVSDK: mission upload accepted")
+
+        if self.vehicle_config.get("auto_arm", False):
+            await self.arm()
+        else:
+            print("MAVSDK: auto_arm=false; mission start may be rejected by PX4")
+
+        if self.vehicle_config.get("auto_takeoff", False):
+            await self.takeoff()
+            takeoff_altitude = float(self.vehicle_config.get("takeoff_altitude_m", 3.0))
+            await self._wait_relative_altitude(takeoff_altitude)
+            settle_s = float(mission_config.get("takeoff_settle_s", 2.0))
+            if settle_s > 0:
+                print(f"MAVSDK: takeoff settle wait {settle_s:.1f} s")
+                await asyncio.sleep(settle_s)
+        else:
+            print("MAVSDK: auto_takeoff=false; starting uploaded mission without explicit takeoff")
+
+        print("MAVSDK: starting waypoint mission")
+        await self.drone.mission.start_mission()
+        await self._wait_mission_complete(
+            expected_total=len(mission_items),
+            timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
+        )
+
+        if bool(mission_config.get("land_after_mission", True)):
+            await self.land()
+            await self._wait_landed(timeout_s=float(mission_config.get("land_timeout_s", 90.0)))
+
+        print("MAVSDK: MISSION SUCCESS: takeoff, waypoint mission, and landing completed")
 
     async def dump_params(self, path: str | Path) -> None:
         """Write all current PX4 parameters to a text file (name=value per line).
@@ -190,3 +285,227 @@ class MavsdkInstructor:
             count += 1
             if count >= samples:
                 return
+
+    def _mission_path(self) -> Path | None:
+        raw_path = self.vehicle_config.get("mission_file")
+        if not raw_path:
+            return None
+        path = Path(str(raw_path))
+        if not path.is_absolute():
+            path = self.config_dir / path
+        return path
+
+    def _load_mission_config(self, mission_path: Path) -> dict[str, Any]:
+        if not mission_path.exists():
+            raise FileNotFoundError(f"MAVSDK: mission file not found: {mission_path}")
+        with mission_path.open("r", encoding="utf-8") as stream:
+            document = yaml.safe_load(stream) or {}
+        mission_config = document.get("mission", document)
+        if not isinstance(mission_config, dict):
+            raise ValueError(f"MAVSDK: mission file must contain a mapping: {mission_path}")
+        if mission_config.get("enabled", True) is False:
+            raise ValueError(f"MAVSDK: mission is disabled in {mission_path}")
+        return mission_config
+
+    def _build_mission_plan(self, mission_config: dict[str, Any]) -> MissionPlan:
+        waypoints = mission_config.get("waypoints", [])
+        if not isinstance(waypoints, list) or not waypoints:
+            raise ValueError("MAVSDK: mission.yaml must contain at least one waypoint")
+
+        max_mission_altitude = float(
+            self.safety_config.get(
+                "max_mission_altitude_m",
+                self.safety_config.get("max_takeoff_altitude_m", 10.0),
+            )
+        )
+        mission_items = [
+            self._mission_item_from_config(idx, waypoint, mission_config, max_mission_altitude)
+            for idx, waypoint in enumerate(waypoints, start=1)
+        ]
+        return MissionPlan(mission_items)
+
+    def _mission_item_from_config(
+        self,
+        idx: int,
+        waypoint: Any,
+        mission_config: dict[str, Any],
+        max_mission_altitude: float,
+    ) -> MissionItem:
+        if not isinstance(waypoint, dict):
+            raise ValueError(f"MAVSDK: waypoint {idx} must be a mapping")
+
+        latitude = _required_float(waypoint, "latitude_deg", idx)
+        longitude = _required_float(waypoint, "longitude_deg", idx)
+        altitude = _float_value(
+            waypoint.get(
+                "relative_altitude_m",
+                mission_config.get(
+                    "relative_altitude_m",
+                    self.vehicle_config.get("takeoff_altitude_m", 3.0),
+                ),
+            ),
+            "relative_altitude_m",
+            idx,
+        )
+
+        if not -90.0 <= latitude <= 90.0:
+            raise ValueError(f"MAVSDK: waypoint {idx} latitude out of range: {latitude}")
+        if not -180.0 <= longitude <= 180.0:
+            raise ValueError(f"MAVSDK: waypoint {idx} longitude out of range: {longitude}")
+        if altitude <= 0.0:
+            raise ValueError(f"MAVSDK: waypoint {idx} altitude must be positive: {altitude}")
+        if altitude > max_mission_altitude:
+            raise ValueError(
+                f"MAVSDK: waypoint {idx} altitude {altitude} m exceeds "
+                f"safety.max_mission_altitude_m={max_mission_altitude} m"
+            )
+
+        speed = _float_value(
+            waypoint.get("speed_m_s", mission_config.get("speed_m_s", 3.0)),
+            "speed_m_s",
+            idx,
+        )
+        acceptance_radius = _float_value(
+            waypoint.get("acceptance_radius_m", mission_config.get("acceptance_radius_m", 2.0)),
+            "acceptance_radius_m",
+            idx,
+        )
+
+        return MissionItem(
+            latitude,
+            longitude,
+            altitude,
+            speed,
+            bool(waypoint.get("is_fly_through", mission_config.get("is_fly_through", False))),
+            _optional_float(waypoint.get("gimbal_pitch_deg", mission_config.get("gimbal_pitch_deg"))),
+            _optional_float(waypoint.get("gimbal_yaw_deg", mission_config.get("gimbal_yaw_deg"))),
+            _enum_value(
+                MissionItem.CameraAction,
+                waypoint.get("camera_action", mission_config.get("camera_action", "NONE")),
+                "camera_action",
+                idx,
+            ),
+            _optional_float(waypoint.get("loiter_time_s", mission_config.get("loiter_time_s", math.nan))),
+            _float_value(
+                waypoint.get("camera_photo_interval_s", mission_config.get("camera_photo_interval_s", 0.0)),
+                "camera_photo_interval_s",
+                idx,
+            ),
+            acceptance_radius,
+            _optional_float(waypoint.get("yaw_deg", mission_config.get("yaw_deg"))),
+            _float_value(
+                waypoint.get("camera_photo_distance_m", mission_config.get("camera_photo_distance_m", 0.0)),
+                "camera_photo_distance_m",
+                idx,
+            ),
+            _enum_value(
+                MissionItem.VehicleAction,
+                waypoint.get("vehicle_action", mission_config.get("vehicle_action", "NONE")),
+                "vehicle_action",
+                idx,
+            ),
+        )
+
+    async def _wait_relative_altitude(self, target_altitude_m: float) -> None:
+        timeout_s = float(self.vehicle_config.get("takeoff_timeout_s", 60.0))
+        threshold = max(0.5, 0.8 * target_altitude_m)
+        print(f"MAVSDK: waiting for takeoff altitude >= {threshold:.1f} m")
+        start = asyncio.get_running_loop().time()
+        last_print = 0.0
+
+        async for position in self.drone.telemetry.position():
+            rel_altitude = position.relative_altitude_m
+            now = asyncio.get_running_loop().time()
+            if rel_altitude >= threshold:
+                print(f"MAVSDK: takeoff altitude reached rel_alt={rel_altitude:.2f} m")
+                return
+            if now - start > timeout_s:
+                raise TimeoutError(
+                    "MAVSDK: timed out waiting for takeoff altitude "
+                    f">= {threshold:.1f} m after {timeout_s:.1f}s"
+                )
+            if now - last_print >= 2.0:
+                print(f"MAVSDK: takeoff climb pending rel_alt={rel_altitude:.2f} m")
+                last_print = now
+
+    async def _wait_mission_complete(self, expected_total: int, timeout_s: float) -> None:
+        print("MAVSDK: monitoring mission progress")
+        done_event = asyncio.Event()
+        progress_task = asyncio.create_task(
+            self._monitor_mission_progress(expected_total, done_event)
+        )
+        deadline = asyncio.get_running_loop().time() + timeout_s
+        try:
+            while True:
+                if done_event.is_set() or await self.drone.mission.is_mission_finished():
+                    print("MAVSDK: all mission waypoints reached")
+                    return
+                if asyncio.get_running_loop().time() >= deadline:
+                    raise TimeoutError(f"MAVSDK: mission did not finish within {timeout_s:.1f}s")
+                await asyncio.sleep(1.0)
+        finally:
+            progress_task.cancel()
+            await asyncio.gather(progress_task, return_exceptions=True)
+
+    async def _monitor_mission_progress(self, expected_total: int, done_event: asyncio.Event) -> None:
+        last_seen: tuple[int, int] | None = None
+        async for progress in self.drone.mission.mission_progress():
+            current = int(progress.current)
+            total = int(progress.total)
+            if (current, total) != last_seen:
+                print(f"MAVSDK: mission progress {current}/{total}")
+                last_seen = (current, total)
+            if total > 0 and total != expected_total:
+                print(f"MAVSDK: mission progress total from PX4 is {total}, expected {expected_total}")
+            if total > 0 and current >= total:
+                done_event.set()
+                return
+
+    async def _wait_landed(self, timeout_s: float) -> None:
+        print("MAVSDK: waiting for landing confirmation")
+        start = asyncio.get_running_loop().time()
+        last_print = 0.0
+
+        async for landed_state in self.drone.telemetry.landed_state():
+            now = asyncio.get_running_loop().time()
+            if landed_state == LandedState.ON_GROUND:
+                print("MAVSDK: landing confirmed ON_GROUND")
+                return
+            if now - start > timeout_s:
+                raise TimeoutError(f"MAVSDK: landing not confirmed within {timeout_s:.1f}s")
+            if now - last_print >= 2.0:
+                print(f"MAVSDK: landing pending state={landed_state}")
+                last_print = now
+
+
+def _required_float(mapping: dict[str, Any], key: str, waypoint_idx: int) -> float:
+    if key not in mapping:
+        raise ValueError(f"MAVSDK: waypoint {waypoint_idx} missing required field '{key}'")
+    return _float_value(mapping[key], key, waypoint_idx)
+
+
+def _float_value(value: Any, key: str, waypoint_idx: int) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"MAVSDK: waypoint {waypoint_idx} field '{key}' must be numeric, got {value!r}"
+        ) from exc
+
+
+def _optional_float(value: Any) -> float:
+    if value is None:
+        return math.nan
+    if isinstance(value, str) and value.strip().lower() in {"", "nan", "none", "null"}:
+        return math.nan
+    return float(value)
+
+
+def _enum_value(enum_type, value: Any, key: str, waypoint_idx: int):
+    enum_name = str(value).strip().upper().replace("-", "_").replace(" ", "_")
+    if enum_name in enum_type.__members__:
+        return enum_type[enum_name]
+    valid = ", ".join(enum_type.__members__)
+    raise ValueError(
+        f"MAVSDK: waypoint {waypoint_idx} field '{key}' must be one of {valid}, got {value!r}"
+    )
