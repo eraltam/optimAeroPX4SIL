@@ -59,16 +59,24 @@ class MavsdkInstructor:
         # the one that reflects PX4's real prearm check result, not just position health.
         print("MAVSDK: waiting for global/home position health and armable status")
         timeout_s = float(self.vehicle_config.get("health_timeout_s", 60.0))
-        start = asyncio.get_running_loop().time()
+        # Wrapped in asyncio.wait_for rather than checking elapsed time inside the loop body:
+        # the old in-loop check only fired when a *new* health message arrived, so a connection
+        # that goes silent (e.g. the underlying HITL link dying when Simulink's sim() ends,
+        # session_14) hung this forever instead of timing out -- same failure class dump_params
+        # had (10.5).
+        try:
+            await asyncio.wait_for(self._poll_health_until_ready(), timeout=timeout_s)
+        except asyncio.TimeoutError as exc:
+            raise TimeoutError(
+                "MAVSDK: timed out waiting for global/home position health and armable "
+                f"status after {timeout_s}s"
+            ) from exc
+
+    async def _poll_health_until_ready(self) -> None:
         async for health in self.drone.telemetry.health():
             if health.is_global_position_ok and health.is_home_position_ok and health.is_armable:
                 print("MAVSDK: position health is OK and vehicle is armable")
                 return
-            if asyncio.get_running_loop().time() - start > timeout_s:
-                raise TimeoutError(
-                    "MAVSDK: timed out waiting for global/home position health and armable "
-                    f"status after {timeout_s}s"
-                )
             print(
                 "MAVSDK: health pending "
                 f"global={health.is_global_position_ok} home={health.is_home_position_ok} "
@@ -233,9 +241,16 @@ class MavsdkInstructor:
 
         Used to capture px4_params_before.txt / px4_params_after.txt so a debug
         session can diff parameter state across a run without QGroundControl.
+
+        Wrapped in a timeout: get_all_params() has no internal timeout of its own, and a
+        heavily loaded MAVLink link (e.g. session_11 -- recurring prearm STATUSTEXT
+        traffic saturating the serial link right after an autopilot reboot) can leave
+        the ~900-parameter PARAM_REQUEST_LIST exchange incomplete forever, which would
+        otherwise hang the entire session before arm()/wait_until_ready() ever run.
         """
         print(f"MAVSDK: dumping PX4 parameters to {path}")
-        all_params = await self.drone.param.get_all_params()
+        timeout_s = float(self.vehicle_config.get("param_dump_timeout_s", 30.0))
+        all_params = await asyncio.wait_for(self.drone.param.get_all_params(), timeout=timeout_s)
         lines: list[str] = []
         for attr_name in ("int_params", "float_params", "custom_params"):
             for param in getattr(all_params, attr_name, None) or []:

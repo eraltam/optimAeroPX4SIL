@@ -621,3 +621,497 @@ investigation but can shift after a re-enumeration).
    effective dynamics), the fix would be PX4 parameter tuning (`MC_*` gains), not a Simulink model
    change. Least likely given the climb rate itself already looks excessive before attitude even
    diverges, but worth keeping in mind if 9.1-9.2's Simulink-side checks all come back clean.
+
+---
+
+## 10. New failure mode found (session_9), root-caused, and fixed: stale PX4 board state carried across sessions
+
+**Date:** July 9, 2026. Ran the section 8 reproduction procedure again (session_9), this time with
+`visualizationType="FlightGear"` (which also enables `launchPreflightVisualization`, on by default --
+FlightGear 2024.1 launched and the preflight TCP handshake completed before the sim ran; no code
+change needed, `run_hil_automated_session.m` already threads `visualizationType` through). All
+required toolboxes (Aerospace Blockset, UAV Toolbox, Simulink 3D Animation, etc.) were already
+installed -- nothing to add there.
+
+### 10.1 What happened
+
+**Good news:** no MATLAB crash. This was the first `run_hil_automated_session` call in a fresh
+MATLAB process, consistent with the section 6.3 workaround, and it completed cleanly to
+`stopTime_s=120`.
+
+**New failure:** the vehicle never armed. `main.py` timed out after 60s in `wait_until_ready()`
+(`is_armable` never went `True`). PX4 logged recurring `Preflight Fail: High Accelerometer Bias`
+plus a message not seen in sessions 1-8: `Preflight: GPS Vertical Pos Drift too high`. PX4's own
+`GLOBAL_POSITION_INT` reported `alt~=7537 m` -- wildly wrong for a stationary bench vehicle.
+
+**But `session_9/matlab_summary.json` (Simulink's own ground truth) shows the injected data was
+correct the entire run:**
+
+```json
+"coordinates": {
+  "max_position_displacement_from_initial_m": 0,
+  "max_abs_velocity_during_preflight_mps": 0,
+  "was_airborne_at_any_point": false
+},
+"imu_noise": {
+  "accel_mean_mps2": [0, 0, -9.7841378880139516]
+},
+"altitude_disagreement": { "max_abs_diff_m": 0.0016505171719316536 },
+"actuator": { "armed_observed": false }
+```
+
+Zero displacement/velocity the whole 120s, correct gravity on Z, GPS/baro agreement within 1.6mm.
+Same conclusion as section 5.1: **the sensor feed reaching PX4 was correct.** Yet PX4's internal
+estimate diverged badly anyway -- a different symptom from anything sections 1-9 saw, and this time
+not explained by anything on the Simulink side.
+
+### 10.2 Root cause: the real board is never rebooted between sessions, and session_8 never landed
+
+Section 6.3 already established that *MATLAB* needs a full restart before every session because
+some MATLAB-side resource isn't released between `sim()` calls. **The real Cube Orange Plus was
+never subject to an equivalent reset** -- nothing in the reproduction procedure (section 8) or
+`main.py`/`controller_mavsdk.py` ever power-cycles or reboots the flight controller itself between
+sessions. It just keeps running continuously, carrying its internal EKF2/arming state forward from
+whatever the previous session left it in.
+
+Session_8 (section 7.2) ended via `TimeoutError: MAVSDK: mission did not finish within 240.0s`
+*while the vehicle was still cycling `Preflight Fail: Attitude failure` + `Failsafe activated` and
+had just reported `ATTITUDE: roll=-0.75, pitch=0.83` rad (~45 deg)* -- i.e. session_8's `main.py`
+process exited on an exception with the vehicle still armed, still in a failsafe loop, and never
+called `land()`/`disarm()`. Session_9 started immediately after with no board-side reset in
+between. `main.py`'s pymavlink listener received a heartbeat from the board *immediately* at
+connection time in session_9, before Simulink's own `sim()` had even started -- confirming the
+board had been running continuously since session_8, not freshly booted.
+
+**This is the same class of bug as section 6.3 (stale state surviving a session boundary), just on
+the hardware side instead of the software side.** A board left armed/mid-failsafe with a diverged
+EKF2 estimate at the end of one session inherits that state into the next session's prearm checks,
+producing exactly the spurious "High Accelerometer Bias" / "GPS Vertical Pos Drift" failures seen
+in session_9, independent of whether the freshly-injected sensor data for that new session is
+correct.
+
+### 10.3 First fix attempt (v1) -- rebooting through the live MAVSDK/Simulink relay -- broke the session instead
+
+The first fix added an automatic reboot step gated by `safety.allow_real_vehicle_commands`:
+`MavsdkInstructor.reboot_autopilot_and_wait()` in `controller_mavsdk.py`, called from `main.py`'s
+`run()` immediately after `instructor.connect()`, sending MAVSDK's `drone.action.reboot()`
+(`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN`) through the same live relay chain `arm()` already used in
+session_8 (MAVSDK -> forward socket 14541 -> Simulink `UDP Receive`/`Switch` -> serial -> real PX4).
+
+**This was validated against real hardware (session_10, same day) and it broke the session --
+reverted, see section 10.4 for the actual fix.** After MATLAB was manually relaunched (a fresh
+process, safe per section 6.3) and the section 8 preflight checks confirmed clean (COM4 present,
+port 14540 free, no orphaned processes), session_10 ran `main.py --session-id 10` +
+`run_hil_automated_session(..., "visualizationType","FlightGear", "sessionId","10")`. Two things
+went wrong simultaneously, both traced to the same cause:
+
+1. **MATLAB's own serial connection broke.** `sim()` aborted mid-run with `serialDataSet: WriteFile
+   returned ERROR` inside `VehicleSilSimulation/PX4 HITL Interface/MAVLink Bridge Sink`
+   (`px4.internal.block.MAVLinkSink`) -- not a `std::terminate()` crash (MATLAB itself stayed up,
+   `SimulationStatus` cleanly `"stopped"` afterward), but the sim still aborted.
+2. **`main.py` also failed**, with every MAVSDK RPC call after the reboot returning
+   `AioRpcError: ... status = StatusCode.UNKNOWN, details = "Unexpected error in RPC handling"` --
+   first `dump_params`, then `print_basic_telemetry`'s position stream, which finally killed the
+   process with an unhandled exception.
+
+**Root cause of the v1 failure:** the Cube Orange Plus's serial link *is* its USB connection --
+`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` resets the flight-controller MCU, which means the USB CDC-ACM
+device itself physically disconnects and re-enumerates (confirmed: COM4 reappeared with `Status: OK`
+immediately after, per `Get-CimInstance ... Win32_PnPEntity`). Simulink's `MATLABSystem` serial
+block had that COM4 handle open *before* the reboot and can't survive the underlying device
+vanishing mid-`sim()` -- hence `WriteFile returned ERROR`. Simultaneously, `mavsdk_server` (the
+native process MAVSDK's Python bindings talk to over gRPC) doesn't handle its vehicle disappearing
+and reappearing mid-session cleanly either -- its internal RPC state stayed corrupted for the rest
+of the process's life, well after the MAVLink heartbeat itself had resumed
+(`MAVSDK: vehicle connected` / `MAVSDK: autopilot reconnected; settling 3.0s` both printed
+successfully -- the protocol-level reconnect worked fine, `mavsdk_server`'s internal bookkeeping did
+not).
+
+**The reboot command itself worked correctly** -- this validates the section 10.2 root-cause
+hypothesis (PX4 does need a clean boot between sessions) -- **it was just issued from the wrong
+place**: mid-session, after Simulink and MAVSDK already had exclusive handles open on the vehicle.
+
+Cleaned up afterward: confirmed COM4 re-enumerated with `Status: OK`, killed the orphaned
+`mavsdk_server.exe` left holding UDP 14540 and the stale `python.exe`, confirmed port 14540 free
+again -- same section 8 step 2/6 cleanup as every other session.
+
+### 10.4 Fix applied (v2): reboot the autopilot as a standalone step, before Simulink or MAVSDK ever open the port
+
+The v1 code (`reboot_autopilot_and_wait()` in `controller_mavsdk.py`, the call site in `main.py`,
+and the `vehicle.reboot_*` keys in `config.yaml`) was **removed** -- it cannot work in this
+USB-serial-HITL architecture, not just misconfigured.
+
+**New standalone script: `HILDiagnostics/mavlink_system/reboot_autopilot.py`.** Connects directly to
+the board's serial port with a plain `pymavlink.mavutil.mavlink_connection(port, baud=...)` (no
+Simulink, no MAVSDK, no UDP relay), waits for a heartbeat, sends
+`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN`, closes the port immediately (does not wait for an ack -- the
+board commonly resets before it can send one), sleeps `--settle-s` (default 15s) for the USB device
+to re-enumerate, then reconnects once more to confirm a fresh heartbeat before exiting -- guaranteeing
+the port is fully closed and the board is fully booted before anything else touches it. Usage:
+
+```
+py -3.12 reboot_autopilot.py --port COM4 --baud 921600
+```
+
+**Updated reproduction procedure (supersedes section 8 step 3 ordering):** run
+`reboot_autopilot.py` first, standalone, *before* starting `main.py` and *before* running
+`run_hil_automated_session.m` -- not concurrently with either. Section 8 has not yet been rewritten
+to make this the canonical numbered step; treat this section as authoritative until it is.
+
+### 10.5 v2 validated mechanically (session_11) -- reboot itself is now safe, but a separate bug masked whether it actually fixes arming
+
+Ran `reboot_autopilot.py --port COM4 --baud 921600` standalone first (clean: heartbeat, reboot sent,
+15s settle, reconnect confirmed, port closed). MATLAB was a genuinely fresh process (no
+`VehicleSilSimulation` loaded, no leftover HITL workspace vars -- confirmed before proceeding).
+Preflight checks (COM4 present, port 14540 free, no orphaned processes) all clean. Ran session_11
+exactly like session_9/10 otherwise.
+
+**The reboot mechanism itself is now proven safe:** MATLAB completed the full 120s run with no
+crash and no serial error (`SimulationStatus` never faulted, no `WriteFile` error) -- the v1 failure
+mode from section 10.3 is gone. This confirms the fix belongs where v2 put it (before Simulink opens
+the port), not in the live relay.
+
+**But the session still didn't arm, for a different, previously-unseen reason:** `main.py` hung
+indefinitely inside `dump_params()` -- `MAVSDK -> PX4: PARAM_REQUEST_LIST` went out at the very
+start (10:53:34) and the ~939-parameter response stream apparently never fully completed, so
+`get_all_params()` (which has no internal timeout) blocked forever. `run_demo_sequence()` therefore
+never even reached `wait_until_ready()`/`arm()` this session -- `main.py`'s console log has zero
+`health pending`/`armable` lines, unlike sessions 1-3/8-10. After MATLAB's `sim()` hit its own
+120s `StopTime` and closed the serial/UDP relay, the stuck `mavsdk_server`/`main.py` processes just
+spammed `Sending message failed` forever into dead air; killed both manually and confirmed port
+14540 freed again (same section 8 step 6 cleanup).
+
+**Likely why the param dump stalled:** PX4 spent this entire session repeating
+`Preflight Fail: High Accelerometer Bias` / `vertical velocity unstable` roughly every 11-13s for
+the *whole* 120s -- unlike session_8's prearm failures, which cleared after ~25s. That's a lot of
+sustained `STATUSTEXT` traffic sharing the same 921600-baud serial link with the parameter stream,
+which is plausible enough to stall a large unbounded request, but not confirmed as the sole cause.
+Also newly seen once, right after reboot: `Preflight Fail: ekf2 missing data` (10:53:34, never
+repeated) -- consistent with EKF2 needing to reinitialize from scratch after a genuine cold boot,
+which a continuously-running board (as in every prior session) never had to do.
+
+`session_11/matlab_summary.json` shows the same clean ground truth as every prior session:
+`accel_mean_mps2 z=-9.784`, zero displacement/velocity, `armed_observed: false` (unsurprising --
+`arm()` was never even attempted this time).
+
+**Fix applied:** `dump_params()` in `controller_mavsdk.py` now wraps `get_all_params()` in
+`asyncio.wait_for(..., timeout=param_dump_timeout_s)` (new `config.yaml` key, default 30s) so a
+slow/incomplete parameter stream can no longer block the rest of the session indefinitely.
+
+### 10.6 Still not validated: does the reboot actually fix arming? Status and recommendation
+
+Three sessions in a row today (9, 10, 11) each surfaced a *different* problem before the original
+question -- does a clean-booted PX4 clear prearm checks and arm within a normal preflight window --
+could actually be answered. The reboot mechanism itself (10.5) and the crash-causing v1 approach
+(10.3) are both now resolved. The `dump_params` hang (10.5) is now fixed in code but **not yet
+re-run against hardware**.
+
+Per this document's own established practice (section 6.2: "do not retry a third time without
+either that mitigation or explicit sign-off") -- now applied a second time, at three consecutive
+imperfect hardware outcomes rather than two -- **stopping here for explicit sign-off before a
+session_12 attempt** rather than proceeding automatically. Also worth deciding before the next
+attempt: whether to keep `stopTime_s=120`, since session_11's prearm failures never cleared in that
+window at all (versus session_8's ~25s), and a genuinely cold EKF2 boot may just need longer than a
+warm one did.
+
+### 10.7 session_12: `dump_params` fix confirmed working, but arming still didn't happen -- real bottleneck is `health_timeout_s`, not the reboot mechanism
+
+Investigation note before this session: the user observed the vehicle appears to be sitting in open
+ocean in the FlightGear preflight visualization rather than on solid ground. Traced to
+`vehicle/common/setUpVehicle.m` lines 17-28 -- the hexarotor's reference position is deliberately
+set to "Juancho E. Yrausquin Airport, helipad" on Saba (Dutch Caribbean), `17.64450, -63.21988`, a
+real but extremely remote location known for being wedged between cliffs and ocean. Ruled out as a
+contributor to the arming problem: the physics uses a flat local NED frame at a fixed reference
+altitude (`aircraftInitialPosInNED_m = [0, 0, -referenceAltitude_m]`), not a real terrain/DEM lookup
+tied to that lat/lon, and FlightGear here is a one-way display consumer
+(`--fdm=null --native-fdm=socket,in,...` in `runFlightGear.m`) that cannot feed anything back into
+the simulation. The ocean appearance is almost certainly just missing/uncached `--enable-terrasync`
+scenery tiles for a remote island, not a physics or PX4 bug.
+
+Ran `reboot_autopilot.py` standalone (clean), confirmed a genuinely fresh MATLAB process (started
+*after* session_11 finished, confirmed via `Get-Process -Name MATLAB | Select StartTime`, not just
+an unloaded model), all section 8 preflight checks clean, then session_12 exactly like session_11.
+
+**The `dump_params` timeout fix (10.5) is confirmed working:** `MAVSDK: wrote 939 parameters to
+...px4_params_before.txt` printed successfully this time, so `run_demo_sequence()` proceeded past
+that point into `wait_until_ready()` -- unlike session_11, which never got that far.
+
+**But the vehicle still never armed.** `wait_until_ready()` ran its full `health_timeout_s` (60s)
+polling loop -- `MAVSDK: health pending global=True home=True armable=False` repeating the whole
+time, `Preflight Fail: vertical velocity unstable` / `High Accelerometer Bias` recurring throughout
+-- and then raised `TimeoutError: MAVSDK: timed out waiting for global/home position health and
+armable status after 60.0s`, exactly as session_9 did. `main.py` exited on that exception (traceback,
+clean process exit); MATLAB's `sim()` is independent of `main.py` and ran the full 120s regardless,
+with `PX4`'s own `GLOBAL_POSITION_INT` still drifting at the very end
+(`alt` climbing from ~35.36m toward ~38.3m, `vz` around -0.25 m/s) even though
+`session_12/matlab_summary.json` again confirms the injected ground truth was perfectly static and
+correct the entire run (`accel_mean_mps2 z=-9.784`, zero displacement/velocity) -- same pattern as
+every prior session. Cleaned up the orphaned `mavsdk_server`/`python` afterward, port 14540 freed.
+
+**Reassessing the reboot fix's actual contribution:** across all sessions so far, PX4 clearing its
+prearm checks within 60s happened exactly once (session_8, ~25s, on an already-*warm*,
+continuously-running board) and failed to clear within 60s three times (session_9, no reboot;
+session_11, with reboot, EKF2 never observed at all due to the now-fixed hang; session_12, with
+reboot, `wait_until_ready()` ran the complete 60s window). This no longer looks like "a stale/warm
+board's leftover bad state blocks arming, so a cold reboot fixes it" -- a **freshly rebooted** board
+(session_12) hit the identical persistent-failure pattern as an un-rebooted one (session_9). The
+simpler, better-supported explanation at this point: PX4's EKF2/prearm settle time on this bench
+setup is genuinely variable and sometimes exceeds 60s regardless of reboot state, and
+`vehicle.health_timeout_s` (currently 60s in `config.yaml`) is just too tight -- not that the board's
+prior-session state is the (or the only) culprit. The reboot-before-session step (10.4) is still a
+reasonable practice to keep (it did prove itself safe, and a genuinely corrupted board state from an
+abnormally-ended session, per section 10.2, is still a real possibility worth guarding against) --
+but it is not, by itself, a confirmed fix for the arming timeout.
+
+**Not yet tried: simply raising `health_timeout_s`.** No session has yet let `wait_until_ready()` run
+past 60s to see whether "vertical velocity unstable"/"High Accelerometer Bias" eventually clear on
+their own given enough time, the way section 7 documented once. That is the next, cheaper experiment
+before investigating further -- e.g. bump `vehicle.health_timeout_s` in `config.yaml` to 180-300s and
+rerun, watching whether the STATUSTEXT failures taper off (real convergence) or continue indefinitely
+(a genuinely stuck EKF2 state, which would point back toward section 3's original open question --
+the "vertical velocity unstable" check specifically, not accelerometer bias -- and section 5.5's
+still-unaddressed lead: whether `HIL_GPS`'s `vd` field or `hexGroundContact` chatter is itself
+injecting the instability the check is reacting to).
+
+### 10.8 session_13: `health_timeout_s=240` result -- genuine divergence, not slow convergence; found (and ruled out) a real `pressure_alt` bug along the way
+
+Bumped `vehicle.health_timeout_s` in `config.yaml` from 60s to 240s (kept the reasoning inline as a
+comment). Re-ran the full procedure: fresh MATLAB process (confirmed via `Get-Process -Name MATLAB`
+start time, not just an unloaded model), `reboot_autopilot.py` clean, preflight checks clean,
+`stopTime_s=400` to leave headroom past the new 240s ceiling.
+
+**Result: `wait_until_ready()` ran the complete 240s window and still timed out.** `armable` never
+went `True`; `Preflight Fail: vertical velocity unstable` (14x) / `High Accelerometer Bias` (30x)
+kept recurring the entire time. More telling: PX4's own `GLOBAL_POSITION_INT.alt` **climbed from
+~35.4m to ~60.4m over the session** (`vz` reaching ~-0.77 m/s) while
+`session_13/matlab_summary.json` again confirms the injected ground truth was perfectly static the
+whole time. **This rules out "just needs more settle time"** -- a slow-to-converge filter would
+approach a stable value, not drift monotonically further from the truth the longer it runs. This is
+sustained divergence, not slow convergence, and directly contradicts the "stale board state from a
+prior session" framing from section 10.2/10.6: session_13 followed a *fresh reboot* (10.4/10.5's v2
+script, confirmed clean) and still diverged just as badly as un-rebooted sessions did.
+
+**Investigated further while the arming test ran: found a real, previously-unknown bug in the
+`HIL_SENSOR` construction, but ruled it out as the cause.** Exported `session_13`'s logged
+`HIL_GPS_bytes`/`HIL_SENSOR_bytes` raw byte streams (Simulink's own `ToWorkspace`-equivalent
+signal logs, see `run_hil_automated_session.m`'s `loggingTargets()`) out of MATLAB and decoded them
+with `pymavlink`'s own `MAVLink.parse_buffer()` (avoids hand-guessing the wire format). Findings:
+
+- `HIL_GPS.alt` = 35356mm constant, `HIL_GPS.vd` = 0 constant -- both correct, matching ground truth,
+  for all 10,009 decoded HIL_GPS frames across the full 400s.
+- `HIL_SENSOR.abs_pressure` transitions from 1013.25 hPa (cold-start default) to 1009.01 hPa and
+  holds -- physically correct for ~35m elevation via the standard barometric formula.
+- **`HIL_SENSOR.pressure_alt` is a constant `0.000` for all 50,001 decoded HIL_SENSOR frames across
+  the full 400s**, despite `fields_updated=8191` marking it as a valid/updated field.
+
+Traced this to `PX4HITLConnector.slx`'s (and the inlined "PX4 HITL Interface" in
+`VehicleSilSimulation.slx`) `HIL Sensor/HIL_SENSOR Creation subsystem/Bus Assignment1` block: of the
+15 total `HIL_SENSOR` fields, `Bus Assignment1` explicitly assigns 14 (`time_usec`, `xacc/yacc/zacc`,
+`xgyro/ygyro/zgyro`, `xmag/ymag/zmag`, `abs_pressure`, `diff_pressure`, `fields_updated`,
+`temperature`) but never assigns `pressure_alt` -- it silently keeps whatever the
+`MAVLink Blank Message1` template block defaults it to (0). This block was copied unmodified from
+MathWorks' own `uav_HITL_sample` reference model (per `build_PX4HITLConnector.m`'s header comment),
+so this bug predates this repo's own changes.
+
+**But this is very unlikely to be the arming root cause.** Grepped the vendored `PX4-Autopilot`
+source: `SimulatorMavlink::handle_message_hil_sensor()`
+(`src/modules/simulation/simulator_mavlink/SimulatorMavlink.cpp`) only reads `sensors.abs_pressure`
+(converts hPa->Pa) and `sensors.temperature` from the incoming `HIL_SENSOR` message for its baro
+handling -- `pressure_alt` is never read anywhere in PX4's sensor-ingestion path (only other repo
+hits: the MAVLink XML schema itself, an outbound *telemetry* stream PX4 sends `TO` a GCS, and an
+unrelated UAVCAN comment). PX4 computes its own baro altitude internally from `abs_pressure`, which
+*is* being sent correctly. **Worth fixing for spec correctness regardless** (a `pressure_alt=0`
+paired with `fields_updated` claiming it's valid could still confuse some other consumer, e.g.
+QGroundControl's raw sensor view or a different simulator) -- not yet fixed, deferred pending
+direction on priority.
+
+**Also traced the actual PX4 arming-check source** (`estimatorCheck.cpp`) to understand what really
+drives these two messages, since guessing was no longer productive:
+- `"Preflight Fail: High Accelerometer Bias"` fires when EKF2's own internal
+  `bias.accel_bias[axis_index]` estimate exceeds `EKF2_ABL_LIM` (`ekf_ab_test_limit`) --
+  `checkSensorBias()`, around line 500.
+- `"Preflight Fail: vertical velocity unstable"` fires on `estimator_status.pre_flt_fail_innov_vel_vert`
+  -- an EKF2-internal innovation-consistency flag (`checkEstimatorStatus()`, line 151), i.e. EKF2's
+  own prediction disagreeing with its fused measurement repeatedly, not a raw sensor threshold.
+
+Neither of these is visible in anything currently captured -- `config.yaml`'s
+`listener.message_types` does not include `ESTIMATOR_STATUS`, which carries the actual numeric
+`vel_test_ratio`/`hgt_test_ratio`/`pre_flt_fail_*` flags driving these checks. Everything inferred
+so far about "does it converge or diverge" has been indirect, via `GLOBAL_POSITION_INT` and
+`STATUSTEXT` timing. **Next concrete step, not yet done:** add `ESTIMATOR_STATUS` to
+`config.yaml`'s `listener.message_types` and rerun, to see the actual test ratios and
+`pre_flt_fail_innov_vel_vert`/bias values over time instead of inferring divergence indirectly.
+
+**Status check:** six real-hardware sessions today (8 through 13), one success (8). Stopping here to
+report rather than continuing to iterate blindly -- this is a good point for the user to decide
+whether to keep going now (add `ESTIMATOR_STATUS` capture, one more session) or pause the hardware
+investigation for today.
+
+### 10.9 session_14: `ESTIMATOR_STATUS` reveals a clean, regular sawtooth -- not noise, not slow convergence, a periodic reset-then-drift cycle
+
+Added `ESTIMATOR_STATUS` to `config.yaml`'s `listener.message_types` (already part of PX4's default
+MAVLink stream config at 0.5-5Hz across stream profiles -- confirmed by grepping
+`mavlink_main.cpp`'s `configure_stream_local("ESTIMATOR_STATUS", ...)` calls, so no PX4-side
+change was needed, just capturing what was already being sent). Ran session_14 the same way as
+13 (fresh MATLAB, `reboot_autopilot.py` clean, preflight checks clean, `stopTime_s=300`).
+
+**Found a bug while this ran:** `main.py` hung indefinitely after MATLAB's `sim()` ended at 300s.
+Root cause: `wait_until_ready()`'s timeout was checked only inside the `async for health in
+...health()` loop body -- i.e., only when a *new* health message arrived. When the underlying HITL
+link died (Simulink's `sim()` ending closes the serial connection), the stream went silent and the
+timeout check never re-fired, so the coroutine hung forever instead of raising after
+`health_timeout_s`. Same failure class as the `dump_params` hang (10.5). **Fixed:**
+`wait_until_ready()` now wraps the polling loop in `asyncio.wait_for(..., timeout=health_timeout_s)`
+(`controller_mavsdk.py`), which enforces a hard wall-clock deadline independent of whether the
+stream produces anything. Killed the stuck `mavsdk_server`/`python`, port 14540 freed.
+
+**The data captured before the hang is the clearest signal this entire investigation has produced.**
+Parsed all 239 `ESTIMATOR_STATUS` messages from `session_14/console.log`. `vel_ratio` and
+`pos_vert_ratio` (the exact fields `estimatorCheck.cpp` compares against
+`COM_ARM_EKF_VEL`/`COM_ARM_EKF_HGT` to produce the STATUSTEXT failures) are **not noisy and not
+monotonically diverging -- they trace an almost perfectly regular sawtooth**: climb smoothly from
+~0 up to the ratio's hard clamp at 2.0 over several seconds, then snap back down near 0 and start
+climbing again. Reset points (`pos_vert_ratio` returning to ~0): `11:42:03, :18, :32, :45, :58,
+11:43:14, :27, :41, :53, 11:44:07, :20, :33, :46, 11:45:00, :12` -- inter-reset gaps of 12-16s,
+consistently clustered around 13-15s, for the entire ~4-minute window captured. `pos_vert_accuracy`
+(EKF's own reported uncertainty) tracks the same cycle, tightening right after each reset (~0.10m)
+and ballooning during each climb (up to ~0.4m).
+
+**What this rules out:** not random sensor noise (too regular), not a slowly-converging startup
+transient (10.7/10.8's hypothesis -- a real convergence would trend toward zero over time, not
+repeat an unchanging cycle indefinitely), and not a simple GPS-update-rate artifact (13-15s is far
+longer than any normal GPS or baro fusion interval). This is a **deterministic reset-then-drift
+cycle**, and its ~13-15s period lines up with the `Preflight Fail` STATUSTEXT recurrence cadence
+observed informally across *every* earlier session (session_9, 11, 12, 13 all showed failures
+repeating roughly every 7-15s) -- consistent with PX4 itself periodically resetting some part of
+its height/velocity estimator state while ungarmed and failing prearm checks, then the estimate
+drifting away from truth again during each reset-to-reset window, rather than a one-time startup
+issue.
+
+**Not yet determined: what drives the drift *within* each ~13-15s window**, given
+`session_14/matlab_summary.json` again confirms the injected ground truth was correct throughout
+(static, `accel_mean_mps2 z=-9.785`, small residual chatter `accel_var_mps2_2 z=0.00306` from
+`hexGroundContact`, consistent with every prior session). Candidates, not yet distinguished:
+(a) this ~13-15s reset cycle is a normal, expected part of PX4's own EKF2 state machine while
+grounded/unarmed and would occur even with a perfect sensor feed (i.e. not a bug in this repo at
+all) -- would need reading PX4's own `EKF2`/`EKF` source for its reset-trigger conditions to
+confirm; (b) the residual `hexGroundContact` accel-Z chatter (5.5 item 3, still never directly
+correlated against these reset timestamps) is what each cycle's drift is actually built from;
+(c) a timing/lockstep artifact between injected `HIL_SENSOR` timestamps and PX4's internal clock
+causing a slow dead-reckoning error that gets corrected each reset. **A pure-SITL run of the
+identical scenario** (`CONTROLLER_RUNTIME=1`, already proposed as 9.1.3 for the unrelated
+attitude-failsafe investigation) would cheaply discriminate (a) from (b)/(c): if the same ~13-15s
+sawtooth appears in SITL with no real hardware involved at all, the cause is shared
+model/EKF2-config behavior, not anything specific to this HITL bench.
+
+**Status check:** seven real-hardware sessions today (8 through 14), one success (8), but this is
+the first session to produce a quantified, reproducible-shaped signal rather than a guess. Good
+stopping point -- next step is either a source-level read of PX4's EKF2 reset logic, or a
+pure-SITL comparison run, both of which don't require more real-hardware cycles today.
+
+### 10.10 EKF2 source read: found the real reset mechanisms, definitively ruled out both candidate sensor-side causes -- points to PX4-intrinsic behavior, not this repo's data
+
+Read the vendored `PX4-Autopilot/src/modules/ekf2/EKF/` source (no hardware involved) for what
+actually drives a height/velocity reset:
+
+- `Ekf::isHeightResetRequired()` (`ekf_helper.cpp:162`) returns true if either:
+  - `continuous_bad_accel_hgt`: `_time_good_vert_accel` timed out against
+    `bad_acc_reset_delay_us` = **0.5s** (`common.h:478`) -- driven by
+    `estimateInertialNavFallingLikelihood()`/`bad_vert_accel` in `height_control.cpp`, i.e. the
+    filter's own accel-based "am I falling" heuristic.
+  - `hgt_fusion_timeout`: `_time_last_hgt_fuse` timed out against `hgt_fusion_timeout_max` = **5s**
+    (`common.h:450`).
+  - When true, `baro_height_control.cpp:127-136` resets both vertical position *and* velocity to
+    the current baro/GPS measurement -- explains why `vel_ratio` and `pos_vert_ratio` reset
+    together at the same instant, confirmed in 10.9's data.
+- Separately, `Ekf::shouldResetGpsFusion()` (`gps_control.cpp:272`) resets GPS-sourced
+  velocity/position after `reset_timeout_max` = **7s** (`common.h:448`) of failed horizontal
+  aiding.
+
+**None of these constants (0.5s / 5s / 7s) individually equal the observed ~13s period.** Re-derived
+the reset timestamps precisely using `ESTIMATOR_STATUS.time_usec` (confirmed to be the same clock
+basis as `HIL_GPS`/`HIL_SENSOR`'s own `time_usec`, i.e. directly comparable to Simulink sim-time in
+seconds) instead of 1Hz-quantized wall-clock STATUSTEXT timestamps: resets at sim-time
+`154.84, 169.83, 183.84, 196.83, 209.83, 225.83, 238.83, ...`, gaps of `15.00, 14.00, 13.00, 12.99,
+16.01, 13.00, 26.01(=2x13.00), ...` -- clustering tightly on **exactly 13.00s**, with the 26s gaps
+being a single missed detection (2x13), not a different mechanism. This is not "roughly 13-15s
+noise", it's precisely, repeatably 13 seconds.
+
+**Directly tested and ruled out both physical-layer candidates using already-captured data, no new
+hardware:**
+
+1. **Ground-contact chatter (the section 5.5/10.9 hypothesis): ruled out.** Pulled session_14's own
+   logged `SensorsBus_final.INSSensorBus.AccelSensorBus.z_mps2` (Simulink's own signal, sim-time
+   indexed) directly from `matlab_session.mat`. Checked 1-second windows around every one of the 13
+   reset timestamps found above: **`std=0.00000` at every single one** (constant
+   `-9.78507 m/s^2` to 6 decimal places). Checked the *entire* 300s signal: only 32 of 75,001
+   samples deviate from the constant value at all, and every one of them is in the first 0.124s of
+   the simulation (startup transient settling onto the ground) -- **zero variance for the entire
+   rest of the session**. The earlier "`accel_var_mps2_2 z=0.003`" figures in every session's
+   `matlab_summary.json` were measuring that one brief 32-sample startup blip diluted across
+   50,000-75,000 total samples, not sustained chatter. There is no accelerometer noise anywhere
+   near any reset window.
+2. **`HIL_GPS` delivery timing/gaps: ruled out.** Re-decoded session_13's `hil_gps.bin` (same
+   pymavlink approach as 10.8) and measured inter-message gaps directly from `time_usec`: **9,997 of
+   10,008 gaps are exactly 0.040s (steady 25Hz), the other 11 are 0.008s, maximum gap over the
+   entire 400s session is 0.040s** -- nowhere close to the 5-7s fusion-timeout thresholds above, and
+   no irregularity of any kind.
+
+**Conclusion: the sensor data Simulink sends to PX4 (accelerometer and GPS both) is clean, correct,
+and delivered at a steady, expected rate for the entire session -- this rules out a data-quality or
+data-timing explanation for the reset cycle a second time, this time with hard numbers instead of a
+plausible-sounding hypothesis.** The ~13s sawtooth is very likely intrinsic to how PX4's EKF2 (or
+its arming-check retry logic) behaves in this specific state -- HITL, grounded, continuously failing
+prearm long enough to keep re-triggering some reset path -- independent of anything this repo's
+Simulink model is doing. Not yet confirmed which exact code path produces the emergent 13s figure
+(none of the three found constants equal it directly, so it's likely a combination/interaction, e.g.
+an accel-bias-estimator adaptation time constant not yet located, or a possibility not yet
+considered: this being *designed* PX4 behavior for an ungarmed vehicle that never satisfies arming,
+not a "failure" in the EKF2 code sense at all).
+
+**Best next step, still no real hardware required:** run the identical scenario in pure SITL
+(`CONTROLLER_RUNTIME=1`, `initVehicleSIL`'s existing `PX4 Interface`/`pixhawk_sil_connector` path --
+a simulated PX4 instance, not the physical Cube Orange Plus). If the same ~13s reset cycle appears
+with literally the same Simulink sensor feed but no real board involved at all, that confirms this
+is PX4/EKF2-intrinsic and not specific to this HITL bench -- and shifts the investigation from "what
+is this repo doing wrong" to "is this expected PX4 behavior for a vehicle that sits ungarmed
+indefinitely, and if not, which PX4 parameter/config controls it."
+
+## 11. SITL comparison run: conclusive -- the ~13s reset cycle is HITL/hardware-specific, not PX4-intrinsic
+
+Full details, four more real bugs found and fixed along the way, and the raw data are in
+**`SITL_VS_HITL_ESTIMATOR_COMPARISON.md`** (new file). Summary:
+
+Built and ran PX4 SITL (`optimAeroHex` target, this repo's own vendored PX4-Autopilot fork, no real
+hardware) against the identical `VehicleSilSimulation.slx` model and scenario used for every HITL
+session in this document. Captured `ESTIMATOR_STATUS` over a 226-second window via a WSL-side
+listener (PX4 SITL's default MAVLink instances only bind to localhost within WSL's own network
+namespace, so the listener has to run there, not on the Windows host).
+
+**Result: `vel_ratio` and `pos_vert_ratio` stayed at essentially `0.000` for the entire captured
+window -- no sawtooth, no resets, zero `STATUSTEXT` prearm failures of any kind.** PX4 SITL arms
+cleanly and immediately with the same data that produces persistent "vertical velocity
+unstable"/"High Accelerometer Bias" failures every time against the real Cube Orange Plus.
+
+**This resolves the question section 10.10 left open.** Combined with 10.10's independent finding
+(the actual accelerometer and GPS data reaching the real board were confirmed clean and correctly
+timed via direct byte-level decoding), the sensor-injection path is now ruled out as a cause twice
+over, and PX4/EKF2-intrinsic behavior is now also ruled out (same firmware codebase, same model,
+healthy in SITL). **The ~13s reset cycle is specific to something about the real HITL bench** --
+most likely something in the real serial link's timing characteristics or a `SYS_HITL`-gated
+firmware code path that never activated in this SITL comparison (confirmed real and non-cosmetic:
+`voted_sensors_update.cpp` widens sensor-voter timeouts and disables failover detection specifically
+when `SYS_HITL=1`, though not obviously in a way that would directly cause this symptom -- see
+section 5 of the comparison doc for the concrete next check: enabling `SYS_HITL=1` within SITL
+itself to isolate firmware-branch effects from anything physical-hardware-specific, still without
+touching the real board).
+
+**Investigation status:** the original question ("why won't the vehicle arm") has been substantially
+re-scoped over the course of this document -- from a suspected Simulink sensor-model bug (section 3,
+disproven section 5.1), to a stale-board-state hypothesis (section 10.2, partially disproven by
+session_12/13 still failing after a clean reboot), to "just needs more settle time" (disproven by
+session_13's sustained divergence), to the current, evidence-backed position: **the cause is
+somewhere in the interaction between PX4's `SYS_HITL=1` firmware behavior and the real Cube Orange
+Plus / serial HITL link specifically**, not in this repo's Simulink model or sensor injection, which
+has now been independently confirmed correct at every level checked (physics, accelerometer values,
+GPS values and timing, and -- via this SITL comparison -- overall estimator convergence behavior).

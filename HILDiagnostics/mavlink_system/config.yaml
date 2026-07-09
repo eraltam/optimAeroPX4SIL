@@ -13,8 +13,18 @@ vehicle:
   # eventually.
   connect_timeout_s: 180
   telemetry_timeout_s: 15
-  health_timeout_s: 60
+  # Was 60s. Sessions 9/11/12 all showed "vertical velocity unstable"/"High Accelerometer
+  # Bias" still recurring at the 60s mark with no sign of clearing (session_8 is the only
+  # session that ever cleared, at ~25s, on an already-warm board) -- see
+  # HITL_PREARM_HEALTH_INVESTIGATION.md section 10.7. Raised to see whether PX4 genuinely
+  # needs more real time to settle, or never clears at all regardless of window length.
+  health_timeout_s: 240
   takeoff_timeout_s: 60
+  param_dump_timeout_s: 30
+  # NOTE: the autopilot reboot-before-session step (see HITL_PREARM_HEALTH_INVESTIGATION.md
+  # section 10) is NOT run through this config/main.py -- it must happen before Simulink
+  # or MAVSDK ever open the serial port. Run reboot_autopilot.py standalone first;
+  # see section 10.5/section 8 step 3.
   takeoff_altitude_m: 3.0
   auto_arm: true
   auto_takeoff: true
@@ -50,6 +60,7 @@ listener:
     - HIL_SENSOR
     - HIL_GPS
     - HOME_POSITION
+    - ESTIMATOR_STATUS
     - COMMAND_ACK
     - MISSION_ACK
     - MISSION_CURRENT
