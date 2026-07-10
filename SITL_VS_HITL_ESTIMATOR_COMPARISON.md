@@ -256,3 +256,34 @@ setting `SYS_HITL=1` in a SITL run as a cheap next check: if the sawtooth reappe
 enabled even in SITL (no real board), that would isolate the cause to this parameter's firmware
 branches specifically, rather than anything about the physical Cube Orange Plus or the real serial
 link.
+
+## 6. `SYS_HITL=1` test result: negative -- also ruled out
+
+Added `param set-default SYS_HITL 1` to `ROMFS/px4fmu_common/init.d-posix/airframes/10021_optimAeroHex`
+(also fixed a real, separate typo bug found in the same file while there: line 64 had `para
+set-default MPC_THR_HOVER 32` -- missing the `m` in `param`, matching a `"para: not found"` shell
+warning seen in every SITL boot log throughout this comparison; `MPC_THR_HOVER`'s intended default
+was silently never applied). Cleared the rootfs's saved `parameters.bson`/`parameters_backup.bson`
+and `eeprom/` to guarantee a clean boot picks up the new default (`param set-default` only takes
+effect if the parameter hasn't already been explicitly saved). Re-ran the identical 300s SITL
+comparison, using the same async `SimulationCommand=start` + WSL-listener-after-connection sequencing
+established in section 5, in a fresh MATLAB process (per section 4's finding: never reuse a MATLAB
+process across `sim()` calls with either PX4 connector).
+
+**Result: no change at all.** `vel_ratio`/`pos_vert_ratio` stayed at essentially `0.000` for the
+entire ~226s captured, `flags` stayed constant at `831` (identical to the `SYS_HITL=0` baseline run
+in section 5, same values at matching timestamps to within noise), zero `STATUSTEXT` messages.
+**`SYS_HITL=1` alone, without the real hardware, produces no observable difference in estimator
+behavior.**
+
+**This rules out hypothesis (b) from section 5 as the sole cause.** The `voted_sensors_update.cpp`
+timeout-widening/failover-disabling code confirmed to exist under `SYS_HITL=1` either isn't relevant
+to this symptom, or isn't sufficient by itself -- something about it requires the actual physical
+hardware/serial path to manifest. **Remaining live hypothesis: (c) -- something physical to the real
+HITL bench specifically** (the real serial link's byte-level timing/jitter at 921600 baud, the
+`UDP Receive`/`Switch` gating logic in `PX4HITLConnector.slx` mixing HITL command traffic into the
+serial stream, or genuine clock drift/jitter on the Cube Orange Plus's own hardware clock that
+lockstep-perfect SITL has no counterpart for). This can only be investigated with the real board --
+there is no further no-hardware experiment obviously available from where this comparison leaves
+off. See `HITL_PREARM_HEALTH_INVESTIGATION.md` section 11 for the consolidated status and candidate
+next real-hardware checks.

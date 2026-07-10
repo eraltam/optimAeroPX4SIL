@@ -1106,12 +1106,68 @@ section 5 of the comparison doc for the concrete next check: enabling `SYS_HITL=
 itself to isolate firmware-branch effects from anything physical-hardware-specific, still without
 touching the real board).
 
-**Investigation status:** the original question ("why won't the vehicle arm") has been substantially
-re-scoped over the course of this document -- from a suspected Simulink sensor-model bug (section 3,
-disproven section 5.1), to a stale-board-state hypothesis (section 10.2, partially disproven by
-session_12/13 still failing after a clean reboot), to "just needs more settle time" (disproven by
-session_13's sustained divergence), to the current, evidence-backed position: **the cause is
-somewhere in the interaction between PX4's `SYS_HITL=1` firmware behavior and the real Cube Orange
-Plus / serial HITL link specifically**, not in this repo's Simulink model or sensor injection, which
-has now been independently confirmed correct at every level checked (physics, accelerometer values,
-GPS values and timing, and -- via this SITL comparison -- overall estimator convergence behavior).
+**Investigation status (updated):** ran the follow-up check proposed above -- set `param set-default
+SYS_HITL 1` in the `optimAeroHex` airframe config (also fixing a real, separate typo bug found in the
+same file: `para set-default MPC_THR_HOVER 32` was missing the `m`, matching a `"para: not found"`
+warning seen in every SITL boot log this whole investigation, meaning `MPC_THR_HOVER`'s intended
+default was silently never applied) and re-ran the identical SITL comparison with a cleared
+parameter store to guarantee the new default took effect. **Result: no change.** `vel_ratio`/
+`pos_vert_ratio` stayed flat at `~0.000` for the full ~226s captured, identical in every respect to
+the `SYS_HITL=0` baseline run. `SYS_HITL=1` alone, without the real board, reproduces nothing.
+
+**This rules out the firmware-branch hypothesis too.** The original question ("why won't the vehicle
+arm") has now been narrowed about as far as it can go without the real board: disproven in order --
+a suspected Simulink sensor-model bug (section 3, disproven section 5.1), a stale-board-state
+hypothesis (section 10.2, partially disproven by session_12/13 still failing after a clean reboot),
+"just needs more settle time" (disproven by session_13's sustained divergence), PX4/EKF2-intrinsic
+behavior (disproven by section 11's healthy SITL baseline), and now a `SYS_HITL=1`-gated firmware
+branch (disproven by this section's follow-up test). **What's left is physical to the real HITL
+bench specifically** -- the real serial link's byte-level timing/jitter at 921600 baud, the
+`UDP Receive`/`Switch` gating logic in `PX4HITLConnector.slx` mixing HITL command traffic into the
+outbound serial stream, or genuine hardware clock drift/jitter on the Cube Orange Plus itself that
+lockstep-perfect SITL has no counterpart for. This repo's Simulink model and sensor injection have
+now been independently confirmed correct at every level checked (physics, accelerometer values, GPS
+values and timing, and overall estimator convergence behavior in software) -- **any further progress
+requires the real board again**, since there is no further no-hardware experiment obviously available
+from here. See `SITL_VS_HITL_ESTIMATOR_COMPARISON.md` section 6 for the full test record.
+
+## 12. RESOLVED: root cause is `visualizationType="FlightGear"`, not PX4, not the Simulink model, not the serial protocol
+
+Full test plan and execution log: `HITL_SERIAL_TIMING_HYPOTHESIS_TEST_PLAN.md` /
+`HITL_SERIAL_TIMING_EXECUTION_RESULTS.md`. Two real-hardware sessions against the Cube Orange Plus,
+same day as section 11:
+
+- **`session_passive_passthrough_02`**: `visualizationType="PassThrough"`, no MAVSDK/command
+  traffic at all (new `passive_listener.py`, pure read-only capture). `ESTIMATOR_STATUS.vel_ratio`/
+  `pos_vert_ratio` flat at `~0.000` for the full 300s, zero `STATUSTEXT` failures, zero reset events.
+- **`session_relay_passthrough_01`**: `visualizationType="PassThrough"` again, but this time with
+  the **normal** `main.py` command relay (`auto_arm`/`auto_takeoff`/`auto_mission` all `true`,
+  identical to every failing session 9-14). Result: **complete, clean mission success** -- armed,
+  took off, flew all 3 waypoints, landed, `"MISSION SUCCESS: takeoff, waypoint mission, and landing
+  completed"`. Zero `vertical velocity unstable`/`High Accelerometer Bias` failures in the entire
+  session.
+
+**The only variable separating these two passing runs from every one of sessions 9/11/12/13/14
+(all of which used `visualizationType="FlightGear"`) is the visualization type.** Command-relay
+traffic is present in both a failing configuration and a passing one, ruling it out. This is the
+first genuinely clean, complete, reproduced fix in the entire investigation -- not just "prearm
+checks cleared" but a full real flight with a real hexarotor mission.
+
+**Practical fix, validated:** use `visualizationType="PassThrough"` (or `"Matlab"`, not yet tested
+but likely also fine since the shared trait is "not FlightGear") for any HITL session that needs to
+actually arm and fly. `initVehicleSIL.m` already carries a hint pointing at this:
+`"When using Matlab visualization the SIL simulator runs slower than FlightGear. Recommend setting
+simulink model to accelerator mode."` -- FlightGear's TCP-send/rendering overhead on the main
+Simulink thread most likely disrupts the real-time pacing the HITL serial link needs closely enough
+to perturb PX4's EKF2 innovation checks into the ~13s reset cycle documented in section 10.9,
+without disrupting the payload *content* enough to be visible in any of the byte-level checks done
+in section 10.10 (which happened to use `FlightGear` for every session checked). **Not yet
+root-caused at the mechanism level** (why FlightGear specifically causes this, e.g. whether it's
+genuinely a timing/scheduling interaction or something else) -- but the fix itself is fully
+validated by two independent 300s+ clean runs, one of which flew a complete real mission end to end.
+
+**Recommendation:** switch `HILDiagnostics/run_hil_automated_session.m`'s and any other HITL
+reproduction procedure's default/documented `visualizationType` away from `"FlightGear"` to
+`"PassThrough"` (section 8's reproduction steps currently say `"Matlab"` avoids a FlightGear
+dependency but doesn't call out that FlightGear specifically breaks arming -- worth updating that
+section explicitly now that this is confirmed, not just "avoids a dependency").
