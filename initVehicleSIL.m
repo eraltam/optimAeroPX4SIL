@@ -96,9 +96,19 @@ arguments
 end
 restoredefaultpath
 % Note: In future versions these will be arguments
-vehicleParams.type                   = opts.vehicleType;
+addpath('vehicle');
+vehicleDefinition                    = vehicleRegistry(opts.vehicleType);
+vehicleParams.requestedType          = opts.vehicleType;
+vehicleParams.vehicleKey             = vehicleDefinition.VehicleKey;
+vehicleParams.displayName            = vehicleDefinition.DisplayName;
+vehicleParams.type                   = vehicleDefinition.PlantModel;
+vehicleParams.baseVehicleType        = vehicleDefinition.BaseVehicleType;
 vehicleParams.controllerType         = opts.controllerType;
+vehicleParams.silControllerType      = vehicleDefinition.ControllerType;
+vehicleParams.actuatorInterface      = vehicleDefinition.ActuatorInterface;
 vehicleParams.failureType            = opts.failureType;
+vehicleParams.PX4Target              = vehicleDefinition.PX4Target;
+vehicleParams.registryEntry          = vehicleDefinition;
 visualizationParams.flightGearFreq_Hz      = opts.flightGearFreq_Hz;
 visualizationParams.flightGearHost         = opts.flightGearHost;
 visualizationParams.flightGearTelnetPort   = opts.flightGearTelnetPort;
@@ -174,14 +184,11 @@ addpath(genpath('visualization'));
 addpath(genpath('PX4SILConnector'));
 addpath(genpath('PX4HITLConnector'));
 addpath(genpath('vehicle/common'));
-
-if strcmpi(vehicleParams.type, "F-16")
-    addpath(genpath('vehicle/F16'));
-    compilerVehicleName = "optimAeroF16";
-elseif strcmpi(vehicleParams.type, "hexarotor")
-    addpath(genpath('vehicle/hexarotor'))
-    compilerVehicleName = "optimAeroHex";
-end
+addpath(genpath('vehicle/hexarotor'));
+addpath(genpath(vehicleBasePath(vehicleDefinition.BaseVehicleType)));
+addpath(genpath(vehicleBasePath(vehicleDefinition.PlantModel)));
+addpath(genpath(vehicleDefinition.VehiclePath));
+compilerVehicleName = vehicleDefinition.PX4Target;
 
 Simulink.fileGenControl('set', ...
     'CacheFolder', 'work', ...
@@ -196,7 +203,7 @@ stepSize_s = 0.004; % step size used in standardSILConfugrationParams.mat file
 constants
 
 % load bus definitions
-BusDefinition(vehicleParams.type)
+BusDefinition(vehicleParams.baseVehicleType)
 
 % load vehicle specific data and initial conditions
 setUpVehicle
@@ -241,6 +248,7 @@ else
     load_system(modelName);
     set_param(jsBlockPath, 'JoystickID', 'Joystick1');
 end
+configureHitlRuntime(modelName, opts.controllerRuntime);
 
 % Set the HITL serial port directly on both MAVLink Bridge blocks. Their PixhawkSerialPortManually
 % mask parameter is a literal-string field (MaskVariables shows "&2", not "@2" -- Simulink's
@@ -256,9 +264,9 @@ end
 
 % Check failure type
 try
-    if strcmpi(vehicleParams.type,"F-16")
+    if strcmpi(vehicleParams.baseVehicleType,"F-16")
         vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
-    elseif strcmpi(vehicleParams.type,"hexarotor")
+    elseif strcmpi(vehicleParams.baseVehicleType,"hexarotor")
         vehicleParams.failureType = EnumHexFailureType(vehicleParams.failureType);
     end
 catch
@@ -285,7 +293,7 @@ if strcmpi(opts.visualizationType, 'Matlab')
     load_system('VehicleSilSimulation.slx')
     warning("When using Matlab visualization the SIL simulator runs slower than FlightGear. Recommend setting simulink model to" + ...
         " accelerator mode.")
-    if strcmpi(vehicleParams.type,'Hexarotor')
+    if strcmpi(vehicleDefinition.ControllerType, "multirotor") || strcmpi(vehicleDefinition.ControllerType, "rover")
         set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
             'Multirotor');
     else
@@ -407,6 +415,23 @@ end
 
 end
 
+function configureHitlRuntime(modelName, controllerRuntime)
+if ~bdIsLoaded(modelName)
+    load_system(modelName);
+end
+
+hitlSubsystem = [modelName '/PX4 HITL Interface'];
+if ~strcmp(get_param(hitlSubsystem, 'Type'), 'block')
+    return
+end
+
+if strcmpi(controllerRuntime, "HITL")
+    set_param(hitlSubsystem, 'Commented', 'off');
+else
+    set_param(hitlSubsystem, 'Commented', 'on');
+end
+end
+
 function configureFlightGearTcpEndpoint(modelName, host, port, vehicleType)
 if ~bdIsLoaded(modelName)
     load_system(modelName);
@@ -459,5 +484,24 @@ try
     clear client
     isOpen = true;
 catch
+end
+end
+
+function pathName = vehicleBasePath(baseVehicleType)
+switch lower(string(baseVehicleType))
+    case "f-16"
+        pathName = "vehicle/F16";
+    case "hexarotor"
+        pathName = "vehicle/hexarotor";
+    case "evtol_simscape"
+        pathName = "vehicle/evtol_simscape";
+    case "tracked_vehicle_simscape"
+        pathName = "vehicle/tracked_vehicle_simscape";
+    case "wheel_loader_simscape"
+        pathName = "vehicle/wheel_loader_simscape";
+    case "ackermann_simscape"
+        pathName = "vehicle/ackermann_simscape";
+    otherwise
+        pathName = "vehicle/" + string(baseVehicleType);
 end
 end

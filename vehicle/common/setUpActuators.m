@@ -4,7 +4,13 @@ actuatorDelay_s = 0.005;
 plantSampleTime_s = 0.01;
 parameters.engine.minThrottle = 0.01; %idle happens above this value
 
-switch lower(vehicleParams.type)
+if isfield(vehicleParams, 'baseVehicleType')
+    setupVehicleType = vehicleParams.baseVehicleType;
+else
+    setupVehicleType = vehicleParams.type;
+end
+
+switch lower(setupVehicleType)
     case "f-16"
         % Max deflection of control surfaces
         maxAilDefl_deg = 20;
@@ -41,5 +47,5 @@ switch lower(vehicleParams.type)
         vehicleParams.actuator.tfDenominator = [1 700 250000];
 
     otherwise
-        error(char(["unknown vehicle: " vehicleType]))
+        error(char(["unknown vehicle: " setupVehicleType]))
 end

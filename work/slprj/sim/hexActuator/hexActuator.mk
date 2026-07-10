@@ -2,7 +2,7 @@
 ## Makefile generated for component 'hexActuator'. 
 ## 
 ## Makefile     : hexActuator.mk
-## Generated on : Tue Jul 07 15:40:30 2026
+## Generated on : Fri Jul 10 11:45:10 2026
 ## Final product: ./hexActuatorlib.lib
 ## Product type : static library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = hexActuator.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -220,7 +220,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXMOT~1/HEXMOT~1.LIB
+MODELREF_LIBS = C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexMotorModel/hexMotorModellib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

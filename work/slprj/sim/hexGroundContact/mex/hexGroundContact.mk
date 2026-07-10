@@ -2,7 +2,7 @@
 ## Makefile generated for component 'hexGroundContact'. 
 ## 
 ## Makefile     : hexGroundContact.mk
-## Generated on : Tue Jul 07 16:41:48 2026
+## Generated on : Fri Jul 10 11:44:27 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/hexGroundContact_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = hexGroundContact.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXGRO~1/HEXGRO~1.LIB
+MODELREF_LIBS = C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexGroundContact/hexGroundContactlib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

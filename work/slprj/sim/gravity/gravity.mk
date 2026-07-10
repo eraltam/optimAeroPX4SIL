@@ -2,7 +2,7 @@
 ## Makefile generated for component 'gravity'. 
 ## 
 ## Makefile     : gravity.mk
-## Generated on : Wed Jul 01 11:42:49 2026
+## Generated on : Thu Jul 09 17:09:20 2026
 ## Final product: ./gravitylib.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = gravity.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0

@@ -1,6 +1,12 @@
 % This script populates the base workspace with vehicle parameters for the specified vehicle. This script also includes
 % the data describing the initial location of the vehicle in the ismulation.
-switch lower(vehicleParams.type)
+if isfield(vehicleParams, 'baseVehicleType')
+    setupVehicleType = vehicleParams.baseVehicleType;
+else
+    setupVehicleType = vehicleParams.type;
+end
+
+switch lower(setupVehicleType)
     case "f-16"
         vehicleParams.dryMass_kg = 20500 * lbs2kg;
         vehicleParams.aircraftInertialBody_kgm2 = [12820.61 0 1331.41; 0 75673.62 0; 0 0 85552.11];
@@ -27,7 +33,7 @@ switch lower(vehicleParams.type)
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;
     otherwise
-        error(char(["unknown vehicle: " vehicleType]))
+        error(char(["unknown vehicle: " setupVehicleType]))
 end
 
 aircraftInitialPosInNED_m = [0, 0, -referenceAltitude_m];

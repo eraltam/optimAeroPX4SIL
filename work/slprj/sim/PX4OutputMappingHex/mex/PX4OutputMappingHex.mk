@@ -2,7 +2,7 @@
 ## Makefile generated for component 'PX4OutputMappingHex'. 
 ## 
 ## Makefile     : PX4OutputMappingHex.mk
-## Generated on : Wed Jul 01 11:42:05 2026
+## Generated on : Thu Jul 09 19:12:11 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/PX4OutputMappingHex_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = PX4OutputMappingHex.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/PX4OUT~1/PX4OUT~1.LIB
+MODELREF_LIBS = C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/PX4OutputMappingHex/PX4OutputMappingHexlib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 
