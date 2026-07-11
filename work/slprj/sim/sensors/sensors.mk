@@ -2,7 +2,7 @@
 ## Makefile generated for component 'sensors'. 
 ## 
 ## Makefile     : sensors.mk
-## Generated on : Tue Jul 07 12:15:38 2026
+## Generated on : Fri Jul 10 15:48:08 2026
 ## Final product: ./sensorslib.lib
 ## Product type : static library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = sensors.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/AS/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -220,7 +220,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/adc/adclib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/gps/gpslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/ins/inslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/INS_AN~1/INS_AN~1.LIB
+MODELREF_LIBS = C:/AS/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

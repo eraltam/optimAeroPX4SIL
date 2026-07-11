@@ -76,6 +76,11 @@ listener:
 safety:
   require_position_ok_for_takeoff: true
   max_takeoff_altitude_m: 10.0
-  max_mission_altitude_m: 10.0
+  # Was 10.0m. mission.yaml's per-waypoint relative_altitude_m values (reconstructed from
+  # nav_hil_ground_truth.ulg's real GPS track) peak at 2279.76m -- raised to 2400m for margin.
+  # No motors are physically attached to this bench, so this is not a physical safety change,
+  # only a mission-content validation limit. Revert to 10.0 for any other (non-ground-truth-replay)
+  # hexarotor mission.
+  max_mission_altitude_m: 2400.0
   allow_real_vehicle_commands: true
   allow_pymavlink_commands: true

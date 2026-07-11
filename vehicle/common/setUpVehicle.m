@@ -22,10 +22,21 @@ switch lower(vehicleParams.type)
         vehicleParams.maxRPM = 3000;
         vehicleParams.SRef_m2 = 0.5;
         aeroDataHex
-        % set initial location to Juancho E. Yrausquin Airport, helipad 
-        referenceAltitude_m = 116 * ft2m;
-        referenceLatitude_deg = 17.64450;
-        referenceLongitude_deg = -63.21988;
+        % TEMPORARY override for nav_hil_ground_truth.ulg replay: matches that log's actual
+        % first valid GPS fix (fix_type>=3) so mission.yaml's reconstructed waypoints (from the
+        % same flight) are physically reachable instead of far from home. Revert to the
+        % Saba/Juancho E. Yrausquin Airport values below for any other hexarotor test.
+        % NOTE: updated 2026-07-10 to match the *current* (shorter, ~538s) nav_hil_ground_truth.ulg
+        % -- the previous override (37.336, -121.821) was for a different, since-replaced 2-hour
+        % ground-truth log and no longer matches. Re-check this any time nav_hil_ground_truth.ulg
+        % or mission.yaml change.
+        referenceAltitude_m = 11.200000000000001;
+        referenceLatitude_deg = 37.4128378;
+        referenceLongitude_deg = -122.0001884;
+        % --- Original Saba/Juancho E. Yrausquin Airport helipad values, restore when done: ---
+        % referenceAltitude_m = 116 * ft2m;
+        % referenceLatitude_deg = 17.64450;
+        % referenceLongitude_deg = -63.21988;
     otherwise
         error(char(["unknown vehicle: " vehicleType]))
 end
