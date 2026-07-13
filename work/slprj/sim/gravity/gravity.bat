@@ -4,9 +4,7 @@ call "setup_mingw.bat"
 
 cd .
 
-chcp 1252
-
-if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f gravity.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f gravity.mk %1)
+if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 8 -l 10 -Oline -f gravity.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 8 -l 10 -Oline -f gravity.mk %1)
 @if errorlevel 1 goto error_exit
 
 exit /B 0

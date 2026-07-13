@@ -2,7 +2,7 @@
 ## Makefile generated for component 'PX4OutputMappingHex'. 
 ## 
 ## Makefile     : PX4OutputMappingHex.mk
-## Generated on : Thu Jul 09 19:12:01 2026
+## Generated on : Mon Jul 13 15:05:47 2026
 ## Final product: ./PX4OutputMappingHexlib.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = PX4OutputMappingHex.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -152,7 +152,8 @@ CFLAGS               = -c $(MINGW_C_STANDARD_OPTS) -m64 -Wno-error=incompatible-
 CPPFLAGS             = -c $(CPP_STANDARD_OPTS) -m64 -Wno-error=incompatible-pointer-types -Wno-error=stringop-overflow \
                        -O0
 CPP_LDFLAGS          =  -static -m64
-CPP_SHAREDLIB_LDFLAGS  = -shared -Wl,--no-undefined
+CPP_SHAREDLIB_LDFLAGS  = -shared -Wl,--no-undefined \
+                         -Wl,--out-implib,$(basename $(PRODUCT)).lib
 DOWNLOAD_FLAGS       =
 EXECUTE_FLAGS        =
 LDFLAGS              =  -static -m64
@@ -161,7 +162,8 @@ MEX_CPPLDFLAGS       =
 MEX_CFLAGS           =
 MEX_LDFLAGS          =
 MAKE_FLAGS           = -j $(MAX_MAKE_JOBS) -l $(MAX_MAKE_LOAD_AVG) -Oline -f $(MAKEFILE)
-SHAREDLIB_LDFLAGS    = -shared -Wl,--no-undefined
+SHAREDLIB_LDFLAGS    = -shared -Wl,--no-undefined \
+                       -Wl,--out-implib,$(basename $(PRODUCT)).lib
 
 
 

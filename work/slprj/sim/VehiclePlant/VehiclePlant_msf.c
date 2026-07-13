@@ -16,7 +16,7 @@
 #include "VehiclePlant_private.h"
 #include "environment.h"
 #include "sensors.h"
-#include "hexarotor.h"
+#include "evtol_simscape.h"
 struct_7BigaldNWGj33rb8sElmtH rtP_parameters ; real_T rtP_C_D [ 19 ] ; real_T
 rtP_C_L [ 19 ] ; real_T rtP_INS_VARIANT ; real_T rtP_actuatorDelay_s ; real_T
 rtP_airDensityAtStd_kgpm3 ; real_T rtP_aircraftInitialBodyRates_radps [ 3 ] ;
@@ -1479,7 +1479,7 @@ DISALLOW_SAMPLE_TIME_INHERITANCE ) ; ssSetAcceptsFcnCallInputs ( S ) ;
 ssSetModelReferenceNormalModeSupport ( S ,
 MDL_START_AND_MDL_PROCESS_PARAMS_OK ) ; ssSupportsMultipleExecInstances ( S ,
 false ) ; ssRegisterMsgForNotSupportingMultiExecInst ( S ,
- "<diag_root><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstancesWithCustomMsg\" pr=\"d\"><arguments><arg type=\"encoded\">VgBlAGgAaQBjAGwAZQBQAGwAYQBuAHQALwBlAG4AdgBpAHIAbwBuAG0AZQBuAHQAAAA=</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAABAC1x0A=</h></hs><causes><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstancesWithCustomMsg\" pr=\"d\"><arguments><arg type=\"encoded\">ZQBuAHYAaQByAG8AbgBtAGUAbgB0AC8AZQBhAHIAdABoAAAA</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAAEIAUwUA=</h></hs><causes><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstances\" pr=\"d\"><arguments><arg type=\"encoded\">RQBhAHIAdABoAC8AVwBHAFMAOAA0ACAARwByAGEAdgBpAHQAeQAgAE0AbwBkAGUAbAAgACAAAAA=</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAAEIAUwUA=</h></hs></diag></causes></diag></causes></diag></diag_root>"
+ "<diag_root><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstancesWithCustomMsg\" pr=\"d\"><arguments><arg type=\"encoded\">VgBlAGgAaQBjAGwAZQBQAGwAYQBuAHQALwBlAG4AdgBpAHIAbwBuAG0AZQBuAHQAAAA=</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAA8ADEpkA=</h></hs><causes><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstancesWithCustomMsg\" pr=\"d\"><arguments><arg type=\"encoded\">ZQBuAHYAaQByAG8AbgBtAGUAbgB0AC8AZQBhAHIAdABoAAAA</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAAEIAUwUA=</h></hs><causes><diag id=\"Simulink:blocks:BlockDoesNotSupportMultiExecInstances\" pr=\"d\"><arguments><arg type=\"encoded\">RQBhAHIAdABoAC8AVwBHAFMAOAA0ACAARwByAGEAdgBpAHQAeQAgAE0AbwBkAGUAbAAgACAAAAA=</arg><arg type=\"encoded\">PABfAF8AaQBpAFMAUwBfAF8APgA8AC8AXwBfAGkAaQBTAFMAXwBfAD4AAAA=</arg><arg type=\"encoded\">PABfAF8AaQB0AGUAcgBCAGwAawBfAF8APgA8AC8AXwBfAGkAdABlAHIAQgBsAGsAXwBfAD4AAAA=</arg></arguments><hs><h>AAAAEIAUwUA=</h></hs></diag></causes></diag></causes></diag></diag_root>"
 ) ; ssHasStateInsideForEachSS ( S , true ) ; ssSetOptions ( S ,
 SS_OPTION_ALLOW_CONSTANT_PORT_SAMPLE_TIME |
 SS_OPTION_PORT_SAMPLE_TIMES_ASSIGNED | SS_OPTION_SUPPORTS_ALIAS_DATA_TYPES |

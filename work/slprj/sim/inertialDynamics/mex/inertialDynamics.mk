@@ -2,7 +2,7 @@
 ## Makefile generated for component 'inertialDynamics'. 
 ## 
 ## Makefile     : inertialDynamics.mk
-## Generated on : Thu Jul 09 17:10:35 2026
+## Generated on : Mon Jul 13 14:41:22 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/inertialDynamics_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = inertialDynamics.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib
+MODELREF_LIBS = C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

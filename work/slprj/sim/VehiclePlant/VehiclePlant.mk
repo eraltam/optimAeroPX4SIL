@@ -2,7 +2,7 @@
 ## Makefile generated for component 'VehiclePlant'. 
 ## 
 ## Makefile     : VehiclePlant.mk
-## Generated on : Tue Jul 07 16:42:09 2026
+## Generated on : Mon Jul 13 16:24:20 2026
 ## Final product: ./VehiclePlantlib.lib
 ## Product type : static library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = VehiclePlant.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -38,6 +38,12 @@ CMD_FILE                  = VehiclePlant.rsp
 C_STANDARD_OPTS           = -fwrapv
 CPP_STANDARD_OPTS         = -fwrapv
 MODELLIB                  = VehiclePlantlib.lib
+LIBSSC_SLI_RTWSFCN_MINGW64_OBJS = 
+LIBSSC_CORE_RTWSFCN_MINGW64_OBJS = 
+LIBPM_ST_RTWSFCN_MINGW64_OBJS = 
+LIBMC_RTWSFCN_MINGW64_OBJS = 
+LIBEX_RTWSFCN_MINGW64_OBJS = 
+LIBPM_RTWSFCN_MINGW64_OBJS = 
 
 ###########################################################################
 ## TOOLCHAIN SPECIFICATIONS
@@ -220,9 +226,9 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/ENVIRO~1/ENVIRO~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/Air/Airlib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/Earth/Earthlib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/LOCALT~1/LOCALT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXARO~1/HEXARO~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/CGMASS~1/CGMASS~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/gravity/GRAVIT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXACT~1/HEXACT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXMOT~1/HEXMOT~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/hexAddFm/HEXADD~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/hexAero/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXAER~1/HEXAER~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/HEXGRO~1/HEXGRO~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/INERTI~1/INERTI~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/sensors/SENSOR~1.LIB C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/adc/adclib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/gps/gpslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/ins/inslib.lib C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work/slprj/sim/INS_AN~1/INS_AN~1.LIB
+MODELREF_LIBS = C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/environment/environmentlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/Air/Airlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/Earth/Earthlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/LocalTerrain/LocalTerrainlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/evtol_simscape/evtol_simscapelib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/cgMassInertia/cgMassInertialib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/gravity/gravitylib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexActuator/hexActuatorlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexMotorModel/hexMotorModellib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAddFm/hexAddFmlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexGroundContact/hexGroundContactlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/sensors/sensorslib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib
 
-LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
+LIBS = $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/lib/ssc_sli_rtwsfcn_mingw64.lib $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/lib/ssc_core_rtwsfcn_mingw64.lib $(MATLAB_ROOT)/extern/physmod/win64/pm_st/lib/pm_st_rtwsfcn_mingw64.lib $(MATLAB_ROOT)/extern/physmod/win64/mc/lib/mc_rtwsfcn_mingw64.lib $(MATLAB_ROOT)/extern/physmod/win64/ex/lib/ex_rtwsfcn_mingw64.lib $(MATLAB_ROOT)/extern/physmod/win64/pm/lib/pm_rtwsfcn_mingw64.lib $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 
 ###########################################################################
 ## SYSTEM LIBRARIES
@@ -382,6 +388,198 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 
 
 %.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ex/src/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/mc/src/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm/src/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/pm_st/src/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_core/src/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.obj : $(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/src/%.C
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
@@ -615,6 +813,40 @@ VehiclePlant.obj : $(START_DIR)/slprj/sim/VehiclePlant/VehiclePlant.c
 
 VehiclePlant_capi.obj : $(START_DIR)/slprj/sim/VehiclePlant/VehiclePlant_capi.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+#------------------------
+# BUILDABLE LIBRARIES
+#------------------------
+
+$(MATLAB_ROOT)/extern/physmod/win64/ssc_sli/lib/ssc_sli_rtwsfcn_mingw64.lib : $(LIBSSC_SLI_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBSSC_SLI_RTWSFCN_MINGW64_OBJS)
+
+
+$(MATLAB_ROOT)/extern/physmod/win64/ssc_core/lib/ssc_core_rtwsfcn_mingw64.lib : $(LIBSSC_CORE_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBSSC_CORE_RTWSFCN_MINGW64_OBJS)
+
+
+$(MATLAB_ROOT)/extern/physmod/win64/pm_st/lib/pm_st_rtwsfcn_mingw64.lib : $(LIBPM_ST_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBPM_ST_RTWSFCN_MINGW64_OBJS)
+
+
+$(MATLAB_ROOT)/extern/physmod/win64/mc/lib/mc_rtwsfcn_mingw64.lib : $(LIBMC_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBMC_RTWSFCN_MINGW64_OBJS)
+
+
+$(MATLAB_ROOT)/extern/physmod/win64/ex/lib/ex_rtwsfcn_mingw64.lib : $(LIBEX_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBEX_RTWSFCN_MINGW64_OBJS)
+
+
+$(MATLAB_ROOT)/extern/physmod/win64/pm/lib/pm_rtwsfcn_mingw64.lib : $(LIBPM_RTWSFCN_MINGW64_OBJS)
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library $@ ...)
+	$(AR) $(ARFLAGS)  $@ $(LIBPM_RTWSFCN_MINGW64_OBJS)
 
 
 ###########################################################################

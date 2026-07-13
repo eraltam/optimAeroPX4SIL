@@ -2,7 +2,7 @@
 ## Makefile generated for component 'hexAero'. 
 ## 
 ## Makefile     : hexAero.mk
-## Generated on : Fri Jul 10 11:45:36 2026
+## Generated on : Mon Jul 13 14:41:44 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/hexAero_msf.mexw64
 ## Product type : shared library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = hexAero.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib
+MODELREF_LIBS = C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

@@ -13,6 +13,8 @@
 % opts.failureType               A control surfance, engine, or motor failure. Must be element of  EnumHexFailureType.m or EnumF16FailureType.m
 % opts.PX4RepoPath               Path relative to optimAeroPX4SIL if PX4 repo is on windows side, or path relative to root wsl directory
 % opts.PX4InWSL                  If attempting to use the PX4 repo cloned into the WSL root directory, set this variable to true
+% opts.wslDistro                WSL distribution used to build/run PX4. "auto" prefers PX4Simulink,
+%                                then Ubuntu-22.04, instead of accidentally using an incompatible default distro.
 % opts.makeClean                 Removes all the compiled build files and intermediate artifacts. This may need to be 
 %                                set to true when making changes to the configuration file. 
 % opts.clearSLCache              Clear simulink cache. This deletes the work folder and will force all slx models 
@@ -81,6 +83,7 @@ arguments
     opts.failureType          (1,1) string  = "none"            % Must be a F-16 or hexartor failure type listed in EnumHexFailureType.m or EnumF16FailureType.m
     opts.PX4RepoPath          (1,1) string  = "PX4-Autopilot"   % PX4 repository path
     opts.PX4InWSL             (1,1) logical = false             % Is PX4 repository stored in Linux partition
+    opts.wslDistro            (1,1) string  = "auto"            % PX4-capable WSL distro, or "auto"
     opts.makeClean            (1,1) logical = false             % Run "make clean" before "make" - if in doubt, use if PX4 config changes made
     opts.clearSLCache         (1,1) logical = false             % Clear Simulink cache
     opts.flightGearFreq_Hz    (1,1) double  = 0.5               % Frequency of the TCP send block is sending data to flightGear
@@ -248,6 +251,7 @@ else
     load_system(modelName);
     set_param(jsBlockPath, 'JoystickID', 'Joystick1');
 end
+configureVehicleInterfaceVariants(modelName);
 configureHitlRuntime(modelName, opts.controllerRuntime);
 
 % Set the HITL serial port directly on both MAVLink Bridge blocks. Their PixhawkSerialPortManually
@@ -323,6 +327,13 @@ if opts.launchFullSIL
     disp('Launch QGroundControl manually.');
 
     if strcmpi(opts.controllerRuntime, "SITL")
+        wslDistro = resolveWSLDistro(opts.wslDistro);
+        if strlength(wslDistro) > 0
+            wslCommand = sprintf('wsl -d "%s"', wslDistro);
+        else
+            wslCommand = 'wsl';
+        end
+
         % Get WSL IP address if simHostIP is set to auto
         if (opts.simHostIP) == "auto"
             getWSLIP
@@ -359,27 +370,27 @@ if opts.launchFullSIL
             % Launch PX4-Autopilot that is checked out on the Windows side
             eval(strcat("cd ", opts.PX4RepoPath))
             if opts.makeClean
-                system(sprintf(['start wsl bash -c "export PX4_SIM_HOSTNAME=%d.%d.%d.%d && make clean && ' ...
+                system(sprintf(['start "" %s bash -lc "export PX4_SIM_HOSTNAME=%d.%d.%d.%d && make clean && ' ...
                     'make px4_sitl_default %s"'],...
-                    opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), opts.simHostIPVal(4), ...
+                    wslCommand, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), opts.simHostIPVal(4), ...
                     compilerVehicleName ));
             else
-                system(sprintf('start wsl bash -c "export PX4_SIM_HOSTNAME=%d.%d.%d.%d && make px4_sitl_default %s"',...
-                    opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), opts.simHostIPVal(4), ...
+                system(sprintf('start "" %s bash -lc "export PX4_SIM_HOSTNAME=%d.%d.%d.%d && make px4_sitl_default %s"',...
+                    wslCommand, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), opts.simHostIPVal(4), ...
                     compilerVehicleName ));
             end
         else
             if opts.makeClean
                 % Launch PX4-Autopilot that is cloned into the WSL root directory
-                system(sprintf(['start wsl bash -c "cd ~/%s && export PX4_SIM_HOSTNAME=%d.%d.%d.%d && ' ...
+                system(sprintf(['start "" %s bash -lc "cd ~/%s && export PX4_SIM_HOSTNAME=%d.%d.%d.%d && ' ...
                     'make clean && make px4_sitl_default %s"'],...
-                    opts.PX4RepoPath, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), ...
+                    wslCommand, opts.PX4RepoPath, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), ...
                     opts.simHostIPVal(4), compilerVehicleName ));
             else
                 % Launch PX4-Autopilot that is cloned into the WSL root directory
-                system(sprintf(['start wsl bash -c "cd ~/%s && export PX4_SIM_HOSTNAME=%d.%d.%d.%d &&' ...
+                system(sprintf(['start "" %s bash -lc "cd ~/%s && export PX4_SIM_HOSTNAME=%d.%d.%d.%d &&' ...
                     ' make px4_sitl_default %s"'],...
-                    opts.PX4RepoPath, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), ...
+                    wslCommand, opts.PX4RepoPath, opts.simHostIPVal(1), opts.simHostIPVal(2), opts.simHostIPVal(3), ...
                     opts.simHostIPVal(4), compilerVehicleName ));
             end
         end
@@ -413,6 +424,62 @@ if opts.launchFullSIL
     sim VehicleSilSimulation
 end
 
+end
+
+function distro = resolveWSLDistro(requestedDistro)
+distro = strtrim(string(requestedDistro));
+if ~strcmpi(distro, "auto")
+    return
+end
+
+[status, output] = system('wsl --list --quiet');
+if status ~= 0
+    distro = "";
+    return
+end
+
+% Windows PowerShell/MATLAB can expose wsl.exe's UTF-16 NUL bytes in the
+% captured text. Remove them before comparing distribution names.
+output = erase(string(output), char(0));
+installed = strip(splitlines(output));
+installed(installed == "") = [];
+preferred = ["PX4Simulink", "Ubuntu-22.04"];
+for ii = 1:numel(preferred)
+    if any(strcmpi(installed, preferred(ii)))
+        distro = preferred(ii);
+        fprintf('Using WSL distribution %s for PX4 SITL.\n', distro);
+        return
+    end
+end
+
+warning('No PX4-specific WSL distribution found; using the default WSL distribution.')
+distro = "";
+end
+
+function configureVehicleInterfaceVariants(modelName)
+% The plant variant is selected with vehicleParams.type, but the top-level
+% failure and PX4 command interfaces must follow the inherited bus contract.
+% Adapter vehicles therefore use BaseVehicleType (currently F-16 or
+% hexarotor) for these two legacy Variant Subsystems. Without this override,
+% R2026a reports that the adapter has no active variant and a live SITL run
+% would have no actuator-command mapping.
+variantControls = {
+    'Failure Injection/Variant Model/F16', ...
+        'strcmpi(vehicleParams.baseVehicleType, "F-16")'
+    'Failure Injection/Variant Model/hexarotor', ...
+        'strcmpi(vehicleParams.baseVehicleType, "hexarotor")'
+    'PX4 Interface/Command Output Variaint/F16 Output Mapping', ...
+        'strcmpi(vehicleParams.baseVehicleType, "F-16") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Hex Output Mapping', ...
+        'strcmpi(vehicleParams.baseVehicleType, "hexarotor") & strcmpi(vehicleParams.controllerType, "PX4")'
+    };
+
+for ii = 1:size(variantControls, 1)
+    blockPath = [modelName '/' variantControls{ii, 1}];
+    if getSimulinkBlockHandle(blockPath) ~= -1
+        set_param(blockPath, 'VariantControl', variantControls{ii, 2});
+    end
+end
 end
 
 function configureHitlRuntime(modelName, controllerRuntime)

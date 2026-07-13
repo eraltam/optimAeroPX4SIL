@@ -2,7 +2,7 @@
 ## Makefile generated for component 'hexMotorModel'. 
 ## 
 ## Makefile     : hexMotorModel.mk
-## Generated on : Fri Jul 10 11:43:25 2026
+## Generated on : Mon Jul 13 14:40:41 2026
 ## Final product: ./hexMotorModellib.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = hexMotorModel.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/AnelloSummer/optimAeroPX4SIL/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0

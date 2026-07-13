@@ -12,6 +12,7 @@ arguments
     opts.runSimulinkUpdate (1,1) logical = true
     opts.runPlantSmoke (1,1) logical = false
     opts.runPx4Build (1,1) logical = false
+    opts.wslDistro (1,1) string = "auto"
     opts.resultsDir (1,1) string = "work/vehicle_test_results"
 end
 
@@ -42,7 +43,7 @@ results = struct( ...
     "px4Build", struct("requested", opts.runPx4Build, "exitCode", NaN, "output", ""));
 
 if opts.runPx4Build
-    results.px4Build = runPx4SitlBuild(repoRoot);
+    results.px4Build = runPx4SitlBuild(repoRoot, opts.wslDistro);
 end
 
 vehicleResults = repmat(emptyVehicleResult(), 0, 1);
@@ -129,7 +130,7 @@ for jj = 1:numel(insVariants)
 end
 end
 
-function px4Build = runPx4SitlBuild(repoRoot)
+function px4Build = runPx4SitlBuild(repoRoot, requestedDistro)
 px4Build = struct("requested", true, "exitCode", NaN, "output", "");
 px4Path = fullfile(repoRoot, "PX4-Autopilot");
 if ~isfolder(px4Path)
@@ -142,10 +143,41 @@ wslPath = replace(px4Path, "\", "/");
 if startsWith(wslPath, "C:", "IgnoreCase", true)
     wslPath = "/mnt/c" + extractAfter(wslPath, 2);
 end
-command = sprintf('wsl bash -lc "cd ''%s'' && make px4_sitl_default"', wslPath);
+distro = resolveWSLDistro(requestedDistro);
+if strlength(distro) > 0
+    wslCommand = sprintf('wsl -d "%s"', distro);
+else
+    wslCommand = 'wsl';
+end
+command = sprintf('%s bash -lc "cd ''%s'' && make px4_sitl_default"', wslCommand, wslPath);
 [exitCode, output] = system(command);
 px4Build.exitCode = exitCode;
 px4Build.output = output;
+end
+
+function distro = resolveWSLDistro(requestedDistro)
+distro = strtrim(string(requestedDistro));
+if ~strcmpi(distro, "auto")
+    return
+end
+
+[status, output] = system('wsl --list --quiet');
+if status ~= 0
+    distro = "";
+    return
+end
+
+output = erase(string(output), char(0));
+installed = strip(splitlines(output));
+installed(installed == "") = [];
+preferred = ["PX4Simulink", "Ubuntu-22.04"];
+for ii = 1:numel(preferred)
+    if any(strcmpi(installed, preferred(ii)))
+        distro = preferred(ii);
+        return
+    end
+end
+distro = "";
 end
 
 function tf = isPx4TargetRegistered(repoRoot, px4Target)

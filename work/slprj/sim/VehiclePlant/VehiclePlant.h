@@ -15,8 +15,9 @@
 #include "VehiclePlant_types.h"
 #include "environment.h"
 #include "sensors.h"
-#include "hexarotor.h"
+#include "evtol_simscape.h"
 #include <string.h>
+#include "rtGetInf.h"
 #include "rtGetNaN.h"
 #include "model_reference_types.h"
 #include "rtw_modelmap.h"
@@ -30,7 +31,7 @@ pk015gkn3t [ 3 ] ; real_T hnwpw5cpbg [ 3 ] ; real_T hpzcreebww [ 3 ] ; real_T
 nqyw5iaud5 [ 3 ] ; real_T ede4r2hndi [ 3 ] ; real_T ipy0bxyt0z [ 3 ] ; real_T
 e0qhjo5gtr [ 3 ] ; real_T k1ixb4tlva [ 3 ] ; real_T n2fba5g2os ; real_T
 ltfrzxpfbv ; real_T ll4ypkaxem [ 3 ] ; real_T pvwnxmu2oo [ 3 ] ; real_T
-ilm1jeiujv ; boolean_T d2mtb4cujh ; } n4i4q3iehd ; typedef struct { real_T
+didj0xysqy ; boolean_T d2mtb4cujh ; } n4i4q3iehd ; typedef struct { real_T
 gfi4rwv5uv [ 3 ] ; real_T albizm10c2 [ 3 ] ; real_T oqzh4go2fj [ 9 ] ; real_T
 f5cqf0v5ma [ 3 ] ; real_T egmzw14bcz [ 3 ] ; real_T jer4mfbauo [ 3 ] ; real_T
 mofdx3lgfc [ 3 ] ; real_T cbkc3lpahs [ 3 ] ; real_T pq1usl0ji3 ; real_T
@@ -40,10 +41,10 @@ hi5wgo0pzs [ 3 ] ; real_T lflbnbwxow [ 3 ] ; real_T jb5suc3utz [ 3 ] ; real_T
 a545g2ksuw [ 3 ] ; real_T iofhgaqk00 [ 3 ] ; real_T izoq4rgghj [ 3 ] ; real_T
 g33wknofwp [ 3 ] ; real_T niniuhz0at ; real_T ivelzrae45 ; real_T hpcdwfht1y
 [ 3 ] ; real_T oh42dzxsr1 [ 3 ] ; boolean_T amcgr3jf34 ; lj3yonrq1cm
-nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; et34rxtuyzb azgnrl0ixm ; } j0qkcyobx0 ;
-typedef struct { ar45jsrhtq jn4jwo3o0t ; plypikssk0 nofzmjzb2u ; } hdulqcnnpv
-; typedef struct { fgdgb2ruqd jn4jwo3o0t ; lpahjwu50g nofzmjzb2u ; }
-p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; bx03knnvpe nofzmjzb2u ;
+nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; dhizsoezn3b ehrjz5ywkg ; } j0qkcyobx0 ;
+typedef struct { ar45jsrhtq jn4jwo3o0t ; bl0rx25sof bxrqx5qcsm ; } hdulqcnnpv
+; typedef struct { fgdgb2ruqd jn4jwo3o0t ; o2bn15usy1 bxrqx5qcsm ; }
+p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; lmkhn0jnku bxrqx5qcsm ;
 } o2ljf02bvi ; struct ks3glix3e01_ { real_T P_28 ; real_T P_29 ; real_T P_30
 ; real_T P_31 ; real_T P_32 ; real_T P_33 ; real_T P_34 ; real_T P_35 ;
 real_T P_36 ; real_T P_37 ; real_T P_38 ; real_T P_39 ; real_T P_40 ; real_T

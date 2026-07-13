@@ -49,7 +49,7 @@ rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 2151689923U , 543868078U , 2819847797U , 1576489563U } , &
+{ 3682860250U , 277523532U , 3139219029U , 876870025U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * VehiclePlant_GetCAPIStaticMap ( void ) {
 return & mmiStatic ; }
@@ -85,12 +85,9 @@ rtwCAPI_SetVarDimsAddressMap ( dataMap -> mmi , ( NULL ) ) ; rtwCAPI_SetPath
 ; dataMap -> childMMI [ 0 ] = & ( dataMap -> child0 . mmi ) ;
 environment_host_InitializeDataMapInfo ( & ( dataMap -> child0 ) ,
 "VehiclePlant/environment" ) ; dataMap -> childMMI [ 1 ] = & ( dataMap ->
-child1 . mmi ) ; hexarotor_host_InitializeDataMapInfo ( & ( dataMap -> child1
-) , "VehiclePlant/plant/hexarotor" ) ; dataMap -> childMMI [ 2 ] = & ( dataMap
--> child2 . mmi ) ; sensors_host_InitializeDataMapInfo ( & ( dataMap ->
-child2 ) , "VehiclePlant/sensors" ) ; rtwCAPI_SetChildMMIArray ( dataMap ->
-mmi , dataMap -> childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( dataMap -> mmi ,
-3 ) ; }
+child1 . mmi ) ; evtol_simscape_host_InitializeDataMapInfo ( & ( dataMap ->
+child1 ) , "VehiclePlant/plant/evtol_simscape" ) ; dataMap -> childMMI [ 2 ]
+= & ( dataMap -> child2 . mmi ) ; sensors_host_InitializeDataMapInfo ( & ( dataMap -> child2 ) , "VehiclePlant/sensors" ) ; rtwCAPI_SetChildMMIArray ( dataMap -> mmi , dataMap -> childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( dataMap -> mmi , 3 ) ; }
 #ifdef __cplusplus
 }
 #endif
