@@ -70,6 +70,16 @@ class PymavlinkListener:
         self.master = None
         self.logger: JsonlLogger | None = None
         self._stop = False
+        # Buffer for SERIAL_CONTROL replies (PX4 MAVLink shell), captured off this same
+        # already-connected socket -- see send_shell_command()/drain_shell_output(). A
+        # second independent process binding its own udpin socket on the same
+        # pymavlink_address port to read these directly stole/duplicated this listener's
+        # own traffic on Windows and broke the whole session's connectivity (confirmed
+        # 2026-07-15, session_watch_gate_01 -- see
+        # HIL_ZERO_THRUST_AND_PARAM_RELIABILITY_NEXT_STEPS.md section 3.5). Any shell
+        # probe must go through this listener's own socket, not a new one.
+        self._shell_buffer: list[str] = []
+        self._shell_lock = threading.Lock()
 
     def connect(self, timeout_s: float = 30.0) -> None:
         print(f"pymavlink: connecting to {self.address}")
@@ -183,6 +193,8 @@ class PymavlinkListener:
                 print(f"pymavlink: forward to MAVSDK failed: {exc}")
 
         msg_type = msg.get_type()
+        if msg_type == "SERIAL_CONTROL":
+            self._capture_serial_control(msg)
         if not self.message_types or msg_type in self.message_types:
             payload = msg.to_dict()
             print(_format_message(msg_type, payload))
@@ -219,6 +231,50 @@ class PymavlinkListener:
             finally:
                 self.master = None
         print("pymavlink: listener closed")
+
+    def _capture_serial_control(self, msg: Any) -> None:
+        try:
+            text = bytes(msg.data[: msg.count]).decode("utf-8", errors="replace")
+        except Exception:  # noqa: BLE001 - a malformed chunk must not break the listener
+            return
+        if not text:
+            return
+        with self._shell_lock:
+            self._shell_buffer.append(text)
+
+    def send_shell_command(self, text: str, devnum: int = 10) -> None:
+        """Send a PX4 MAVLink shell (SERIAL_CONTROL) command over this listener's own
+        already-connected socket. Do not open a second udpin socket on the same address
+        to do this -- see the note on _shell_buffer above.
+        """
+        if not confirm_pymavlink_commands_allowed(self.config):
+            raise PermissionError(
+                "pymavlink command sending is disabled. Set "
+                "safety.allow_pymavlink_commands=true only for explicit experiments."
+            )
+        if self.master is None:
+            raise RuntimeError("pymavlink listener is not connected")
+        data = text.encode("utf-8")
+        while data:
+            chunk = data[:70]
+            payload = list(chunk) + [0] * (70 - len(chunk))
+            self.master.mav.serial_control_send(
+                devnum,
+                mavutil.mavlink.SERIAL_CONTROL_FLAG_EXCLUSIVE | mavutil.mavlink.SERIAL_CONTROL_FLAG_RESPOND,
+                0,
+                0,
+                len(chunk),
+                payload,
+            )
+            data = data[70:]
+
+    def drain_shell_output(self) -> str:
+        """Return and clear whatever SERIAL_CONTROL text has been captured since the last
+        drain (or since connect())."""
+        with self._shell_lock:
+            text = "".join(self._shell_buffer)
+            self._shell_buffer.clear()
+        return text
 
     def send_px4_shell_command(self, command: str) -> None:
         """Experimental placeholder. Disabled unless explicitly allowed in config."""

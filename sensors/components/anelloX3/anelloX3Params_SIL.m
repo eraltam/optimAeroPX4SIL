@@ -32,6 +32,20 @@ p.gyro.ARW_radps_sqrts  = 0.05 * p.d2r / 60;
 p.gyro.sigma_radps      = p.gyro.ARW_radps_sqrts * sqrt(p.fs);
 p.gyro.noisePower       = p.gyro.sigma_radps^2;
 
+% Stochastic model controls (synced 2026-07-14 with newIMU_model/params/anelloX3Params.m)
+p.gyro.noiseProfileSource = 'inertial_nav_sim custom_mems';
+p.gyro.inertialNavSim_B_degps = 1.0e-4;          % custom_mems B [deg/s]
+p.gyro.inertialNavSim_K_degps_sqrts = 5.0e-6;    % custom_mems K [deg/s/sqrt(s)]
+p.gyro.enableWhiteNoise = true;
+p.gyro.enableBiasInstability = true;
+p.gyro.enablePinkNoise = true;
+p.gyro.enableRateRandomWalk = true;
+p.gyro.enableQuantization = false;
+p.gyro.biasCorrTime_s = 300.0;
+p.gyro.pinkNoise_radps = p.gyro.inertialNavSim_B_degps * p.d2r;
+p.gyro.rateRandomWalk_radps_sqrts = p.gyro.inertialNavSim_K_degps_sqrts * p.d2r;
+p.gyro.quantizationStep_radps = 0.0;
+
 p.gyro.scaleFactorError    = 0.001;
 p.gyro.scaleFactorOverTemp = 0.001;
 
@@ -61,6 +75,17 @@ p.accel.VRW_mps_sqrts   = 0.03 / sqrt(3600);
 p.accel.sigma_mps2      = p.accel.VRW_mps_sqrts * sqrt(p.fs);
 p.accel.noisePower      = p.accel.sigma_mps2^2;
 
+% Stochastic model controls (synced 2026-07-14 with newIMU_model/params/anelloX3Params.m)
+p.accel.enableWhiteNoise = true;
+p.accel.enableBiasInstability = true;
+p.accel.enablePinkNoise = true;
+p.accel.enableVelocityRandomWalk = false;
+p.accel.enableQuantization = false;
+p.accel.biasCorrTime_s = 200.0;
+p.accel.pinkNoise_mps2 = p.accel.bias_mps2;
+p.accel.velocityRandomWalk_mps2_sqrts = 0.0;
+p.accel.quantizationStep_mps2 = 0.0;
+
 p.accel.wn_radps        = 2 * pi * 100;
 p.accel.zeta            = 0.707;
 
@@ -78,6 +103,17 @@ p.mag.range_G           = 8;
 p.mag.noiseRMS_mG       = 0.4;
 p.mag.sigma_G           = 0.4e-3;
 p.mag.noisePower_G2     = (0.4e-3)^2;
+
+% Stochastic model controls (synced 2026-07-14). Pink noise/RRW are NOT ported to mag in
+% ANELLO_X3_IMU_fcn_SIL.m -- newIMU_model's ANELLO_X3_IMU_fcn.m also hardcodes mag's
+% magCfg.enablePinkNoise/enableRandomWalk to false regardless of these flags, so mag stays
+% bias (Gauss-Markov) + white noise only in both implementations.
+p.mag.enableWhiteNoise = true;
+p.mag.enableBiasInstability = true;
+p.mag.enableQuantization = false;
+p.mag.biasCorrTime_s = 500.0;
+p.mag.bias_G = p.mag.sigma_G;
+p.mag.quantizationStep_G = 0.0;
 
 p.mag.tempCoeff_G_C     = 1e-6;
 

@@ -24,6 +24,7 @@ class MavsdkInstructor:
         config: dict[str, Any],
         config_dir: str | Path | None = None,
         base_dir: str | Path | None = None,
+        listener: Any | None = None,
     ) -> None:
         self.config = config
         self.vehicle_config = config.get("vehicle", {})
@@ -31,6 +32,9 @@ class MavsdkInstructor:
         self.address = self.vehicle_config.get("mavsdk_address", "udp://:14540")
         self.config_dir = Path(config_dir) if config_dir is not None else Path.cwd()
         self.base_dir = Path(base_dir) if base_dir is not None else None
+        # PymavlinkListener instance (or None), reused to fire the takeoff-gate probe
+        # through its own already-connected socket -- see _run_takeoff_gate_probe().
+        self.listener = listener
         self.drone = System()
 
     async def connect(self) -> None:
@@ -105,7 +109,19 @@ class MavsdkInstructor:
         except ActionError as exc:
             print(f"MAVSDK: set_takeoff_altitude failed: {exc}")
             raise
+
+        # PX4's own COM_DISARM_PRFLT (default 10.0s) auto-disarms if it never takes off,
+        # so the live window to inspect vehicle_constraints/trajectory_setpoint/
+        # flight_mode_manager is only ~8s after this call -- see
+        # HIL_ZERO_THRUST_AND_PARAM_RELIABILITY_NEXT_STEPS.md section 3.3/3.4. Fire the
+        # probe concurrently with the takeoff() RPC itself (not after it returns) to use
+        # as much of that budget as possible.
+        probe_task = (
+            asyncio.create_task(self._run_takeoff_gate_probe()) if self.listener is not None else None
+        )
         await self._run_action("takeoff", self.drone.action.takeoff)
+        if probe_task is not None:
+            await probe_task
 
     async def land(self) -> None:
         if not confirm_real_vehicle_allowed(self.config):
@@ -260,6 +276,44 @@ class MavsdkInstructor:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         print(f"MAVSDK: wrote {len(lines)} parameters to {out_path}")
+
+    async def _run_takeoff_gate_probe(self) -> None:
+        """Probe vehicle_constraints/trajectory_setpoint/flight_mode_manager during the
+        live armed window, through the listener's own already-connected socket (not a
+        second independent one -- see PymavlinkListener._shell_buffer's docstring for why
+        that broke the whole session on 2026-07-15). Source-code trace for what these mean:
+        HIL_ZERO_THRUST_AND_PARAM_RELIABILITY_NEXT_STEPS.md section 3.2/3.3.
+        """
+        if self.listener is None:
+            return
+        started = asyncio.get_running_loop().time()
+        lines = ["trigger: MAVSDK sending takeoff() (probe started at t=0.00s)"]
+
+        async def probe(label: str, command: str, read_window_s: float) -> None:
+            elapsed = asyncio.get_running_loop().time() - started
+            try:
+                self.listener.send_shell_command(command)
+            except Exception as exc:  # noqa: BLE001 - diagnostic probe must not break takeoff()
+                lines.append(f"[t+{elapsed:5.2f}s] {label}: send failed: {exc}")
+                return
+            await asyncio.sleep(read_window_s)
+            output = self.listener.drain_shell_output()
+            lines.append(f"[t+{elapsed:5.2f}s] === {label} ===")
+            lines.append(output.strip() or "(no output)")
+
+        try:
+            await probe("flight_mode_manager status", "flight_mode_manager status\n", 1.5)
+            await probe("listener vehicle_constraints -n 1", "listener vehicle_constraints -n 1\n", 1.5)
+            await probe("listener trajectory_setpoint -n 1", "listener trajectory_setpoint -n 1\n", 1.5)
+        except Exception as exc:  # noqa: BLE001 - diagnostic probe must not break takeoff()
+            lines.append(f"probe error: {exc}")
+
+        if self.base_dir is not None:
+            out_path = self.base_dir / "takeoff_gate_probe_result.txt"
+            out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            print(f"MAVSDK: takeoff-gate probe results written to {out_path}")
+        else:
+            print("MAVSDK: takeoff-gate probe results:\n" + "\n".join(lines))
 
     async def _run_action(self, name: str, action) -> None:
         try:

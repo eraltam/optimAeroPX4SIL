@@ -6,6 +6,17 @@ function [accel_meas, gyro_meas, mag_meas, accel_bias, gyro_bias, mag_bias] = ..
 % optimAeroPX4SIL's fixed step), but with every parameter inlined as a local constant
 % instead of read from a struct returned by anelloX3Params_SIL().
 %
+% Noise model synced 2026-07-14 with newIMU_model/models/ANELLO_X3_IMU_fcn.m +
+% updateStochasticNoiseState.m (added there 2026-07-05): gyro and accel now also carry
+% pink (1/f) noise, and gyro additionally carries rate-random-walk (RRW), on top of the
+% white noise (ARW/VRW) and Gauss-Markov bias instability this file already had. Ported
+% as inlined persistent-vector recursions (bias/pink/RRW kept as separate [3x1]
+% persistents per sensor) rather than by calling updateStochasticNoiseState(cfg, state,
+% ...) directly, to stay consistent with this file's existing no-struct-calls
+% convention -- see the compile-bug note below. Mag is unchanged: the newIMU_model
+% version also hardcodes mag's pink/RRW off (magCfg.enablePinkNoise/enableRandomWalk =
+% false regardless of params), so there is nothing to port there.
+%
 % Why: MATLAB Function blocks in this MATLAB release (R2026a, MATLAB MCP toolchain)
 % fail to statically infer the output type/size of a MATLAB Function block whose code
 % calls a function returning a large nested struct (anelloX3Params_SIL has 4 nested
@@ -32,11 +43,15 @@ function [accel_meas, gyro_meas, mag_meas, accel_bias, gyro_bias, mag_bias] = ..
 %#codegen
 
 persistent ga_bias  gy_bias  mg_bias;
+persistent gy_pink  gy_rrw   ga_pink;
 
 if isempty(ga_bias)
     ga_bias  = zeros(3,1);
     gy_bias  = zeros(3,1);
     mg_bias  = zeros(3,1);
+    gy_pink  = zeros(3,1);
+    gy_rrw   = zeros(3,1);
+    ga_pink  = zeros(3,1);
 end
 
 % ---- Optional reset --------------------------------------------------
@@ -44,6 +59,9 @@ if reset ~= 0
     ga_bias  = zeros(3,1);
     gy_bias  = zeros(3,1);
     mg_bias  = zeros(3,1);
+    gy_pink  = zeros(3,1);
+    gy_rrw   = zeros(3,1);
+    ga_pink  = zeros(3,1);
     if isempty(accel_true)          % reset-only call, return dummy outputs
         accel_meas = zeros(3,1);  gyro_meas = zeros(3,1);  mag_meas = zeros(3,1);
         accel_bias = zeros(3,1);  gyro_bias = zeros(3,1);  mag_bias = zeros(3,1);
@@ -75,13 +93,26 @@ alpha_g    = exp(-Ts / Tc_g);
 sig_eta_g  = gyro_bias_radps * sqrt(1.0 - alpha_g^2);
 gy_bias    = alpha_g .* gy_bias + sig_eta_g .* randn(3,1);
 
+% Pink (1/f) noise -- from inertial_nav_sim custom_mems B, same first-order colored
+% recursion as updateStochasticNoiseState.m's enablePinkNoise branch.
+gyro_pinkNoise_radps = 1.0e-4 * d2r;              % inertialNavSim_B_degps = 1.0e-4 deg/s
+pinkTc_g   = max(10.0 * Ts, 10.0);
+alphaPink_g = exp(-Ts / pinkTc_g);
+gy_pink = alphaPink_g .* gy_pink + gyro_pinkNoise_radps * sqrt(max(0.0, 1.0 - alphaPink_g^2)) .* randn(3,1);
+
+% Rate random walk (RRW) -- from inertial_nav_sim custom_mems K.
+gyro_rrw_radps_sqrts = 5.0e-6 * d2r;               % inertialNavSim_K_degps_sqrts = 5.0e-6 deg/s/sqrt(s)
+gy_rrw = gy_rrw + gyro_rrw_radps_sqrts * sqrt(Ts) .* randn(3,1);
+
+gy_stochastic = gy_bias + gy_pink + gy_rrw;
+
 g_scaled = gyro_misalignment * diag(1.0 + gyro_scaleFactor) * gyro_true;
 g_tbias  = gyro_tempCoeff_radps_C .* (T - T0) .* ones(3,1);
 g_noise  = gyro_sigma_radps .* randn(3,1);
-g_raw    = g_scaled + gyro_staticBias + g_tbias + gy_bias + g_noise;
+g_raw    = g_scaled + gyro_staticBias + g_tbias + gy_stochastic + g_noise;
 
 gyro_meas = min(max(g_raw, -gyro_range_radps .* ones(3,1)), gyro_range_radps .* ones(3,1));
-gyro_bias = gy_bias;
+gyro_bias = gy_stochastic;
 
 % =====================================================================
 %  ACCELEROMETER MODEL  (MEMS)
@@ -101,13 +132,22 @@ alpha_a   = exp(-Ts / Tc_a);
 sig_eta_a = accel_bias_mps2 * sqrt(1.0 - alpha_a^2);
 ga_bias   = alpha_a .* ga_bias + sig_eta_a .* randn(3,1);
 
+% Pink (1/f) noise -- newIMU_model uses the bias-instability magnitude itself as the
+% pink-noise sigma (p.accel.pinkNoise_mps2 = p.accel.bias_mps2). Velocity random walk is
+% disabled in that source config (enableVelocityRandomWalk=false), so no RRW term here.
+pinkTc_a   = max(10.0 * Ts, 10.0);
+alphaPink_a = exp(-Ts / pinkTc_a);
+ga_pink = alphaPink_a .* ga_pink + accel_bias_mps2 * sqrt(max(0.0, 1.0 - alphaPink_a^2)) .* randn(3,1);
+
+ga_stochastic = ga_bias + ga_pink;
+
 a_scaled = accel_misalignment * diag(1.0 + accel_scaleFactor) * accel_true;
 a_tbias  = accel_tempCoeff_mps2_C .* (T - T0) .* ones(3,1);
 a_noise  = accel_sigma_mps2 .* randn(3,1);
-a_raw    = a_scaled + accel_staticBias + a_tbias + ga_bias + a_noise;
+a_raw    = a_scaled + accel_staticBias + a_tbias + ga_stochastic + a_noise;
 
 accel_meas = min(max(a_raw, -accel_range_mps2 .* ones(3,1)), accel_range_mps2 .* ones(3,1));
-accel_bias = ga_bias;
+accel_bias = ga_stochastic;
 
 % =====================================================================
 %  MAGNETOMETER MODEL

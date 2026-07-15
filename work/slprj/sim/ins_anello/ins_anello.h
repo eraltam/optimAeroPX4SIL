@@ -21,8 +21,9 @@
 typedef struct { real_T kh3vz5gerh [ 3 ] ; real_T knh3r5acqo [ 3 ] ; real_T
 lekl3pkhkb [ 3 ] ; } asr0gh2w2s ; typedef struct { cqn2imq1f3 mwwgimhnfv ;
 real_T jcchdjcjl5 [ 3 ] ; real_T dnkrvpzdnt [ 3 ] ; real_T ngxalhmiod [ 3 ] ;
-uint32_T mti1oodtgw ; uint32_T mjwpgzgjg5 [ 2 ] ; uint32_T fh34cih4qi ;
-uint32_T mwt013giti ; uint32_T pm2g5mkvef [ 2 ] ; uint32_T ok1yphwfw3 [ 625 ]
+real_T prapsm3suv [ 3 ] ; real_T f1yb24snpa [ 3 ] ; real_T o5hw1tiavu [ 3 ] ;
+uint32_T gcpginb0kv ; uint32_T pm2g5mkvef [ 2 ] ; uint32_T gaohm3l0mj ;
+uint32_T l0i3ruu0ux ; uint32_T kremzcxg11 [ 2 ] ; uint32_T lggz4pbab1 [ 625 ]
 ; } a4mpwoagne ; struct hfnefzrumxr_ { real_T P_0 ; real_T P_1 ; real_T P_2 ;
 real_T P_3 ; real_T P_4 ; real_T P_5 ; real_T P_6 ; real_T P_7 ; } ; struct
 m3pw3ynq10 { struct SimStruct_tag * _mdlRefSfcnS ; struct {

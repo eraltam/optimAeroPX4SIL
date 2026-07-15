@@ -2,7 +2,7 @@
 ## Makefile generated for component 'ins_anello'. 
 ## 
 ## Makefile     : ins_anello.mk
-## Generated on : Mon Jul 06 13:40:17 2026
+## Generated on : Tue Jul 14 14:54:05 2026
 ## Final product: ./ins_anellolib.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = ins_anello.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/AS/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0

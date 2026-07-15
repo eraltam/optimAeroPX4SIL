@@ -27,6 +27,11 @@ class _Tee:
     def write(self, data: str) -> int:
         for stream in self._streams:
             stream.write(data)
+            # Flush on every write (not just line boundaries): console.log's default file
+            # buffering otherwise lags real time by seconds, which is fatal for
+            # watch_takeoff_gate.py's ~8s post-arm diagnostic window (see
+            # HIL_ZERO_THRUST_AND_PARAM_RELIABILITY_NEXT_STEPS.md section 3.4).
+            stream.flush()
         return len(data)
 
     def flush(self) -> None:
@@ -86,20 +91,34 @@ async def run(config: dict[str, Any], base_dir: Path, config_dir: Path) -> None:
             listener_thread = threading.Thread(target=listener_main, name="pymavlink-listener", daemon=True)
             listener_thread.start()
 
-    instructor = MavsdkInstructor(config, config_dir=config_dir, base_dir=base_dir)
+    instructor = MavsdkInstructor(config, config_dir=config_dir, base_dir=base_dir, listener=listener)
     try:
         await instructor.connect()
-        try:
-            await instructor.dump_params(base_dir / "px4_params_before.txt")
-        except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
-            print(f"MAVSDK: could not dump params before run: {exc}")
+        if listener is not None:
+            try:
+                listener.send_shell_command("\n")
+                await asyncio.sleep(1.0)
+                listener.drain_shell_output()  # discard the shell prompt/banner
+            except Exception as exc:  # noqa: BLE001 - priming must not abort the session
+                print(f"pymavlink: shell priming skipped: {exc}")
+        # TEMPORARY DIAGNOSTIC (2026-07-14): dump_params()'s get_all_params() times out
+        # (param_dump_timeout_s) on this link, but the underlying MAVSDK plugin's param-fetch
+        # exchange appears to keep retrying in the background afterward regardless (matches the
+        # continuous PARAM_REQUEST_READ spam for indices 79/80/81/709 seen through an entire
+        # session in session_delay_test) -- suspected cause of set_takeoff_altitude() (also
+        # param-backed) hanging indefinitely. Skipping both dump_params() calls to test that
+        # hypothesis. See HIL_ZERO_THRUST_AND_PARAM_RELIABILITY_NEXT_STEPS.md section 4/5.
+        # try:
+        #     await instructor.dump_params(base_dir / "px4_params_before.txt")
+        # except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
+        #     print(f"MAVSDK: could not dump params before run: {exc}")
 
         await instructor.run_demo_sequence()
 
-        try:
-            await instructor.dump_params(base_dir / "px4_params_after.txt")
-        except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
-            print(f"MAVSDK: could not dump params after run: {exc}")
+        # try:
+        #     await instructor.dump_params(base_dir / "px4_params_after.txt")
+        # except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
+        #     print(f"MAVSDK: could not dump params after run: {exc}")
     finally:
         if listener is not None:
             listener.stop()

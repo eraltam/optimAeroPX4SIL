@@ -7,7 +7,7 @@
 %endfunction
 %function ChartDataMap(block, system) void
   %createrecord ChartDataElements {\
-    NumChartData   10 \
+    NumChartData   13 \
     ChartDataDefaults {\
       RecordType   "ChartData"\
       Dimensions   []\
@@ -18,14 +18,14 @@
       Description  "EmlPersistent"\
       SFName       ""\
       Path         ""\
-      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_Vehicle_fcn_SIL.m:1581-1583"\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_Vehicle_fcn_SIL.m:1581-1583"\
     }\
     ChartData {\
       Name         "ga_bias"\
       Description  "EmlPersistent"\
       SFName       ""\
       Path         ""\
-      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1850-1857"\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2676-2683"\
       Dimensions   [3]\
     }\
     ChartData {\
@@ -33,7 +33,7 @@
       Description  "EmlPersistent"\
       SFName       ""\
       Path         ""\
-      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1859-1866"\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2685-2692"\
       Dimensions   [3]\
     }\
     ChartData {\
@@ -41,7 +41,31 @@
       Description  "EmlPersistent"\
       SFName       ""\
       Path         ""\
-      SrcLocation  "C:\Users\Edison Altamirano\Documents\Anello\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:1868-1875"\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2694-2701"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "gy_pink"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2714-2721"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "gy_rrw"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2723-2729"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "ga_pink"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "C:\AS\optimAeroPX4SIL\sensors\components\anelloX3\ANELLO_X3_IMU_fcn_SIL.m:2732-2739"\
       Dimensions   [3]\
     }\
     ChartData {\

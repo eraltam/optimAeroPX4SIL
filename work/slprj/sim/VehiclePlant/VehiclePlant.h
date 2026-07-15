@@ -44,12 +44,12 @@ nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; et34rxtuyzb azgnrl0ixm ; } j0qkcyobx0 ;
 typedef struct { ar45jsrhtq jn4jwo3o0t ; plypikssk0 nofzmjzb2u ; } hdulqcnnpv
 ; typedef struct { fgdgb2ruqd jn4jwo3o0t ; lpahjwu50g nofzmjzb2u ; }
 p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; bx03knnvpe nofzmjzb2u ;
-} o2ljf02bvi ; struct ks3glix3e01_ { real_T P_28 ; real_T P_29 ; real_T P_30
-; real_T P_31 ; real_T P_32 ; real_T P_33 ; real_T P_34 ; real_T P_35 ;
-real_T P_36 ; real_T P_37 ; real_T P_38 ; real_T P_39 ; real_T P_40 ; real_T
-P_41 ; real_T P_42 ; real_T P_43 ; real_T P_44 ; real_T P_45 ; real_T P_46 ;
-real_T P_47 ; real_T P_48 ; real_T P_49 ; real_T P_50 ; real_T P_51 ; real_T
-P_52 ; real_T P_53 ; boolean_T P_54 ; } ; struct d2l3uzft5j { struct
+} o2ljf02bvi ; struct ks3glix3e01_ { real_T P_29 ; real_T P_30 ; real_T P_31
+; real_T P_32 ; real_T P_33 ; real_T P_34 ; real_T P_35 ; real_T P_36 ;
+real_T P_37 ; real_T P_38 ; real_T P_39 ; real_T P_40 ; real_T P_41 ; real_T
+P_42 ; real_T P_43 ; real_T P_44 ; real_T P_45 ; real_T P_46 ; real_T P_47 ;
+real_T P_48 ; real_T P_49 ; real_T P_50 ; real_T P_51 ; real_T P_52 ; real_T
+P_53 ; real_T P_54 ; boolean_T P_55 ; } ; struct d2l3uzft5j { struct
 SimStruct_tag * _mdlRefSfcnS ; struct { uint8_T mr_nonContSig0 [ 8 ] ;
 uint8_T mr_nonContSig1 [ 72 ] ; uint8_T mr_nonContSig2 [ 24 ] ; uint8_T
 mr_nonContSig3 [ 8 ] ; uint8_T mr_nonContSig4 [ 24 ] ; uint8_T mr_nonContSig5
@@ -73,9 +73,9 @@ int_T systemTid [ 2 ] ; } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 4 ]
 ; time_T tStart ; } Timing ; } ; typedef struct { n4i4q3iehd rtb ; j0qkcyobx0
 rtdw ; hl0stsvgru rtm ; } owiw5mmjy2f ; extern struct_7BigaldNWGj33rb8sElmtH
 rtP_parameters ; extern real_T rtP_C_D [ 19 ] ; extern real_T rtP_C_L [ 19 ]
-; extern real_T rtP_INS_VARIANT ; extern real_T rtP_actuatorDelay_s ; extern
-real_T rtP_airDensityAtStd_kgpm3 ; extern real_T
-rtP_aircraftInitialBodyRates_radps [ 3 ] ; extern real_T
+; extern real_T rtP_INS_VARIANT ; extern real_T rtP_WIND_SOURCE ; extern
+real_T rtP_actuatorDelay_s ; extern real_T rtP_airDensityAtStd_kgpm3 ; extern
+real_T rtP_aircraftInitialBodyRates_radps [ 3 ] ; extern real_T
 rtP_aircraftInitialEuler_rad [ 3 ] ; extern real_T
 rtP_aircraftInitialPosInNED_m [ 3 ] ; extern real_T
 rtP_aircraftInitialVelInBody_mps [ 3 ] ; extern real_T rtP_alphaBkpts_rad [

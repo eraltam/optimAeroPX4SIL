@@ -29,4 +29,4 @@ parameters.thermo.noisePower_degC = [0.001];
 % and optimAeroPX4SIL/CLAUDE.md). 1 = Generic (above ICM-42688-P-like model,
 % default — regression baseline), 2 = AnelloX3 (datasheet-accurate ANELLO X3
 % IMU model from sensors/components/ins_anello.slx).
-INS_VARIANT = 1;
+INS_VARIANT = 2;
