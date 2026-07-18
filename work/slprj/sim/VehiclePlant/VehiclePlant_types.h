@@ -28,17 +28,18 @@ typedef struct { real_T forcesInBody_N [ 3 ] ; real_T momentsInBody_Nm [ 3 ]
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_PropulsionBus_
 #define DEFINED_TYPEDEF_FOR_PropulsionBus_
-typedef struct { real_T rotorAngVel_radps [ 6 ] ; ComponentForcesMomentsBus
-EngineForcesMomentsBus ; } PropulsionBus ;
+typedef struct { real_T angVel_radps ; ComponentForcesMomentsBus
+EngineForcesMomentsBus ; real_T fuelRate_kgps ; } PropulsionBus ;
 #endif
-#ifndef DEFINED_TYPEDEF_FOR_ServosHexBus_
-#define DEFINED_TYPEDEF_FOR_ServosHexBus_
-typedef struct { real_T rotor1_rpm ; real_T rotor2_rpm ; real_T rotor3_rpm ;
-real_T rotor4_rpm ; real_T rotor5_rpm ; real_T rotor6_rpm ; } ServosHexBus ;
+#ifndef DEFINED_TYPEDEF_FOR_ServosFixedwingPlaneBus_
+#define DEFINED_TYPEDEF_FOR_ServosFixedwingPlaneBus_
+typedef struct { real_T posAileron_rad ; real_T posRudder_rad ; real_T
+posElevator_rad ; } ServosFixedwingPlaneBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_ServosBus_
 #define DEFINED_TYPEDEF_FOR_ServosBus_
-typedef struct { ServosHexBus ServosHexBus ; } ServosBus ;
+typedef struct { ServosFixedwingPlaneBus ServosFixedwingPlaneBus ; }
+ServosBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_ActuatorBus_
 #define DEFINED_TYPEDEF_FOR_ActuatorBus_
@@ -49,15 +50,15 @@ ActuatorBus ;
 #define DEFINED_TYPEDEF_FOR_EngineCommandBus_
 typedef struct { real_T cmdThrottle_unit ; } EngineCommandBus ;
 #endif
-#ifndef DEFINED_TYPEDEF_FOR_MotorCommandHexBus_
-#define DEFINED_TYPEDEF_FOR_MotorCommandHexBus_
-typedef struct { real_T cmdRotor1_nd ; real_T cmdRotor2_nd ; real_T
-cmdRotor3_nd ; real_T cmdRotor4_nd ; real_T cmdRotor5_nd ; real_T
-cmdRotor6_nd ; } MotorCommandHexBus ;
+#ifndef DEFINED_TYPEDEF_FOR_ServosCommandFixedwingPlaneBus_
+#define DEFINED_TYPEDEF_FOR_ServosCommandFixedwingPlaneBus_
+typedef struct { real_T cmdAileron_nd ; real_T cmdElevator_nd ; real_T
+cmdRudder_nd ; } ServosCommandFixedwingPlaneBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_ServosCommandBus_
 #define DEFINED_TYPEDEF_FOR_ServosCommandBus_
-typedef struct { MotorCommandHexBus MotorCommandHexBus ; } ServosCommandBus ;
+typedef struct { ServosCommandFixedwingPlaneBus
+ServosCommandFixedwingPlaneBus ; } ServosCommandBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_ActuatorCommandBus_
 #define DEFINED_TYPEDEF_FOR_ActuatorCommandBus_
@@ -111,10 +112,9 @@ AirEnvironment ; TerrainEnvironmentBus TerrainEnvironment ; } EnvironmentBus
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_FailureBus_
 #define DEFINED_TYPEDEF_FOR_FailureBus_
-typedef struct { boolean_T rotorFailure1_nd ; boolean_T rotorFailure2_nd ;
-boolean_T rotorFailure3_nd ; boolean_T rotorFailure4_nd ; boolean_T
-rotorFailure5_nd ; boolean_T rotorFailure6_nd ; uint8_T sl_padding0 [ 2 ] ; }
-FailureBus ;
+typedef struct { boolean_T rudderFreeze_isTrue ; boolean_T
+elevatorFreeze_isTrue ; boolean_T aileronsFreeze_isTrue ; boolean_T
+engineFailure_isTrue ; uint8_T sl_padding0 [ 4 ] ; } FailureBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_GPSSensorBus_
 #define DEFINED_TYPEDEF_FOR_GPSSensorBus_

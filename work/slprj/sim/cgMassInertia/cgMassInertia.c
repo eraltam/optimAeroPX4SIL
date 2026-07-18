@@ -62,8 +62,8 @@ MDL_INFO_ID_MODEL_FCN_NAME , 0 , - 1 , ( void * ) "cgMassInertia" } , {
 "mr_cgMassInertia_GetDWork" , MDL_INFO_ID_MODEL_FCN_NAME , 0 , - 1 , ( void *
 ) "cgMassInertia" } , { "cgMassInertia.h" , MDL_INFO_MODEL_FILENAME , 0 , - 1
 , ( NULL ) } , { "cgMassInertia.c" , MDL_INFO_MODEL_FILENAME , 0 , - 1 , ( void
-* ) "cgMassInertia" } } ; cci5zeak1tu cci5zeak1t = { 81.64656 , { 0.0 , 0.0 ,
-0.0 } , { 11.8 , 0.0 , 0.0 , 0.0 , 11.8 , 0.0 , 0.0 , 0.0 , 23.5 } } ; void
+* ) "cgMassInertia" } } ; cci5zeak1tu cci5zeak1t = { 2.15 , { 0.0 , 0.0 , 0.0
+} , { 0.165 , 0.0 , 0.0 , 0.0 , 0.177 , 0.0 , 0.0 , 0.0 , 0.338 } } ; void
 hldptrix4x ( real_T * kve0m1jdyq , real_T mytftut522 [ 3 ] , real_T
 ndlmpi30oe [ 9 ] ) { * kve0m1jdyq = cci5zeak1t . P_0 ; mytftut522 [ 0 ] =
 cci5zeak1t . P_1 [ 0 ] ; mytftut522 [ 1 ] = cci5zeak1t . P_1 [ 1 ] ;

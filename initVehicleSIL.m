@@ -206,7 +206,11 @@ stepSize_s = 0.004; % step size used in standardSILConfugrationParams.mat file
 constants
 
 % load bus definitions
-BusDefinition(vehicleParams.baseVehicleType)
+% NOTE: dispatches on vehicleParams.type (the specific vehicle key), not baseVehicleType -- see
+% PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 1/2. Every non-F16/hexarotor vehicle previously got
+% the hexarotor's ServosBus/ServosCommandBus shape (6-motor mixer) via the baseVehicleType
+% fallback, regardless of actuator type.
+BusDefinition(vehicleParams.type)
 
 % load vehicle specific data and initial conditions
 setUpVehicle
@@ -267,11 +271,26 @@ if strcmpi(opts.controllerRuntime, "HITL")
 end
 
 % Check failure type
+%
+% NOTE: this only had F-16/hexarotor branches, matched via baseVehicleType. Every other
+% registered vehicle (ackermann_rover, differential_rover, etc.) has baseVehicleType forced to
+% "hexarotor" (see PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 1/F1), so it accidentally matched
+% the hexarotor branch instead of erroring. fixedwing_plane uses its own name as
+% baseVehicleType (same convention as F16), which fell through both branches silently, leaving
+% vehicleParams.failureType as an unconverted string -- and later failed downstream at
+% "VehicleSilSimulation/Failure Injection/Constant" ("Invalid setting ... for parameter
+% 'Value'") instead of here, since neither branch here raises when nothing matches. Reuses
+% EnumF16FailureType (not a new EnumFixedwingPlaneFailureType) because
+% vehicle/fixedwing_plane/components/failureInputReadFixedwingPlane.slx is a verbatim clone of
+% failureInputReadF16.slx and still compares against EnumF16FailureType internally -- see
+% PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
 try
     if strcmpi(vehicleParams.baseVehicleType,"F-16")
         vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
     elseif strcmpi(vehicleParams.baseVehicleType,"hexarotor")
         vehicleParams.failureType = EnumHexFailureType(vehicleParams.failureType);
+    elseif strcmpi(vehicleParams.baseVehicleType,"fixedwing_plane")
+        vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
     end
 catch
     error("The selected failure type does not match the selected vehicle. Failure type must be an enum from " + ...
@@ -297,12 +316,44 @@ if strcmpi(opts.visualizationType, 'Matlab')
     load_system('VehicleSilSimulation.slx')
     warning("When using Matlab visualization the SIL simulator runs slower than FlightGear. Recommend setting simulink model to" + ...
         " accelerator mode.")
-    if strcmpi(vehicleDefinition.ControllerType, "multirotor") || strcmpi(vehicleDefinition.ControllerType, "rover")
-        set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
-            'Multirotor');
-    else
-        set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
-            'FixedWing');
+    % 'UAV Animation' (Aerospace Blockset) only supports UAVType 'Multirotor' or
+    % 'FixedWing' -- there is no third option to pick from, so ControllerType
+    % "rover"/"boat"/"sub" vehicles are structurally unable to get a correct 3D
+    % shape out of this block (see PLAN_CORRECCION_MULTIVEHICULO_SITL.md F5/Fase 4).
+    % A real per-class visualization (Simscape Mechanics Explorer for
+    % rover/tracked vehicles, MSS-style trajectory plots for boat/sub) is future
+    % work -- not implemented here. Until then, keep the closest available
+    % silhouette but make the mismatch loud instead of silent.
+    switch lower(vehicleDefinition.ControllerType)
+        case "multirotor"
+            set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
+                'Multirotor');
+        case "fixedwing"
+            set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
+                'FixedWing');
+        case "rover"
+            set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
+                'Multirotor');
+            warning("initVehicleSIL:NoRoverVisualization", "'%s' is a ground vehicle " + ...
+                "(ControllerType=rover) but 'Matlab' visualization is showing it as a " + ...
+                "generic multirotor icon -- this is a KNOWN INCORRECT placeholder, not a " + ...
+                "real representation of its shape (wheels/tracks/steering are not drawn). " + ...
+                "See PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 4.", opts.vehicleType)
+        case {"boat", "sub"}
+            set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
+                'FixedWing');
+            warning("initVehicleSIL:NoMarineVisualization", "'%s' is a marine vehicle " + ...
+                "(ControllerType=%s) but 'Matlab' visualization is showing it as a fixed-wing " + ...
+                "aircraft icon -- this is a KNOWN INCORRECT placeholder, not a real " + ...
+                "representation of its shape. See PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 4.", ...
+                opts.vehicleType, vehicleDefinition.ControllerType)
+        otherwise
+            set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', 'UAVType', ...
+                'FixedWing');
+            warning("initVehicleSIL:UnknownControllerTypeVisualization", "'%s' has an " + ...
+                "unrecognized ControllerType='%s' for 'Matlab' visualization purposes; " + ...
+                "defaulting to a FixedWing icon as a KNOWN INCORRECT placeholder.", ...
+                opts.vehicleType, string(vehicleDefinition.ControllerType))
     end
 elseif strcmpi(opts.visualizationType, 'FlightGear')
     load_system('VehicleSilSimulation.slx')
@@ -457,21 +508,91 @@ distro = "";
 end
 
 function configureVehicleInterfaceVariants(modelName)
-% The plant variant is selected with vehicleParams.type, but the top-level
-% failure and PX4 command interfaces must follow the inherited bus contract.
-% Adapter vehicles therefore use BaseVehicleType (currently F-16 or
-% hexarotor) for these two legacy Variant Subsystems. Without this override,
-% R2026a reports that the adapter has no active variant and a live SITL run
-% would have no actuator-command mapping.
+% NOTE (Fase 2, see PLAN_CORRECCION_MULTIVEHICULO_SITL.md): this now dispatches on
+% vehicleParams.type (the specific vehicle key), not baseVehicleType. Previously every
+% non-F16/hexarotor vehicle was forced through the Hex or F16 branches here via the
+% baseVehicleType fallback -- this function runs on every initVehicleSIL() call and
+% unconditionally overwrites each variant choice's VariantControl, so whatever is hardcoded
+% here is authoritative regardless of what happens to be saved in the .slx file.
+%
+% This also fixes a latent bug: vehicleParams.type for F16 is "F16" (no hyphen, from
+% vehicleRegistry.m's PlantModel field), not "F-16" -- the F-16-with-hyphen form only matches
+% vehicleParams.baseVehicleType. Using baseVehicleType previously masked this because it was
+% "F-16" (with hyphen) for the F16 vehicle itself; switching to .type without also fixing the
+% string would have silently broken F16's own variant selection.
 variantControls = {
     'Failure Injection/Variant Model/F16', ...
-        'strcmpi(vehicleParams.baseVehicleType, "F-16")'
+        'strcmpi(vehicleParams.type, "F16")'
     'Failure Injection/Variant Model/hexarotor', ...
-        'strcmpi(vehicleParams.baseVehicleType, "hexarotor")'
+        'strcmpi(vehicleParams.type, "hexarotor")'
+    'Failure Injection/Variant Model/ackermann_rover', ...
+        'strcmpi(vehicleParams.type, "ackermann_rover")'
+    'Failure Injection/Variant Model/ackermann_simscape', ...
+        'strcmpi(vehicleParams.type, "ackermann_simscape")'
+    'Failure Injection/Variant Model/differential_rover', ...
+        'strcmpi(vehicleParams.type, "differential_rover")'
+    'Failure Injection/Variant Model/tracked_vehicle', ...
+        'strcmpi(vehicleParams.type, "tracked_vehicle")'
+    'Failure Injection/Variant Model/tracked_vehicle_simscape', ...
+        'strcmpi(vehicleParams.type, "tracked_vehicle_simscape")'
+    'Failure Injection/Variant Model/usv_surface', ...
+        'strcmpi(vehicleParams.type, "usv_surface")'
+    'Failure Injection/Variant Model/uuv_subsea', ...
+        'strcmpi(vehicleParams.type, "uuv_subsea")'
+    'Failure Injection/Variant Model/bicycle_rover', ...
+        'strcmpi(vehicleParams.type, "bicycle_rover")'
+    'Failure Injection/Variant Model/wheel_loader', ...
+        'strcmpi(vehicleParams.type, "wheel_loader")'
+    'Failure Injection/Variant Model/wheel_loader_simscape', ...
+        'strcmpi(vehicleParams.type, "wheel_loader_simscape")'
+    'Failure Injection/Variant Model/unicycle_rover', ...
+        'strcmpi(vehicleParams.type, "unicycle_rover")'
+    'Failure Injection/Variant Model/quadrotor', ...
+        'strcmpi(vehicleParams.type, "quadrotor")'
+    'Failure Injection/Variant Model/octarotor', ...
+        'strcmpi(vehicleParams.type, "octarotor")'
+    'Failure Injection/Variant Model/evtol', ...
+        'strcmpi(vehicleParams.type, "evtol")'
+    'Failure Injection/Variant Model/evtol_simscape', ...
+        'strcmpi(vehicleParams.type, "evtol_simscape")'
     'PX4 Interface/Command Output Variaint/F16 Output Mapping', ...
-        'strcmpi(vehicleParams.baseVehicleType, "F-16") & strcmpi(vehicleParams.controllerType, "PX4")'
+        'strcmpi(vehicleParams.type, "F16") & strcmpi(vehicleParams.controllerType, "PX4")'
     'PX4 Interface/Command Output Variaint/Hex Output Mapping', ...
-        'strcmpi(vehicleParams.baseVehicleType, "hexarotor") & strcmpi(vehicleParams.controllerType, "PX4")'
+        'strcmpi(vehicleParams.type, "hexarotor") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Ackermann Rover Output Mapping', ...
+        'strcmpi(vehicleParams.type, "ackermann_rover") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/AckermannSimscape Output Mapping', ...
+        'strcmpi(vehicleParams.type, "ackermann_simscape") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Differential Rover Output Mapping', ...
+        'strcmpi(vehicleParams.type, "differential_rover") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Tracked Vehicle Output Mapping', ...
+        'strcmpi(vehicleParams.type, "tracked_vehicle") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/TrackedVehicleSimscape Output Mapping', ...
+        'strcmpi(vehicleParams.type, "tracked_vehicle_simscape") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Usv Surface Output Mapping', ...
+        'strcmpi(vehicleParams.type, "usv_surface") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Uuv Subsea Output Mapping', ...
+        'strcmpi(vehicleParams.type, "uuv_subsea") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Bicycle Rover Output Mapping', ...
+        'strcmpi(vehicleParams.type, "bicycle_rover") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Wheel Loader Output Mapping', ...
+        'strcmpi(vehicleParams.type, "wheel_loader") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/WheelLoaderSimscape Output Mapping', ...
+        'strcmpi(vehicleParams.type, "wheel_loader_simscape") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Unicycle Rover Output Mapping', ...
+        'strcmpi(vehicleParams.type, "unicycle_rover") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Quadrotor Output Mapping', ...
+        'strcmpi(vehicleParams.type, "quadrotor") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Octarotor Output Mapping', ...
+        'strcmpi(vehicleParams.type, "octarotor") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/Evtol Output Mapping', ...
+        'strcmpi(vehicleParams.type, "evtol") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'PX4 Interface/Command Output Variaint/EvtolSimscape Output Mapping', ...
+        'strcmpi(vehicleParams.type, "evtol_simscape") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/fixedwing_plane', ...
+        'strcmpi(vehicleParams.type, "fixedwing_plane")'
+    'PX4 Interface/Command Output Variaint/Fixedwing Plane Output Mapping', ...
+        'strcmpi(vehicleParams.type, "fixedwing_plane") & strcmpi(vehicleParams.controllerType, "PX4")'
     };
 
 for ii = 1:size(variantControls, 1)

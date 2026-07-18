@@ -75,6 +75,7 @@ try
     result.buildCommand = char("make px4_sitl_default " + vehicle.PX4Target);
     result.px4TargetRegistered = isPx4TargetRegistered(repoRoot, vehicle.PX4Target);
     result.airframeRegistered = isAirframeRegistered(repoRoot, vehicle.PX4Target);
+    result.airframeAutostartConsistent = isAirframeAutostartConsistent(repoRoot, vehicle.PX4Target);
 
     initVehicleSIL( ...
         "launchFullSIL", false, ...
@@ -95,6 +96,7 @@ try
     end
 
     result.passed = result.px4TargetRegistered && result.airframeRegistered && ...
+        result.airframeAutostartConsistent && ...
         all([result.insVariantResults.passed]) && ...
         (~opts.runPlantSmoke || result.plantSmokePassed);
 catch ME
@@ -194,6 +196,38 @@ airframesCmake = fullfile(airframesDir, "CMakeLists.txt");
 tf = ~isempty(files) && contains(readTextIfExists(airframesCmake), files(1).name);
 end
 
+function tf = isAirframeAutostartConsistent(repoRoot, px4Target)
+% The comment `@autostart N` inside an airframe file is documentation only --
+% PX4's rcS resolves SYS_AUTOSTART from the filename prefix (see
+% ROMFS/px4fmu_common/init.d-posix/rcS lines ~53-61), so a mismatch here can't
+% cause a runtime autostart collision. It is still worth catching because it
+% misleads anyone reading the file (see PLAN_CORRECCION_MULTIVEHICULO_SITL.md F8).
+airframesDir = fullfile(repoRoot, "PX4-Autopilot", "ROMFS", ...
+    "px4fmu_common", "init.d-posix", "airframes");
+files = dir(fullfile(airframesDir, "*_" + string(px4Target)));
+if isempty(files)
+    tf = false;
+    return
+end
+
+tokens = regexp(files(1).name, "^(\d+)_", "tokens", "once");
+if isempty(tokens)
+    tf = false;
+    return
+end
+expectedId = str2double(tokens{1});
+
+text = readTextIfExists(fullfile(airframesDir, files(1).name));
+declared = regexp(text, "@autostart\s+(\d+)", "tokens", "once");
+if isempty(declared)
+    tf = false;
+    return
+end
+declaredId = str2double(declared{1});
+
+tf = declaredId == expectedId;
+end
+
 function text = readTextIfExists(filePath)
 if isfile(filePath)
     text = string(fileread(filePath));
@@ -210,6 +244,7 @@ result = struct( ...
     "buildCommand", "", ...
     "px4TargetRegistered", false, ...
     "airframeRegistered", false, ...
+    "airframeAutostartConsistent", false, ...
     "insVariantResults", repmat(struct("insVariant", NaN, "passed", false, ...
         "duration_s", NaN, "errorText", ""), 0, 1), ...
     "plantSmokePassed", false, ...

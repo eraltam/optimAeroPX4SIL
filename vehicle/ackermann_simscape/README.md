@@ -1,24 +1,44 @@
 # ackermann_simscape
 
-`ackermann_simscape` is a separate adapter entry for automotive/Ackermann Simscape sources. It
-provides `ackermann_simscape.slx` as a separate `VehiclePlant.slx` plant variant, cloned from the
-stable Ackermann rover plant with local copied component dependencies and a healthy
-`simscape_adapter_diagnostics` Simscape network. It uses the `optimAeroAckermann` PX4 target.
+Simscape adapter variant of `ackermann_rover`. PX4 target `optimAeroAckermann` (shares the
+airframe with `ackermann_rover`).
 
-Source project:
+## Current physics (real, as of 2026-07-15)
 
-```text
-C:\AnelloSummer\new_vehicles\Formula-Student-Vehicle-Simscape
-```
+`ackermann_simscape.slx` was originally a clone of the hexarotor's multirotor engine
+(wrong physics class entirely for a steer+throttle car) plus an unconnected
+`simscape_adapter_diagnostics` placeholder network. It has been replaced with a **direct
+copy of `ackermann_rover.slx`'s real kinematic-bicycle plant** (same `AckermannKinematics`
+MATLAB Function block, same equations -- see `vehicle/ackermann_rover/README.md`) and the
+matching `PX4OutputMappingAckermannRover.slx`/`failureInputReadAckermannRover.slx`
+mapping. Same car as `ackermann_rover`, pending a future tire/suspension Simscape
+swap-in.
 
-Candidate source areas:
+Parameters (`setUpVehicle.m`/`setUpActuators.m` case `"ackermann_simscape"`): identical
+to `ackermann_rover` -- `dryMass_kg=60`, `wheelBase_m=2.0`, `maxSteerAngle_rad=0.6`,
+`maxSpeed_mps=8.0`, `tauSteer_s=0.15`, `tauThrottle_s=0.5`.
 
-| Source area | Intended local use |
-|---|---|
-| `Libraries\Event\Scene\Plane_Grid` | Flat-scene setup |
-| `Libraries\Event\Scene\Skidpad` | Low-speed closed-course reference |
-| Formula Student vehicle libraries | Tire, suspension, and vehicle dynamics reference |
-| `Optimize-Vehicle-Design-with-AI-and-Simscape` | Secondary parameter and workflow source |
+## Blocked future work
 
-First physical wrapper should use steering angle plus drive torque at low speed before adding
-detailed tire/suspension effects.
+The external source project this adapter was meant to wrap
+(`C:\AnelloSummer\new_vehicles\Formula-Student-Vehicle-Simscape`) does not exist on this
+machine -- confirmed by direct filesystem check, not a scope decision. If that project
+becomes available, real tire/suspension Simscape physics should replace the kinematic
+plant above; candidate source areas noted at the time (`Libraries\Event\Scene\Plane_Grid`,
+`Libraries\Event\Scene\Skidpad`, Formula Student vehicle libraries for tire/suspension
+reference) are preserved here for whoever picks this up.
+
+## Axis convention / gravity / units
+
+Same as `ackermann_rover`: NED world, FRD body, gravity sign not independently meaningful
+for a ground vehicle at constant altitude, SI units throughout.
+
+## Not modeled
+
+Same gaps as `ackermann_rover` (no tire slip/suspension/traction forces), plus the
+Simscape swap-in above blocked on the missing source project.
+
+## Validation evidence
+
+`work/vehicle_test_results/vehicle_integration_matrix_20260715_023036.json` --
+`passed=1, plantSmokePassed=1`.

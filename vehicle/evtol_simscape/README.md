@@ -1,78 +1,46 @@
 # evtol_simscape
 
-`evtol_simscape` is the first high-fidelity vehicle integration entry for the Simscape vehicle
-plan. It deliberately remains separate from the fast `evtol` baseline.
+Simscape adapter variant of `evtol`. PX4 target `optimAeroEVTOL` (shares the airframe
+with `evtol`).
 
-Current implementation status:
+## Current physics (real, as of 2026-07-15)
 
-- Registered as a separate vehicle key.
-- Adds `evtol_simscape.slx` as a separate `VehiclePlant.slx` plant variant.
-- The adapter model is cloned from the stable `evtol` plant, includes local copied component model
-  dependencies, and contains a healthy `simscape_adapter_diagnostics` Simscape network.
-- Uses the `optimAeroEVTOL` PX4 SITL target.
-- Adds local metadata for the eVTOL Simscape source project.
-- Adds explicit command/state adapter contract notes for the future physical plant.
-- Provides smoke-test wrappers so the vehicle can be included in the integration matrix.
+`evtol_simscape.slx` was a clone of `evtol.slx` (same hexarotor-engine reuse) plus an
+unconnected `simscape_adapter_diagnostics` placeholder subsystem (confirmed via
+`model_overview`: it does not appear in any signal connection). It now has the **same
+real rigid-body physics as `evtol`** -- own `case` in `setUpVehicle.m`/
+`setUpActuators.m` with identical geometry/mass (same airframe pending a future
+powertrain swap-in), and its own `PX4OutputMappingEvtolSimscape.slx`/
+`failureInputReadEvtolSimscape.slx` (renamed copies of `evtol`'s, same 6 motors).
 
-Source project:
+Parameters: identical to `evtol` -- `dryMass_kg=45`, `aircraftInertialBody_kgm2=diag(6.5,
+6.5, 13)`, `SRef_m2=0.5`.
 
-```text
-C:\AnelloSummer\new_vehicles\eVTOL-Drone-Simscape
-```
+## Blocked future work
 
-Key source models selected for future adapter work:
+The "high-fidelity" motor/propeller/powertrain Simscape physics that gives this vehicle
+its name is still missing -- the external source project it was meant to wrap
+(`C:\AnelloSummer\new_vehicles\eVTOL-Drone-Simscape`) does not exist on this machine,
+confirmed by direct filesystem check. Candidate source models noted at the time
+(`Components\Vehicle\AirframePowertrain.slx`, `Components\Motor\PropulsionMotor.slx`,
+`Components\Propeller\PropellerSimscape.slx`, `Components\Battery\
+BatteryPlantModel_Simple.slx`) are preserved here for whoever picks this up. If that
+project appears, the adapter boundary should stay: `ActuatorCommandBus.MotorsCommandBus`
+in (normalized motor commands), `VehicleBus` out (NED position/velocity, FRD body
+velocity/rates, Euler attitude, body acceleration) -- frame conversions between the
+Simscape source's own harness buses (`Vehicle_A_St.Xe`, `Ve`, `Euler`, `Vb`, `pqr`) and
+this repo's `VehicleBus` must be explicit.
 
-| Source model | Intended local use |
-|---|---|
-| `Components\Vehicle\AirframePowertrain.slx` | Candidate powertrain/airframe subsystem |
-| `Components\Vehicle\AirframePowertrainMotorSDL.slx` | Candidate lower-level motor/driveline variant |
-| `Components\Motor\PropulsionMotor.slx` | Motor dynamics reference |
-| `Components\Propeller\PropellerSimscape.slx` | Simscape propeller dynamics reference |
-| `Components\Propeller\PropulsionSystem.slx` | Combined propulsion unit reference |
-| `Components\Battery\BatteryPlantModel_Simple.slx` | Initial battery source for runtime-friendly model |
-| `Model\EVTOLTiltrotor.slx` | Full example, reference only for first pass |
+## Axis convention / gravity / units
 
-The next structural step is to replace the contained diagnostic Simscape network with a
-command-coupled motor/propeller/powertrain subsystem while preserving the existing SIL bus
-boundary.
+Same as `evtol`: NED world, FRD body, standard gravity chain, SI units.
 
-## Adapter Boundary
+## Not modeled
 
-Input side:
+Same tiltrotor/pusher-prop gap as `evtol`, plus the real motor/propeller/powertrain
+Simscape physics blocked on the missing source project above.
 
-```text
-ActuatorCommandBus.MotorsCommandBus
-  -> normalized motor commands
-  -> eVTOL motor speed / torque / thrust references
-```
+## Validation evidence
 
-Output side:
-
-```text
-eVTOL Simscape/world states
-  -> NED position and velocity
-  -> FRD body velocity and body rates
-  -> Euler attitude
-  -> body acceleration
-  -> VehicleBus
-```
-
-Frame conversions must be explicit. The eVTOL Simscape source uses its own harness buses with
-fields such as `Vehicle_A_St.Xe`, `Ve`, `Euler`, `Vb`, `pqr`, and rotor parameters. Those must be
-mapped to this repo's `VehicleBus` contract before PX4 loop-closure testing.
-
-## Validation
-
-Run:
-
-```matlab
-cd("C:\AnelloSummer\optimAeroPX4SIL")
-addpath("utilities")
-runVehicleIntegrationMatrix( ...
-    "vehicleTypes", string("evtol_simscape"), ...
-    "insVariants", [1 2], ...
-    "runPlantSmoke", true)
-```
-
-This validation proves registry, initialization, adapter model selection, INS variant
-compatibility, PX4 target registration, and one-second plant smoke execution.
+`work/vehicle_test_results/vehicle_integration_matrix_20260715_022324.json` -- 11-vehicle
+regression, `passed=1, plantSmokePassed=1`.

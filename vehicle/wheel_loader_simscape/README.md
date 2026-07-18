@@ -1,25 +1,40 @@
 # wheel_loader_simscape
 
-`wheel_loader_simscape` is a separate adapter entry for the wheel-loader Simscape source. It
-provides `wheel_loader_simscape.slx` as a separate `VehiclePlant.slx` plant variant, cloned from
-the stable wheel-loader plant with local copied component dependencies and a healthy
-`simscape_adapter_diagnostics` Simscape network. It uses the `optimAeroLoader` PX4 target while
-the command-coupled physical Simscape wrapper is staged.
+Simscape adapter variant of `wheel_loader`. PX4 target `optimAeroLoader` (shares the
+airframe with `wheel_loader`).
 
-Source project:
+## Current physics (real, as of 2026-07-15)
 
-```text
-C:\AnelloSummer\new_vehicles\Wheel-Loader-Simscape
-```
+Same finding as `ackermann_simscape`/`evtol_simscape`: this model was a clone of the
+hexarotor's multirotor engine (wrong physics class for a steer+throttle machine) plus an
+unconnected `simscape_adapter_diagnostics` placeholder network. It has been replaced with
+a **direct copy of `wheel_loader.slx`'s real kinematic-bicycle plant** (see
+`vehicle/wheel_loader/README.md` for the equations and parameters).
 
-Candidate source models:
+Parameters: identical to `wheel_loader` -- `dryMass_kg=4500`, `wheelBase_m=2.5`,
+`maxSteerAngle_rad=0.5`, `maxSpeed_mps=4.0`, `tauSteer_s=0.4`, `tauThrottle_s=0.8`.
 
-| Source model | Intended local use |
-|---|---|
-| `Models\Vehicle\sm_wheel_loader_vehicle.slx` | Vehicle body/reference plant |
-| `Models\Vehicle\sm_wheel_loader_steer.slx` | Steering/articulation reference |
-| `Models\Driveline\sm_wheel_loader_driveline.slx` | Driveline reference |
-| `Models\CVT\ssc_hydromech_power_split_cvt_engine.slx` | Powertrain reference, deferred |
+## Blocked future work
 
-First physical wrapper should use steering plus wheel torque on flat terrain. Bucket and hydraulic
-functions should remain deferred until PX4 loop closure is stable.
+The external source project this adapter was meant to wrap
+(`C:\AnelloSummer\new_vehicles\Wheel-Loader-Simscape`) does not exist on this machine --
+confirmed by direct filesystem check. If that project becomes available, real
+driveline/hydraulics Simscape physics should replace the kinematic plant above; candidate
+source areas noted at the time (`Models\Vehicle\sm_wheel_loader_vehicle.slx`,
+`Models\Vehicle\sm_wheel_loader_steer.slx`, `Models\Driveline\sm_wheel_loader_driveline.slx`,
+CVT powertrain reference) are preserved here for whoever picks this up.
+
+## Axis convention / gravity / units
+
+Same as `wheel_loader`: NED world, FRD body, gravity sign not independently meaningful
+for a ground vehicle at constant altitude, SI units throughout.
+
+## Not modeled
+
+Same gaps as `wheel_loader` (tire slip/suspension/hydraulics/bucket), plus the Simscape
+swap-in above blocked on the missing source project.
+
+## Validation evidence
+
+`work/vehicle_test_results/vehicle_integration_matrix_20260715_040234.json` (final
+17-vehicle regression, lote 2) -- `passed=1, plantSmokePassed=1`.

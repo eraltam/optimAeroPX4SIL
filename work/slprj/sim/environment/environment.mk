@@ -2,7 +2,7 @@
 ## Makefile generated for component 'environment'. 
 ## 
 ## Makefile     : environment.mk
-## Generated on : Wed Jul 01 11:44:26 2026
+## Generated on : Tue Jul 14 13:36:57 2026
 ## Final product: ./environmentlib.lib
 ## Product type : static library
 ## 
@@ -25,7 +25,7 @@ MAKEFILE                  = environment.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work
+START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -220,7 +220,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/Air/Airlib.lib C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/Earth/Earthlib.lib C:/Users/EDISON~1/DOCUME~1/Anello/OPTIMA~1/work/slprj/sim/LOCALT~1/LOCALT~1.LIB
+MODELREF_LIBS = C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/Air/Airlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/Earth/Earthlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/LocalTerrain/LocalTerrainlib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 
