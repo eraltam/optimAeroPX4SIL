@@ -233,10 +233,26 @@ for this automated pass):
    at rest, level, confirm `accel_meas` shows gravity with the sign PX4 expects).
 2. Live PX4 SITL validation per `newIMU_model/instruction.md` section 2.13 Tests 7-9: MAVLink
    `listener sensor_accel/sensor_gyro/sensor_mag`, `vehicle_imu`, `estimator_status`, and the
-   HIL_SENSOR inspector in QGroundControl, with `INS_VARIANT=2`.
+   HIL_SENSOR inspector in QGroundControl, with `INS_VARIANT=2`. **Still not done as of
+   2026-07-21** -- see the note below, a live PX4 SITL loop was finally attempted, but with
+   `INS_VARIANT` at its default (`1`, Generic), not `2` (AnelloX3). Whoever picks this up next
+   should re-run with `INS_VARIANT=2` explicitly set.
 3. Decide whether `INS_VARIANT` should default to `2` (AnelloX3) once validated, currently defaults
    to `1` (Generic) in `sensors/setUpSensors.m` for safety/regression-baseline reasons.
 4. File/fix the MATLAB Function block struct-compile bug in `newIMU_model` (section 3).
+
+**2026-07-21 update:** the first-ever live PX4 SITL loop (arm + automated mission upload, not just
+`update_diagram`) was attempted, for `c172p` specifically (not hexarotor, and not yet with
+`INS_VARIANT=2`). It surfaced three real, unrelated bugs blocking that vehicle from ever exercising
+the Simulink plant at all (a `SYS_AUTOSTART` id collision with a stock PX4 airframe silently
+diverting it to PX4's internal SIH simulator; a `groundContact.slx` fidelity gap with zero
+horizontal ground friction; and several gaps in the `HILDiagnostics/mavlink_system/` automation
+harness, which had never been run against a pure-SITL session before). Two are fixed; one
+(fixed-wing mission still doesn't complete its waypoints -- the takeoff item never registers as
+"complete") remains open. Full detail, exact repro steps, and the open item are in
+`../PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md` section 4.2 -- read that before touching
+`c172p`'s live PX4 loop again, and note this session used the Generic INS, not AnelloX3, so item 2
+above is still open regardless.
 
 ---
 
