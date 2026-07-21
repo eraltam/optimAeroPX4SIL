@@ -1,0 +1,58 @@
+mission:
+  enabled: true
+  name: "c172p_fixedwing_racetrack_waypoints_rtl"
+
+  # c172p (Cessna 172P) is fixed-wing, not the hexarotor mission.yaml was written for -- speed,
+  # altitude, turn radius, and end-of-mission behavior are all different on purpose, see notes below.
+
+  # FW_AIRSPD_MIN=18 / FW_AIRSPD_TRIM=28 / FW_AIRSPD_MAX=60 m/s
+  # (PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/airframes/10042_optimAeroC172p). 24 m/s sits
+  # comfortably between min and trim -- enough margin above stall for turns without commanding a
+  # speed the airspeed controller has to fight for.
+  speed_m_s: 24.0
+  # GA-aircraft pattern altitude, well above the 5-10 m used for the hexarotor mission -- fixed-wing
+  # needs room to climb out and turn without terrain/obstacle margin concerns.
+  relative_altitude_m: 120.0
+  # Turn radius at 24 m/s and FW_R_LIM=45 deg roll is ~v^2/(g*tan(45)) = 576/9.81 ~= 59 m; 80 m gives
+  # margin so PX4 doesn't have to overbank to hit the waypoint cone.
+  acceptance_radius_m: 80.0
+  # Fixed-wing can't stop and correct position like a multirotor -- fly_through=true lets it carry
+  # speed/energy through each waypoint into the next turn instead of trying to converge on the exact
+  # point (which is the correct behavior for is_fly_through=false, meant for hover-capable vehicles).
+  is_fly_through: true
+  loiter_time_s: 0.0 # unused with is_fly_through=true, kept only for schema symmetry with other missions
+
+  clear_existing: true
+  # RTL after mission, not a scripted autoland: c172p's landing flare/approach has not been validated
+  # against live PX4 SITL yet (see optimAeroPX4SIL/CLAUDE.md section 5, "Not yet validated against
+  # live PX4 SITL / EKF2"). RTL brings it back to a loiter over home using PX4's own tested RTL
+  # logic instead of trusting an unverified auto-land sequence on the first real flight test.
+  rtl_after_mission: true
+  land_after_mission: false
+  takeoff_settle_s: 2.0
+  # ~3.2 km total leg length (see waypoints below) at 24 m/s is ~135 s of cruise; generous margin for
+  # climb-out, turns, and RTL settling.
+  mission_timeout_s: 300
+  land_timeout_s: 90 # unused while land_after_mission=false, kept for schema symmetry
+
+  # Rectangular racetrack around the shared vehicle home position
+  # (vehicle/common/setUpVehicle.m, lat=17.64450, lon=-63.21988 -- same home used by every vehicle
+  # in this registry, including c172p's own "c172p" case). Straight climb-out leg north, then a
+  # standard box pattern (crosswind/downwind/base) sized for the turn radius above, ending back over
+  # home before RTL takes over.
+  waypoints:
+    - name: "wp1_climbout_north"
+      latitude_deg: 17.652585
+      longitude_deg: -63.219880
+
+    - name: "wp2_crosswind_east"
+      latitude_deg: 17.652585
+      longitude_deg: -63.213281
+
+    - name: "wp3_downwind_south"
+      latitude_deg: 17.644500
+      longitude_deg: -63.213281
+
+    - name: "wp4_base_return"
+      latitude_deg: 17.644500
+      longitude_deg: -63.219880
