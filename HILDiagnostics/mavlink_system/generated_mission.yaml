@@ -1,0 +1,76 @@
+mission:
+  enabled: true
+  name: "reconstructed_ulg_mission"
+
+  # Values reconstructed or estimated from the PX4 ULog.
+  speed_m_s: 2.56
+  relative_altitude_m: 9.57
+  acceptance_radius_m: 2.00
+  is_fly_through: false
+  loiter_time_s: 2.00
+
+  clear_existing: true
+  rtl_after_mission: false
+  land_after_mission: true
+  takeoff_settle_s: 2.00
+  mission_timeout_s: 240
+  land_timeout_s: 90
+
+  waypoints:
+    - name: "wp01"
+      latitude_deg: 37.4128407
+      longitude_deg: -122.0001371
+    - name: "wp02"
+      latitude_deg: 37.4128678
+      longitude_deg: -122.0000774
+    - name: "wp03"
+      latitude_deg: 37.4128515
+      longitude_deg: -122.0001302
+    - name: "wp04"
+      latitude_deg: 37.4128135
+      longitude_deg: -122.0001190
+    - name: "wp05"
+      latitude_deg: 37.4128534
+      longitude_deg: -122.0001463
+    - name: "wp06"
+      latitude_deg: 37.4128812
+      longitude_deg: -122.0000966
+    - name: "wp07"
+      latitude_deg: 37.4130085
+      longitude_deg: -121.9997475
+    - name: "wp08"
+      latitude_deg: 37.4129171
+      longitude_deg: -121.9999653
+    - name: "wp09"
+      latitude_deg: 37.4130011
+      longitude_deg: -121.9997693
+    - name: "wp10"
+      latitude_deg: 37.4129412
+      longitude_deg: -121.9998705
+    - name: "wp11"
+      latitude_deg: 37.4129790
+      longitude_deg: -121.9998913
+    - name: "wp12"
+      latitude_deg: 37.4129365
+      longitude_deg: -121.9998711
+    - name: "wp13"
+      latitude_deg: 37.4129626
+      longitude_deg: -121.9998619
+    - name: "wp14"
+      latitude_deg: 37.4130316
+      longitude_deg: -121.9996492
+    - name: "wp15"
+      latitude_deg: 37.4129079
+      longitude_deg: -121.9999680
+    - name: "wp16"
+      latitude_deg: 37.4130607
+      longitude_deg: -121.9995345
+    - name: "wp17"
+      latitude_deg: 37.4129252
+      longitude_deg: -121.9999252
+    - name: "wp18"
+      latitude_deg: 37.4129987
+      longitude_deg: -121.9996239
+    - name: "wp19"
+      latitude_deg: 37.4128397
+      longitude_deg: -122.0001461

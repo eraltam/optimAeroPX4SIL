@@ -1,0 +1,33 @@
+mission:
+  enabled: true
+  name: "hexarotor_hil_takeoff_waypoints_land"
+
+  # These defaults are used by every waypoint unless overridden below.
+  # The coordinates are a small local box around the hexarotor initial
+  # position in vehicle/common/setUpVehicle.m:
+  #   lat=17.64450, lon=-63.21988
+  speed_m_s: 3.0
+  relative_altitude_m: 5.0
+  acceptance_radius_m: 2.0
+  is_fly_through: false
+  loiter_time_s: 2.0
+
+  clear_existing: true
+  rtl_after_mission: false
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  mission_timeout_s: 240
+  land_timeout_s: 90
+
+  waypoints:
+    - name: "wp1_north"
+      latitude_deg: 17.644680
+      longitude_deg: -63.219880
+
+    - name: "wp2_north_east"
+      latitude_deg: 17.644680
+      longitude_deg: -63.219691
+
+    - name: "wp3_east"
+      latitude_deg: 17.644500
+      longitude_deg: -63.219691
