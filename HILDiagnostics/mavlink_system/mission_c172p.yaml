@@ -35,24 +35,31 @@ mission:
   mission_timeout_s: 300
   land_timeout_s: 90 # unused while land_after_mission=false, kept for schema symmetry
 
-  # Rectangular racetrack around the shared vehicle home position
-  # (vehicle/common/setUpVehicle.m, lat=17.64450, lon=-63.21988 -- same home used by every vehicle
-  # in this registry, including c172p's own "c172p" case). Straight climb-out leg north, then a
-  # standard box pattern (crosswind/downwind/base) sized for the turn radius above, ending back over
-  # home before RTL takes over.
+  # Rectangular racetrack around the vehicle's ACTUAL simulated home position, not
+  # vehicle/common/setUpVehicle.m's referenceLatitude_deg/referenceLongitude_deg
+  # (17.64450, -63.21988). Confirmed by live HOME_POSITION telemetry that the two differ by
+  # ~2.8 km in this SIL setup (cause not yet diagnosed -- some offset between the reference point
+  # and where the EKF/GPS simulation actually anchors home). This never mattered for the
+  # hexarotor mission because PX4's "first waypoint too far from home" feasibility check
+  # (MIS_DIST_1WP, ~900 m default) is fixed-wing-specific -- c172p's original waypoints (built
+  # from the assumed reference) were silently rejected by the navigator and it fell back to
+  # AUTO_LOITER instead of AUTO_MISSION, holding its initial heading instead of navigating.
+  # Recomputed the same 900 m-north/700 m-east box pattern from the observed home
+  # (17.6369601, -63.1982809) instead. Re-confirm HOME_POSITION if this SIL's home offset ever
+  # changes (e.g. after touching setUpVehicle.m's initial conditions).
   waypoints:
     - name: "wp1_climbout_north"
-      latitude_deg: 17.652585
-      longitude_deg: -63.219880
+      latitude_deg: 17.645045
+      longitude_deg: -63.198281
 
     - name: "wp2_crosswind_east"
-      latitude_deg: 17.652585
-      longitude_deg: -63.213281
+      latitude_deg: 17.645045
+      longitude_deg: -63.191681
 
     - name: "wp3_downwind_south"
-      latitude_deg: 17.644500
-      longitude_deg: -63.213281
+      latitude_deg: 17.636960
+      longitude_deg: -63.191681
 
     - name: "wp4_base_return"
-      latitude_deg: 17.644500
-      longitude_deg: -63.219880
+      latitude_deg: 17.636960
+      longitude_deg: -63.198281

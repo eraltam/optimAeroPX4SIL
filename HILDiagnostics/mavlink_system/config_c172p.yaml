@@ -1,7 +1,15 @@
 vehicle:
   mavsdk_address: "udp://:14540"
   pymavlink_address: "udpin:0.0.0.0:14550"
-  simulink_command_address: "udp://127.0.0.1:14541"
+  # NOT the HITL Simulink relay port here (this is a pure SITL session, nothing is listening
+  # on 127.0.0.1:14541) -- listener_pymavlink.py's command relay is transport-agnostic, it just
+  # forwards whatever it captures from MAVSDK's outbound socket to this address, so pointing it
+  # directly at PX4's own WSL endpoint (the "Normal" mavlink instance's bind port, 18570) closes
+  # the loop for SITL instead. Without this, MAVSDK's outbound commands (arm, clear_mission,
+  # etc.) go into a void and every one of them times out, even though inbound telemetry/health
+  # looks fine (that direction doesn't depend on this relay at all). WSL IP changes across
+  # reboots -- reconfirm with `wsl hostname -I` if this stops connecting.
+  simulink_command_address: "udp://172.31.228.71:18570"
   connect_timeout_s: 180
   telemetry_timeout_s: 15
   health_timeout_s: 240
@@ -11,6 +19,15 @@ vehicle:
   # not the 3.0 m hexarotor hover-takeoff default in config.yaml.
   takeoff_altitude_m: 25.0
   auto_arm: true
+  # KEEP true. Tried false once (letting the mission's own climb-out replace the standalone
+  # MAVSDK takeoff action, since start_mission() after a takeoff+hold left PX4 in AUTO_LOITER,
+  # not AUTO_MISSION -- confirmed live via `commander status`). That made things worse, not
+  # better: without the gentle action.takeoff() first, the aircraft attempted the mission from a
+  # standing start and lost control outright (telemetry showed relative_alt diverging to
+  # -225,000+ m, airspeed 121 m/s, roll/pitch near +-90 deg -- a simulation blowup, not a real
+  # flight). The AUTO_LOITER-after-takeoff handoff is a real unresolved issue, but the fix is NOT
+  # this flag -- needs a different approach (e.g. an explicit mode-set or re-issued
+  # set_current_mission_item after the takeoff hold) that hasn't been tried yet.
   auto_takeoff: true
   auto_mission: true
   mission_file: "mission_c172p.yaml"
