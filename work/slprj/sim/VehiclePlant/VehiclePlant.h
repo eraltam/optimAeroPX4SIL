@@ -15,7 +15,7 @@
 #include "VehiclePlant_types.h"
 #include "environment.h"
 #include "sensors.h"
-#include "fixedwing_plane.h"
+#include "c172p.h"
 #include <string.h>
 #include "rtGetNaN.h"
 #include "model_reference_types.h"
@@ -30,9 +30,9 @@ b15jhl353f [ 3 ] ; real_T nr1z2kw4vv [ 3 ] ; real_T lyavlgnaap [ 3 ] ; real_T
 hqfsyz0gws [ 3 ] ; real_T ebsrm0pt0f [ 3 ] ; real_T ckxl0kwbp3 [ 3 ] ; real_T
 pk015gkn3t [ 3 ] ; real_T hnwpw5cpbg [ 3 ] ; real_T hpzcreebww ; real_T
 jesjnjq4nt ; real_T g33bndehud [ 3 ] ; real_T l02njpb4l0 [ 3 ] ; real_T
-fyrj21rzva ; real_T obvc5owtba ; real_T i4k24nzj2f ; real_T atxakmdnuo ;
-real_T hvgzpldui2 ; real_T isnllke3wf [ 3 ] ; real_T fdoxoc5gvj [ 3 ] ;
-real_T lx2dpv5cbd ; boolean_T ll4ypkaxem ; } n4i4q3iehd ; typedef struct {
+nqezebprs0 ; real_T c3upje4rrj ; real_T f1pootioah ; real_T hg3e2b4k10 ;
+real_T bj3atmcbie ; real_T mipewzbi5z [ 3 ] ; real_T f4wzraydcv [ 3 ] ;
+real_T cudyvx3g2k ; boolean_T ll4ypkaxem ; } n4i4q3iehd ; typedef struct {
 real_T gfi4rwv5uv [ 3 ] ; real_T albizm10c2 [ 3 ] ; real_T oqzh4go2fj [ 9 ] ;
 real_T f5cqf0v5ma [ 3 ] ; real_T egmzw14bcz [ 3 ] ; real_T jer4mfbauo [ 3 ] ;
 real_T mofdx3lgfc [ 3 ] ; real_T cbkc3lpahs [ 3 ] ; real_T pq1usl0ji3 ;
@@ -42,11 +42,11 @@ real_T hi5wgo0pzs [ 3 ] ; real_T lflbnbwxow [ 3 ] ; real_T jb5suc3utz [ 3 ] ;
 real_T a545g2ksuw [ 3 ] ; real_T iofhgaqk00 [ 3 ] ; real_T izoq4rgghj [ 3 ] ;
 real_T g33wknofwp [ 3 ] ; real_T niniuhz0at ; real_T ivelzrae45 ; real_T
 hpcdwfht1y [ 3 ] ; real_T oh42dzxsr1 [ 3 ] ; boolean_T amcgr3jf34 ;
-lj3yonrq1cm nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; bvjlcc5m1pd d05n0s0bni ; }
-j0qkcyobx0 ; typedef struct { ar45jsrhtq jn4jwo3o0t ; gq0jszosl5 brlvzuyj5v ;
-} hdulqcnnpv ; typedef struct { fgdgb2ruqd jn4jwo3o0t ; e4c0j1ak1m brlvzuyj5v
-; } p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; jhwlnqqlma
-brlvzuyj5v ; } o2ljf02bvi ; struct ks3glix3e01_ { real_T P_25 ; real_T P_26 ;
+lj3yonrq1cm nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; avyhir3zekl e3vcmf1wna ; }
+j0qkcyobx0 ; typedef struct { ar45jsrhtq jn4jwo3o0t ; dqz4wk1hvy nucdhb4glb ;
+} hdulqcnnpv ; typedef struct { fgdgb2ruqd jn4jwo3o0t ; iiocpe4xx5 nucdhb4glb
+; } p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; idfb2cojsg
+nucdhb4glb ; } o2ljf02bvi ; struct ks3glix3e01_ { real_T P_25 ; real_T P_26 ;
 real_T P_27 ; real_T P_28 ; real_T P_29 ; real_T P_30 ; real_T P_31 ; real_T
 P_32 ; real_T P_33 ; real_T P_34 ; real_T P_35 ; real_T P_36 ; real_T P_37 ;
 real_T P_38 ; real_T P_39 ; real_T P_40 ; real_T P_41 ; real_T P_42 ; real_T

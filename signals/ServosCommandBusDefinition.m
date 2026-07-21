@@ -52,15 +52,19 @@ switch lower(vehicleType)
         ServosCommandBus.PreserveElementDimensions = 0;
         ServosCommandBus.Elements = elems;
         assignin('base', 'ServosCommandBus', ServosCommandBus);
-    case {"quadrotor", "octarotor", "evtol", "evtol_simscape"}
+    case {"quadrotor", "octarotor", "evtol", "evtol_simscape", "vtol_tailsitter"}
         % LADAC-family multirotor servo command bus (Fase 3 aerial track, see
         % PLAN_CORRECCION_MULTIVEHICULO_SITL.md). Reuses the exact same global bus TYPE NAME
         % 'MotorCommandHexBus' as hexarotor -- hexActuator.slx/hexMotorModel.slx (shared, untouched)
         % select/type-pin that literal name, and since it is redefined fresh per active vehicle just
-        % like ServosBus/FailureBus/PropulsionBus already are, giving it N=4/8/6 elements here is
+        % like ServosBus/FailureBus/PropulsionBus already are, giving it N=4/8/6/2 elements here is
         % safe and does not affect hexarotor's own compile (which redefines it again with N=6 when
-        % hexarotor is the active vehicle). This is what lets quadrotor/octarotor/evtol reuse
-        % hexarotor's proven rigid-body-with-N-rotors physics with zero edits to shared .slx files.
+        % hexarotor is the active vehicle). This is what lets quadrotor/octarotor/evtol/
+        % vtol_tailsitter reuse hexarotor's proven rigid-body-with-N-rotors physics with zero edits
+        % to shared .slx files. vtol_tailsitter (PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md) models
+        % only the twin-rotor hover regime this way -- true tailsitter wing-borne cruise/transition
+        % aerodynamics is explicitly NOT modeled at this fidelity level, same documented-gap
+        % pattern as evtol's "no tiltrotor transition" note in setUpVehicle.m.
         switch lower(vehicleType)
             case "quadrotor"
                 rotorCount = 4;
@@ -68,6 +72,8 @@ switch lower(vehicleType)
                 rotorCount = 8;
             case {"evtol", "evtol_simscape"}
                 rotorCount = 6;
+            case "vtol_tailsitter"
+                rotorCount = 2;
         end
         clear rotorElems;
         for ii = 1:rotorCount
@@ -97,6 +103,64 @@ switch lower(vehicleType)
         elems(1).Dimensions = 1;
         elems(1).DimensionsMode = 'Fixed';
         elems(1).DataType = 'Bus: MotorCommandHexBus';
+        elems(1).Complexity = 'real';
+        elems(1).Min = [];
+        elems(1).Max = [];
+        elems(1).DocUnits = '';
+        elems(1).Description = '';
+
+        ServosCommandBus = Simulink.Bus;
+        ServosCommandBus.HeaderFile = '';
+        ServosCommandBus.Description = '';
+        ServosCommandBus.DataScope = 'Auto';
+        ServosCommandBus.Alignment = -1;
+        ServosCommandBus.PreserveElementDimensions = 0;
+        ServosCommandBus.Elements = elems;
+        clear elems;
+        assignin('base', 'ServosCommandBus', ServosCommandBus);
+    case {"ship_surface", "ship_semisub"}
+        % Single rudder+propeller ship servo command bus -- same field names/shape as
+        % ackermann_rover's ServosCommandAckermannRoverBus (cmdSteering_nd/cmdThrottle_nd
+        % reinterpreted as rudder/throttle) so ship_surface.slx can reuse ackermann_rover.slx's
+        % block diagram verbatim -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        clear innerElems;
+        innerElems(1) = Simulink.BusElement;
+        innerElems(1).Name = 'cmdSteering_nd';
+        innerElems(1).Dimensions = 1;
+        innerElems(1).DimensionsMode = 'Fixed';
+        innerElems(1).DataType = 'double';
+        innerElems(1).Complexity = 'real';
+        innerElems(1).Min = [];
+        innerElems(1).Max = [];
+        innerElems(1).DocUnits = '';
+        innerElems(1).Description = 'commanded rudder, nd [-1,1]';
+
+        innerElems(2) = Simulink.BusElement;
+        innerElems(2).Name = 'cmdThrottle_nd';
+        innerElems(2).Dimensions = 1;
+        innerElems(2).DimensionsMode = 'Fixed';
+        innerElems(2).DataType = 'double';
+        innerElems(2).Complexity = 'real';
+        innerElems(2).Min = [];
+        innerElems(2).Max = [];
+        innerElems(2).DocUnits = '';
+        innerElems(2).Description = 'commanded throttle, nd [0,1]';
+
+        ServosCommandShipSurfaceBus = Simulink.Bus;
+        ServosCommandShipSurfaceBus.HeaderFile = '';
+        ServosCommandShipSurfaceBus.Description = '';
+        ServosCommandShipSurfaceBus.DataScope = 'Auto';
+        ServosCommandShipSurfaceBus.Alignment = -1;
+        ServosCommandShipSurfaceBus.PreserveElementDimensions = 0;
+        ServosCommandShipSurfaceBus.Elements = innerElems;
+        clear innerElems;
+        assignin('base', 'ServosCommandShipSurfaceBus', ServosCommandShipSurfaceBus);
+
+        elems(1) = Simulink.BusElement;
+        elems(1).Name = 'ServosCommandShipSurfaceBus';
+        elems(1).Dimensions = 1;
+        elems(1).DimensionsMode = 'Fixed';
+        elems(1).DataType = 'Bus: ServosCommandShipSurfaceBus';
         elems(1).Complexity = 'real';
         elems(1).Min = [];
         elems(1).Max = [];
@@ -171,7 +235,7 @@ switch lower(vehicleType)
         ServosCommandBus.PreserveElementDimensions = 0;
         ServosCommandBus.Elements = elems;
         assignin('base', 'ServosCommandBus', ServosCommandBus);
-    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea"}
+    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea", "uuv_npsauv", "uuv_dsrv"}
         % Differential/twin-motor rover servo command bus definition -- see
         % PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 2/3. Inlined for the same reason as
         % ackermann_rover above.
@@ -392,11 +456,13 @@ switch lower(vehicleType)
         ServosCommandBus.PreserveElementDimensions = 0;
         ServosCommandBus.Elements = elems;
         assignin('base', 'ServosCommandBus', ServosCommandBus);
-    case "fixedwing_plane"
+    case {"fixedwing_plane", "c172p"}
         % Generic ala-fija servo command bus -- mirrors ServosCommandF16BusDefinition's field
         % names exactly (cmdAileron_nd/cmdElevator_nd/cmdRudder_nd) since fixedwing_plane's
         % actuators.slx is a direct clone of F16's, only the ServosCommandBus type name and the
         % engine Model Reference differ -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        % c172p (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) reuses this exact same bus -- same
+        % 3-control-surface + throttle actuator interface as fixedwing_plane/F16.
         clear innerElems;
         innerElems(1) = Simulink.BusElement;
         innerElems(1).Name = 'cmdAileron_nd';

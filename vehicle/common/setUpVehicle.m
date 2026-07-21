@@ -114,6 +114,99 @@ switch lower(setupVehicleType)
         referenceAltitude_m = 116 * ft2m;
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;
+    case "vtol_tailsitter"
+        % Twin-rotor tailsitter -- see setUpActuators.m's "vtol_tailsitter" case for the reuse
+        % rationale. Real mass/inertia from LADAC-Examples/Plane/../Arkbird/
+        % tailsitter_params_Arkbird.m (tailsitter.body.m/I) -- a genuine small tailsitter airframe,
+        % not a placeholder. SRef_m2 is a minor drag-only term at this fidelity level (hover
+        % regime only), estimated from the Arkbird wing span/chord in
+        % simple_wing_params_Arkbird.m (b=0.86 m, c=0.2425 m).
+        vehicleParams.dryMass_kg = 1.1;
+        vehicleParams.aircraftInertialBody_kgm2 = [0.0179 0 0; 0 0.0113 0; 0 0 0.0287];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        vehicleParams.maxRPM = 15000;
+        vehicleParams.SRef_m2 = 0.86 * 0.2425;
+        aeroDataHex
+        referenceAltitude_m = 116 * ft2m;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "ship_semisub"
+        % Semisubmersible platform -- real mass and dimensions from
+        % MSS/CRAFT/SHIP/models/semisubModels/data_rig.m (mass=27,162,500 kg, pontoon length
+        % L_p=84.6 m, radii of gyration r_x=30/r_y=32/r_z=37 m) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md and setUpActuators.m's "ship_semisub" case for
+        % why this reuses ship_surface's 2-command Nomoto architecture instead of a true
+        % holonomic DP model.
+        vehicleParams.dryMass_kg = 27162500;
+        vehicleParams.aircraftInertialBody_kgm2 = [ ...
+            vehicleParams.dryMass_kg*30^2 0 0; ...
+            0 vehicleParams.dryMass_kg*32^2 0; ...
+            0 0 vehicleParams.dryMass_kg*37^2];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        vehicleParams.shipLength_m = 84.6;
+        vehicleParams.maxRudderAngle_rad = 0.52;
+        vehicleParams.maxSpeed_mps = 1.0;
+        referenceAltitude_m = 0;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "ship_surface"
+        % Single rudder+propeller surface ship (Nomoto-class maneuvering, subactuated -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md). Reference length L=175 m from
+        % MSS/CRAFT/SHIP/models/container.m (the classic Son & Nomoto 1982 container-ship
+        % maneuvering benchmark used throughout the marine control literature). Mass/inertia are
+        % order-of-magnitude displacement estimates for this ship class (container.m itself only
+        % gives non-dimensional hydrodynamic derivatives, not a dimensional mass) -- not a specific
+        % catalog vessel, same spirit as this project's other rover/USV mass placeholders.
+        vehicleParams.dryMass_kg = 45000e3;
+        vehicleParams.aircraftInertialBody_kgm2 = [1e9 0 0; 0 8e10 0; 0 0 8e10];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        vehicleParams.shipLength_m = 175;
+        vehicleParams.maxRudderAngle_rad = 0.61;
+        vehicleParams.maxSpeed_mps = 8.0;
+        referenceAltitude_m = 0;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "uuv_dsrv"
+        % Deep Submergence Rescue Vehicle (MSS/CRAFT/AUV/models/DSRV.m, Healey 1992, NPS) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Real reference length L=5.0 m, cruise speed
+        % U0=4.11 m/s (8 knots) from DSRV.m's own header. DSRV.m does not give a dimensional mass
+        % (only normalized hydrodynamic derivatives like Iy=0.001925) -- 5000 kg is an
+        % order-of-magnitude displacement estimate for a vehicle this size, comparable to
+        % uuv_npsauv's real 5443 kg at a similar 5.3 m length, not measured. IMPORTANT: the real
+        % DSRV is controlled by a single stern plane for depth/pitch at near-constant forward
+        % speed, NOT by differential-thrust yaw steering -- this reuses uuv_subsea's horizontal-
+        % plane simplification anyway (see setUpActuators.m's "uuv_dsrv" case for why that is an
+        % explicitly larger fidelity gap here than for the other UUVs).
+        vehicleParams.dryMass_kg = 5000;
+        vehicleParams.aircraftInertialBody_kgm2 = [300 0 0; 0 5000 0; 0 0 5000];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        vehicleParams.trackWidth_m = 0.8;
+        vehicleParams.wheelRadius_m = 0.2;
+        vehicleParams.maxSpeed_mps = 4.11;
+        referenceAltitude_m = -10;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "uuv_npsauv"
+        % Cruise-mission AUV (Naval Postgraduate School design, Healey & Lienard 1993) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Real mass/length from
+        % MSS/CRAFT/AUV/models/npsauv.m (L=5.3 m, mass=5443 kg) -- distinct mission class from
+        % uuv_subsea's torpedo-shaped remus100 (inspection/cruise vs. general-purpose). Reuses the
+        % same horizontal-plane-only differential-thrust kinematic simplification as uuv_subsea
+        % (real npsauv has a single prop + rudder/stern-plane/bow-planes, not modeled here).
+        vehicleParams.dryMass_kg = 5443;
+        vehicleParams.aircraftInertialBody_kgm2 = [400 0 0; 0 6000 0; 0 0 6000];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        vehicleParams.trackWidth_m = 0.6;
+        vehicleParams.wheelRadius_m = 0.15;
+        vehicleParams.maxSpeed_mps = 2.5;
+        referenceAltitude_m = -10;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
     case "ackermann_rover"
         % Small ground rover, kinematic-bicycle plant (Fase 3, PLAN_CORRECCION_MULTIVEHICULO_SITL.md).
         % Mass/inertia are reasonable-order-of-magnitude placeholders for a small UGV, not a specific
@@ -227,13 +320,22 @@ switch lower(setupVehicleType)
         % integration effort, same class of future work as the _simscape adapters). Stays at a
         % constant NED down position (no heave/pitch/roll modeled) -- reasonable for calm-water
         % low-speed PX4 loop-closure testing, not seakeeping.
-        vehicleParams.dryMass_kg = 800;
-        vehicleParams.aircraftInertialBody_kgm2 = [200 0 0; 0 600 0; 0 0 700];
+        %
+        % UPDATED 2026-07-18 (see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md): mass/geometry replaced
+        % with the real Maritime Robotics Otter USV from MSS/CRAFT/USV/models/otter.m (L=2.0 m,
+        % already a genuine twin-propeller differential-thrust catamaran -- unlike ship_surface/
+        % uuv_npsauv, no kinematic-architecture mismatch to document here, this vehicle's real
+        % design matches the DifferentialKinematics simplification almost exactly). Dry mass ~55 kg
+        % and hull (catamaran) separation ~1.08 m are the vendor-published Otter specs (otter.m
+        % itself only gives non-dimensional/6x6 mass-matrix hydrodynamic terms, not a simple
+        % dimensional payload-free mass).
+        vehicleParams.dryMass_kg = 55;
+        vehicleParams.aircraftInertialBody_kgm2 = [8 0 0; 0 18 0; 0 0 20];
         vehicleParams.aircraftCg_m = [0; 0; 0];
         vehicleParams.refCG_m = [0; 0; 0];
-        vehicleParams.trackWidth_m = 2.0;
+        vehicleParams.trackWidth_m = 1.08;
         vehicleParams.wheelRadius_m = 0.1;
-        vehicleParams.maxSpeed_mps = 3.0;
+        vehicleParams.maxSpeed_mps = 3.6;
         referenceAltitude_m = 0;
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;
@@ -347,6 +449,33 @@ switch lower(setupVehicleType)
         vehicleParams.bRef_m = 2.0;
         vehicleParams.SRef_m2 = 0.3706;
         vehicleParams.cRef_m = 0.1853;
+        referenceAltitude_m = 116 * ft2m;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "c172p"
+        % Cessna 172P (JSBSim reference aircraft) -- see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md
+        % Fase A-C. Real geometry/mass/inertia/aero sourced directly from
+        % jsbsim/aircraft/c172p/c172p.xml (a published, community-validated JSBSim dataset), not an
+        % engineering estimate like fixedwing_plane's Funray-derived linear derivatives. Unit
+        % conversions per the plan's §2.4 table: 1 LBS=0.453592 kg, 1 FT=0.3048 m,
+        % 1 SLUG*FT2=1.35581795 kg*m2.
+        %
+        % Mass: emptywt=1500 LBS + both fuel tanks at nominal "contents" (100+100=200 LBS) =
+        % 1700 LBS. The <mass_balance> pointmass list (pilot=180 LBS, 4x baggage/passenger=0 LBS)
+        % is deliberately NOT summed in -- this SIL flies every vehicle autonomously under PX4, not
+        % with an onboard human pilot, so the pilot pointmass is dropped rather than kept as a
+        % placeholder occupant (see plan §2.1 Fase A.3 recommendation).
+        vehicleParams.dryMass_kg = 1700 * lbs2kg;
+        % ixx/iyy/izz from c172p.xml <mass_balance> (ixy/ixz/iyz given as ~0 in the source file);
+        % diagonal-only inertia, same simplification convention as every other vehicle in this
+        % switch (see fixedwing_plane's case above).
+        vehicleParams.aircraftInertialBody_kgm2 = [948*1.35581795 0 0; 0 1346*1.35581795 0; 0 0 1967*1.35581795];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        % <metrics>: wingspan=35.8 FT, wingarea=174 FT2, chord=4.9 FT.
+        vehicleParams.bRef_m = 35.8 * ft2m;
+        vehicleParams.SRef_m2 = 174 * (ft2m^2);
+        vehicleParams.cRef_m = 4.9 * ft2m;
         referenceAltitude_m = 116 * ft2m;
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;

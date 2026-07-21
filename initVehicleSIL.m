@@ -291,6 +291,16 @@ try
         vehicleParams.failureType = EnumHexFailureType(vehicleParams.failureType);
     elseif strcmpi(vehicleParams.baseVehicleType,"fixedwing_plane")
         vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
+    elseif strcmpi(vehicleParams.baseVehicleType,"c172p")
+        % c172p (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) uses
+        % vehicle/c172p/components/failureInputReadC172p.slx, a local per-vehicle-folder copy of
+        % failureInputReadFixedwingPlane.slx (same FailureBus shape, see
+        % signals/FailureBusDefinition.m's {"fixedwing_plane","c172p"} case) -- copied rather than
+        % cross-referenced because initVehicleSIL only keeps the ACTIVE vehicle's own folder on
+        % path (line ~192), so a Model Reference pointing into another vehicle's folder does not
+        % reliably resolve. Still compares against EnumF16FailureType internally, unchanged by the
+        % copy -- same rationale as the fixedwing_plane branch above.
+        vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
     end
 catch
     error("The selected failure type does not match the selected vehicle. Failure type must be an enum from " + ...
@@ -593,6 +603,30 @@ variantControls = {
         'strcmpi(vehicleParams.type, "fixedwing_plane")'
     'PX4 Interface/Command Output Variaint/Fixedwing Plane Output Mapping', ...
         'strcmpi(vehicleParams.type, "fixedwing_plane") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/vtol_tailsitter', ...
+        'strcmpi(vehicleParams.type, "vtol_tailsitter")'
+    'PX4 Interface/Command Output Variaint/VtolTailsitter Output Mapping', ...
+        'strcmpi(vehicleParams.type, "vtol_tailsitter") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/ship_surface', ...
+        'strcmpi(vehicleParams.type, "ship_surface")'
+    'PX4 Interface/Command Output Variaint/ShipSurface Output Mapping', ...
+        'strcmpi(vehicleParams.type, "ship_surface") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/uuv_npsauv', ...
+        'strcmpi(vehicleParams.type, "uuv_npsauv")'
+    'PX4 Interface/Command Output Variaint/NpsAuv Output Mapping', ...
+        'strcmpi(vehicleParams.type, "uuv_npsauv") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/uuv_dsrv', ...
+        'strcmpi(vehicleParams.type, "uuv_dsrv")'
+    'PX4 Interface/Command Output Variaint/Dsrv Output Mapping', ...
+        'strcmpi(vehicleParams.type, "uuv_dsrv") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/ship_semisub', ...
+        'strcmpi(vehicleParams.type, "ship_semisub")'
+    'PX4 Interface/Command Output Variaint/ShipSemisub Output Mapping', ...
+        'strcmpi(vehicleParams.type, "ship_semisub") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/c172p', ...
+        'strcmpi(vehicleParams.type, "c172p")'
+    'PX4 Interface/Command Output Variaint/C172p Output Mapping', ...
+        'strcmpi(vehicleParams.type, "c172p") & strcmpi(vehicleParams.controllerType, "PX4")'
     };
 
 for ii = 1:size(variantControls, 1)

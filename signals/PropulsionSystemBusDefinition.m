@@ -81,10 +81,10 @@ switch lower(vehicleType)
         PropulsionBus.PreserveElementDimensions = 0;
         PropulsionBus.Elements = elems;
         assignin('base', 'PropulsionBus', PropulsionBus);
-    case {"quadrotor", "octarotor", "evtol", "evtol_simscape"}
+    case {"quadrotor", "octarotor", "evtol", "evtol_simscape", "vtol_tailsitter"}
         % LADAC-family multirotor propulsion bus -- same shape convention as hexarotor's own case
         % above (rotorAngVel_radps as an N-vector, matching hexMotorModel.slx's parametric For Each
-        % output), just with N=4/8/6 depending on rotor count.
+        % output), just with N=4/8/6/2 depending on rotor count.
         switch lower(vehicleType)
             case "quadrotor"
                 rotorCount = 4;
@@ -92,6 +92,8 @@ switch lower(vehicleType)
                 rotorCount = 8;
             case {"evtol", "evtol_simscape"}
                 rotorCount = 6;
+            case "vtol_tailsitter"
+                rotorCount = 2;
         end
         elems(1) = Simulink.BusElement;
         elems(1).Name = 'rotorAngVel_radps';
@@ -123,6 +125,39 @@ switch lower(vehicleType)
         PropulsionBus.PreserveElementDimensions = 0;
         PropulsionBus.Elements = elems;
         clear elems;
+        assignin('base', 'PropulsionBus', PropulsionBus);
+    case {"ship_surface", "ship_semisub"}
+        % Single propeller-shaft propulsion bus (Nomoto-class ship, subactuated) -- same shape as
+        % ackermann_rover's -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        elems(1) = Simulink.BusElement;
+        elems(1).Name = 'motorAngVel_radps';
+        elems(1).Dimensions = 1;
+        elems(1).DimensionsMode = 'Fixed';
+        elems(1).DataType = 'double';
+        elems(1).Complexity = 'real';
+        elems(1).Min = [];
+        elems(1).Max = [];
+        elems(1).DocUnits = '';
+        elems(1).Description = 'propeller shaft speed, rad/s';
+
+        elems(2) = Simulink.BusElement;
+        elems(2).Name = 'EngineForcesMomentsBus';
+        elems(2).Dimensions = 1;
+        elems(2).DimensionsMode = 'Fixed';
+        elems(2).DataType = 'Bus: ComponentForcesMomentsBus';
+        elems(2).Complexity = 'real';
+        elems(2).Min = [];
+        elems(2).Max = [];
+        elems(2).DocUnits = '';
+        elems(2).Description = '';
+
+        PropulsionBus = Simulink.Bus;
+        PropulsionBus.HeaderFile = '';
+        PropulsionBus.Description = '';
+        PropulsionBus.DataScope = 'Auto';
+        PropulsionBus.Alignment = -1;
+        PropulsionBus.PreserveElementDimensions = 0;
+        PropulsionBus.Elements = elems;
         assignin('base', 'PropulsionBus', PropulsionBus);
     case {"ackermann_rover", "ackermann_simscape"}
         % Single drive-motor propulsion bus for the Fase 2 pilot vehicle -- see
@@ -157,7 +192,7 @@ switch lower(vehicleType)
         PropulsionBus.PreserveElementDimensions = 0;
         PropulsionBus.Elements = elems;
         assignin('base', 'PropulsionBus', PropulsionBus);
-    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea"}
+    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea", "uuv_npsauv", "uuv_dsrv"}
         % Left/right drive-motor propulsion bus for the differential rover (Fase 3) -- see
         % PLAN_CORRECCION_MULTIVEHICULO_SITL.md.
         %
@@ -303,10 +338,13 @@ switch lower(vehicleType)
         PropulsionBus.PreserveElementDimensions = 0;
         PropulsionBus.Elements = elems;
         assignin('base', 'PropulsionBus', PropulsionBus);
-    case "fixedwing_plane"
+    case {"fixedwing_plane", "c172p"}
         % Single tractor-propeller propulsion bus, same shape as F16's own PropulsionBus case
         % above (angVel_radps scalar + EngineForcesMomentsBus + fuelRate_kgps=0, electric motor)
-        % -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        % -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. c172p
+        % (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) reuses this exact same bus shape --
+        % fuelRate_kgps is nonzero for c172p's real piston engine (see setUpActuators.m's "c172p"
+        % case / build_enginePistonPropC172p.m), unlike fixedwing_plane's electric motor.
         clear elems;
         elems(1) = Simulink.BusElement;
         elems(1).Name = 'angVel_radps';

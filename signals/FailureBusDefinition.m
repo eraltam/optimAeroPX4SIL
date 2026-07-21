@@ -12,10 +12,10 @@ switch lower(vehicleType)
     case "hexarotor"
         FailureHexBusDefinition
 
-    case {"quadrotor", "octarotor", "evtol", "evtol_simscape"}
+    case {"quadrotor", "octarotor", "evtol", "evtol_simscape", "vtol_tailsitter"}
         % LADAC-family multirotor per-rotor failure bus -- see ServosCommandBusDefinition.m's
         % matching case for the reuse rationale (redefines the global 'FailureBus' type, same
-        % pattern FailureHexBusDefinition already uses for hexarotor, just with N=4/8/6 elements).
+        % pattern FailureHexBusDefinition already uses for hexarotor, just with N=4/8/6/2 elements).
         switch lower(vehicleType)
             case "quadrotor"
                 rotorCount = 4;
@@ -23,6 +23,8 @@ switch lower(vehicleType)
                 rotorCount = 8;
             case {"evtol", "evtol_simscape"}
                 rotorCount = 6;
+            case "vtol_tailsitter"
+                rotorCount = 2;
         end
         clear rotorElems;
         for ii = 1:rotorCount
@@ -45,6 +47,41 @@ switch lower(vehicleType)
         FailureBus.PreserveElementDimensions = 0;
         FailureBus.Elements = rotorElems;
         clear rotorElems;
+        assignin('base', 'FailureBus', FailureBus);
+
+    case {"ship_surface", "ship_semisub"}
+        % Same shape as ackermann_rover's failure bus (rudder/throttle instead of steering/
+        % throttle) -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        elems(1) = Simulink.BusElement;
+        elems(1).Name = 'steeringFailure_nd';
+        elems(1).Dimensions = 1;
+        elems(1).DimensionsMode = 'Fixed';
+        elems(1).DataType = 'boolean';
+        elems(1).Complexity = 'real';
+        elems(1).Min = [];
+        elems(1).Max = [];
+        elems(1).DocUnits = '';
+        elems(1).Description = 'rudder failure';
+
+        elems(2) = Simulink.BusElement;
+        elems(2).Name = 'throttleFailure_nd';
+        elems(2).Dimensions = 1;
+        elems(2).DimensionsMode = 'Fixed';
+        elems(2).DataType = 'boolean';
+        elems(2).Complexity = 'real';
+        elems(2).Min = [];
+        elems(2).Max = [];
+        elems(2).DocUnits = '';
+        elems(2).Description = '';
+
+        FailureBus = Simulink.Bus;
+        FailureBus.HeaderFile = '';
+        FailureBus.Description = '';
+        FailureBus.DataScope = 'Auto';
+        FailureBus.Alignment = -1;
+        FailureBus.PreserveElementDimensions = 0;
+        FailureBus.Elements = elems;
+        clear elems;
         assignin('base', 'FailureBus', FailureBus);
 
     case {"ackermann_rover", "ackermann_simscape"}
@@ -82,7 +119,7 @@ switch lower(vehicleType)
         clear elems;
         assignin('base', 'FailureBus', FailureBus);
 
-    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea"}
+    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea", "uuv_npsauv", "uuv_dsrv"}
         % Minimal left/right motor failure bus for the differential rover (Fase 3) -- see
         % PLAN_CORRECCION_MULTIVEHICULO_SITL.md.
         elems(1) = Simulink.BusElement;
@@ -222,10 +259,11 @@ switch lower(vehicleType)
         clear elems;
         assignin('base', 'FailureBus', FailureBus);
 
-    case "fixedwing_plane"
+    case {"fixedwing_plane", "c172p"}
         % Mirrors FailureF16BusDefinition's field names exactly (same failureInjection subsystem
         % topology, cloned from F16's actuators.slx) -- see
-        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. c172p
+        % (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) reuses this exact same bus.
         elems(1) = Simulink.BusElement;
         elems(1).Name = 'rudderFreeze_isTrue';
         elems(1).Dimensions = 1;

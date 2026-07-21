@@ -51,13 +51,10 @@ fhlpbjwxhc ( k4jzygpeid * localDW ) ; extern void gmkh4jpvvl ( k4jzygpeid *
 localDW , c1n3c5jiq0 * localX , a3p5k3jlcf * localXdot ) ; extern void
 mlabmlngdd ( k4jzygpeid * localDW ) ; extern void hexActuator ( const real_T
 * l0fqx3vm2x , const real_T * j0kkmgx0ft , const real_T * cd4ehsparb , const
-real_T * la0ycpgm1x , const real_T * fuvngbi5kl , const real_T * i3vpa10bz5 ,
-const real_T * b55kzj0qbe , const real_T * pfnhpx5dfw , const boolean_T *
-nvqdvwlbkt , const boolean_T * bq14spxznh , const boolean_T * k4zxlgpaik ,
-const boolean_T * mwly5adbzk , const boolean_T * phrpw5avyv , const boolean_T
-* ogse253bxp , real_T * kmkdd445wr , real_T * pq3y3izqww , real_T *
-nrggeotkgi , real_T * o4d4wm1vvk , real_T * dg1ddfkmwa , real_T * btne03fscm
-, real_T lfrvladest [ 6 ] , real_T dlg0dyphom [ 3 ] , real_T eubtino1pt [ 3 ]
-, g4vajkqywi * localB , k4jzygpeid * localDW , c1n3c5jiq0 * localX ) ; extern
-void hexActuatorTID2 ( k4jzygpeid * localDW ) ; extern void eaqlfcbv4w ( k4jzygpeid * localDW , pwmxrvh3p0 * const iu5ahikyu1 ) ;
+real_T * ajr30xs5iq , const boolean_T * ftpqv1xb02 , const boolean_T *
+msstoeuoy1 , real_T * kmkdd445wr , real_T * pq3y3izqww , real_T f52bdys2ta [
+2 ] , real_T axjqx100g1 [ 3 ] , real_T aleljzwyvd [ 3 ] , g4vajkqywi * localB
+, k4jzygpeid * localDW , c1n3c5jiq0 * localX ) ; extern void hexActuatorTID2
+( k4jzygpeid * localDW ) ; extern void eaqlfcbv4w ( k4jzygpeid * localDW ,
+pwmxrvh3p0 * const iu5ahikyu1 ) ;
 #endif

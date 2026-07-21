@@ -2,7 +2,7 @@
 ## Makefile generated for component 'cgMassInertia'. 
 ## 
 ## Makefile     : cgMassInertia.mk
-## Generated on : Wed Jul 15 09:39:05 2026
+## Generated on : Mon Jul 20 16:52:32 2026
 ## Final product: ./cgMassInertialib.lib
 ## Product type : static library
 ## 

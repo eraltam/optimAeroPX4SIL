@@ -53,7 +53,7 @@ switch lower(vehicleType)
         ServosBus.Elements = elems;
         clear elems;
         assignin('base', 'ServosBus', ServosBus);
-    case {"quadrotor", "octarotor", "evtol", "evtol_simscape"}
+    case {"quadrotor", "octarotor", "evtol", "evtol_simscape", "vtol_tailsitter"}
         % LADAC-family multirotor servo (rotor speed readback) bus -- same reuse rationale as
         % ServosCommandBusDefinition.m's matching case: reuses the global bus type name
         % 'ServosHexBus' so it stays compatible with any shared block that keys off that literal
@@ -65,6 +65,8 @@ switch lower(vehicleType)
                 rotorCount = 8;
             case {"evtol", "evtol_simscape"}
                 rotorCount = 6;
+            case "vtol_tailsitter"
+                rotorCount = 2;
         end
         clear rotorElems;
         for ii = 1:rotorCount
@@ -168,7 +170,68 @@ switch lower(vehicleType)
         ServosBus.Elements = elems;
         clear elems;
         assignin('base', 'ServosBus', ServosBus);
-    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea"}
+    case {"ship_surface", "ship_semisub"}
+        % Single rudder+propeller ship (Nomoto-class maneuvering, subactuated -- distinct from
+        % usv_surface's fully-actuated differential-thrust kinematics) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Same bus shape/field names as
+        % ackermann_rover's ServosAckermannRoverBus (steeringAngle_rad/wheelSpeed_radps
+        % reinterpreted as rudderAngle_rad/propSpeed_radps in spirit -- kept as the same field
+        % names to reuse ackermann_rover.slx's block diagram verbatim, only the MATLAB Function's
+        % internal kinematics differ, see vehicle/ship_surface/ship_surface.slx).
+        clear innerElems;
+        innerElems(1) = Simulink.BusElement;
+        innerElems(1).Name = 'steeringAngle_rad';
+        innerElems(1).Dimensions = 1;
+        innerElems(1).DimensionsMode = 'Fixed';
+        innerElems(1).DataType = 'double';
+        innerElems(1).Complexity = 'real';
+        innerElems(1).Min = [];
+        innerElems(1).Max = [];
+        innerElems(1).DocUnits = '';
+        innerElems(1).Description = 'rudder angle, rad';
+
+        innerElems(2) = Simulink.BusElement;
+        innerElems(2).Name = 'wheelSpeed_radps';
+        innerElems(2).Dimensions = 1;
+        innerElems(2).DimensionsMode = 'Fixed';
+        innerElems(2).DataType = 'double';
+        innerElems(2).Complexity = 'real';
+        innerElems(2).Min = [];
+        innerElems(2).Max = [];
+        innerElems(2).DocUnits = '';
+        innerElems(2).Description = 'propeller shaft speed, rad/s';
+
+        ServosShipSurfaceBus = Simulink.Bus;
+        ServosShipSurfaceBus.HeaderFile = '';
+        ServosShipSurfaceBus.Description = '';
+        ServosShipSurfaceBus.DataScope = 'Auto';
+        ServosShipSurfaceBus.Alignment = -1;
+        ServosShipSurfaceBus.PreserveElementDimensions = 0;
+        ServosShipSurfaceBus.Elements = innerElems;
+        clear innerElems;
+        assignin('base', 'ServosShipSurfaceBus', ServosShipSurfaceBus);
+
+        elems(1) = Simulink.BusElement;
+        elems(1).Name = 'ServosShipSurfaceBus';
+        elems(1).Dimensions = 1;
+        elems(1).DimensionsMode = 'Fixed';
+        elems(1).DataType   = 'Bus: ServosShipSurfaceBus';
+        elems(1).Complexity = 'real';
+        elems(1).Min = [];
+        elems(1).Max = [];
+        elems(1).DocUnits = '';
+        elems(1).Description = '';
+
+        ServosBus = Simulink.Bus;
+        ServosBus.HeaderFile = '';
+        ServosBus.Description = '';
+        ServosBus.DataScope = 'Auto';
+        ServosBus.Alignment = -1;
+        ServosBus.PreserveElementDimensions = 0;
+        ServosBus.Elements = elems;
+        clear elems;
+        assignin('base', 'ServosBus', ServosBus);
+    case {"differential_rover", "tracked_vehicle", "tracked_vehicle_simscape", "usv_surface", "uuv_subsea", "uuv_npsauv", "uuv_dsrv"}
         % Achieved (post actuator-dynamics) state for the differential/twin-motor rover -- see
         % PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 2/3.
         clear innerElems;
@@ -392,13 +455,16 @@ switch lower(vehicleType)
         ServosBus.Elements = elems;
         clear elems;
         assignin('base', 'ServosBus', ServosBus);
-    case "fixedwing_plane"
+    case {"fixedwing_plane", "c172p"}
         % Achieved (post actuator-dynamics) control-surface state for the generic ala-fija
         % vehicle -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Mirrors ServosBusDefinitionF16's
         % field names exactly (posAileron_rad/posRudder_rad/posElevator_rad) since
         % fixedwing_plane's actuators.slx is a direct clone of F16's actuators.slx (same
         % servo/rate-limiter/failure-injection topology, only the engine Model Reference and the
         % ServosCommandBus type differ).
+        % c172p (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) reuses this exact same bus --
+        % same aileron/elevator/rudder+throttle actuator interface, only the mass/aero/engine
+        % constants differ, not the control-surface set.
         clear innerElems;
         innerElems(1) = Simulink.BusElement;
         innerElems(1).Name = 'posAileron_rad';

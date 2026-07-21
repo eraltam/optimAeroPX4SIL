@@ -28,7 +28,7 @@ rt_ssSet_slErrMsg ( void * S , void * diag ) { SimStruct * simStrcut = ( SimStru
 #if defined(MATLAB_MEX_FILE)
 static void mdlProcessParameters ( SimStruct * S ) { real_T * GlobalPrm_0 = ( real_T * ) NULL ; real_T * GlobalPrm_1 = ( real_T * ) NULL ; real_T * GlobalPrm_2 = ( real_T * ) NULL ; if ( ! ssGetModelRefGlobalParamData ( S , 0 , ( void * * ) ( & GlobalPrm_0 ) ) ) return ; if ( GlobalPrm_0 != NULL ) { ( void ) memcpy ( & ( rtP_actuatorDelay_s ) , GlobalPrm_0 , sizeof ( real_T ) ) ; } if ( ! ssGetModelRefGlobalParamData ( S , 1 , ( void * * ) ( & GlobalPrm_1 ) ) ) return ; if ( GlobalPrm_1 != NULL ) { ( void ) memcpy ( & ( rtP_airDensityAtStd_kgpm3 ) , GlobalPrm_1 , sizeof ( real_T ) ) ; } if ( ! ssGetModelRefGlobalParamData ( S , 2 , ( void * * ) ( & GlobalPrm_2 ) ) ) return ; if ( GlobalPrm_2 != NULL ) { ( void ) memcpy ( & ( rtP_rpm2radps ) , GlobalPrm_2 , sizeof ( real_T ) ) ; } }
 #endif
-static void mdlInitializeConditions ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; mtfp45ysnb ( & ( dw -> rtm ) , & ( dw -> rtdw ) , localX ) ; } static void mdlReset ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; kojsg3tyy0 ( & ( dw -> rtm ) , & ( dw -> rtdw ) , localX ) ; } static void mdlPeriodicOutputUpdate ( SimStruct * S , int_T tid ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; real_T const * i_ma40pafjwj = ( real_T * ) ssGetInputPortSignal ( S , 5 ) ; real_T const * i_p2sgj15ycb = ( real_T * ) ssGetInputPortSignal ( S , 12 ) ; real_T const * i_m4xl00l1vu = ( real_T * ) ssGetInputPortSignal ( S , 13 ) ; real_T const * i_gio42vcj0y = ( real_T * ) ssGetInputPortSignal ( S , 14 ) ; real_T const * i_mlzcvkfrx2 = ( real_T * ) ssGetInputPortSignal ( S , 15 ) ; real_T const * i_px31uzeike = ( real_T * ) ssGetInputPortSignal ( S , 16 ) ; real_T const * i_jkc0rtrq5y = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; real_T const * i_jmnal5dzie = ( real_T * ) ssGetInputPortSignal ( S , 21 ) ; boolean_T const * i_bxn2ao4rv5 = ( boolean_T * ) ssGetInputPortSignal ( S , 22 ) ; boolean_T const * i_hqqdi3shxh = ( boolean_T * ) ssGetInputPortSignal ( S , 23 ) ; boolean_T const * i_bvwadt2zgt = ( boolean_T * ) ssGetInputPortSignal ( S , 24 ) ; boolean_T const * i_k5kqhxhtbi = ( boolean_T * ) ssGetInputPortSignal ( S , 25 ) ; boolean_T const * i_jdsr0dujgy = ( boolean_T * ) ssGetInputPortSignal ( S , 26 ) ; boolean_T const * i_f1rxgcxxut = ( boolean_T * ) ssGetInputPortSignal ( S , 27 ) ; PropulsionBus * o_B_3_1 = ( PropulsionBus * ) ssGetOutputPortSignal ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; if ( tid == 0 ) { hexMotorModel ( & ( dw -> rtm ) , i_ma40pafjwj , i_p2sgj15ycb , i_m4xl00l1vu , i_gio42vcj0y , i_mlzcvkfrx2 , i_px31uzeike , i_jkc0rtrq5y , i_jmnal5dzie , i_bxn2ao4rv5 , i_hqqdi3shxh , i_bvwadt2zgt , i_k5kqhxhtbi , i_jdsr0dujgy , i_f1rxgcxxut , o_B_3_1 , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX ) ; cgknnxzlts ( & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } } static void mdlInitializeSizes ( SimStruct * S ) { if ( ( S -> mdlInfo -> genericFcn != ( NULL ) ) && ( ! ( S -> mdlInfo -> genericFcn ) ( S , GEN_FCN_CHK_MODELREF_SFUN_HAS_MODEL_BLOCK , - 1 , ( NULL ) ) ) ) { return ; } ssSetNumSFcnParams ( S , 0 ) ; ssFxpSetU32BitRegionCompliant ( S , 1 ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; } ssSetRTWGeneratedSFcn ( S , 2 ) ; ssSetNumContStates ( S , 12 ) ; ssSetNumDiscStates ( S , 0 ) ; ssSetNumPeriodicContStates ( S , 0 ) ; ssSetSymbolicDimsSupport ( S , true ) ; slmrInitializeIOPortDataVectors ( S , 28 , 1 ) ; if ( ! ssSetNumInputPorts ( S , 28 ) ) return ; if ( ! ssSetInputPortVectorDimension ( S , 0 , 1 ) ) return ; ssSetInputPortDimensionsMode ( S , 0 , FIXED_DIMS_MODE ) ; ssSetInputPortFrameData ( S , 0 , FRAME_NO ) ; if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 0 , SS_DOUBLE ) ; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
+static void mdlInitializeConditions ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; mtfp45ysnb ( & ( dw -> rtm ) , & ( dw -> rtdw ) , localX ) ; } static void mdlReset ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; kojsg3tyy0 ( & ( dw -> rtm ) , & ( dw -> rtdw ) , localX ) ; } static void mdlPeriodicOutputUpdate ( SimStruct * S , int_T tid ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; real_T const * i_ma40pafjwj = ( real_T * ) ssGetInputPortSignal ( S , 5 ) ; real_T const * i_p2sgj15ycb = ( real_T * ) ssGetInputPortSignal ( S , 12 ) ; real_T const * i_m4xl00l1vu = ( real_T * ) ssGetInputPortSignal ( S , 13 ) ; real_T const * i_jmnal5dzie = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; boolean_T const * i_bxn2ao4rv5 = ( boolean_T * ) ssGetInputPortSignal ( S , 18 ) ; boolean_T const * i_hqqdi3shxh = ( boolean_T * ) ssGetInputPortSignal ( S , 19 ) ; PropulsionBus * o_B_3_1 = ( PropulsionBus * ) ssGetOutputPortSignal ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; if ( tid == 0 ) { hexMotorModel ( & ( dw -> rtm ) , i_ma40pafjwj , i_p2sgj15ycb , i_m4xl00l1vu , i_jmnal5dzie , i_bxn2ao4rv5 , i_hqqdi3shxh , o_B_3_1 , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX ) ; cgknnxzlts ( & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } } static void mdlInitializeSizes ( SimStruct * S ) { if ( ( S -> mdlInfo -> genericFcn != ( NULL ) ) && ( ! ( S -> mdlInfo -> genericFcn ) ( S , GEN_FCN_CHK_MODELREF_SFUN_HAS_MODEL_BLOCK , - 1 , ( NULL ) ) ) ) { return ; } ssSetNumSFcnParams ( S , 0 ) ; ssFxpSetU32BitRegionCompliant ( S , 1 ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; } ssSetRTWGeneratedSFcn ( S , 2 ) ; ssSetNumContStates ( S , 4 ) ; ssSetNumDiscStates ( S , 0 ) ; ssSetNumPeriodicContStates ( S , 0 ) ; ssSetSymbolicDimsSupport ( S , true ) ; slmrInitializeIOPortDataVectors ( S , 20 , 1 ) ; if ( ! ssSetNumInputPorts ( S , 20 ) ) return ; if ( ! ssSetInputPortVectorDimension ( S , 0 , 1 ) ) return ; ssSetInputPortDimensionsMode ( S , 0 , FIXED_DIMS_MODE ) ; ssSetInputPortFrameData ( S , 0 , FRAME_NO ) ; if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 0 , SS_DOUBLE ) ; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 0 , unitIdReg ) ;
 #endif
@@ -196,7 +196,7 @@ ssSetInputPortRequiredContiguous ( S , 13 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 13 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 13 ,
 false ) ; ssSetInputPortSampleTime ( S , 13 , 0.0 ) ;
 ssSetInputPortOffsetTime ( S , 13 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 14 , 1 ) ) return ;
+ssSetInputPortVectorDimension ( S , 14 , 3 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 14 , FIXED_DIMS_MODE ) ;
 ssSetInputPortFrameData ( S , 14 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
 SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 14 , SS_DOUBLE )
@@ -204,10 +204,10 @@ SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 14 , SS_DOUBLE )
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 14 , unitIdReg ) ;
 #endif
-} ssSetInputPortDirectFeedThrough ( S , 14 , 1 ) ;
+} ssSetInputPortDirectFeedThrough ( S , 14 , 0 ) ;
 ssSetInputPortRequiredContiguous ( S , 14 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 14 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 14 ,
-false ) ; ssSetInputPortSampleTime ( S , 14 , 0.0 ) ;
+false ) ; ssSetInputPortSampleTime ( S , 14 , 0.004 ) ;
 ssSetInputPortOffsetTime ( S , 14 , 0.0 ) ; if ( !
 ssSetInputPortVectorDimension ( S , 15 , 1 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 15 , FIXED_DIMS_MODE ) ;
@@ -217,10 +217,10 @@ SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 15 , SS_DOUBLE )
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 15 , unitIdReg ) ;
 #endif
-} ssSetInputPortDirectFeedThrough ( S , 15 , 1 ) ;
+} ssSetInputPortDirectFeedThrough ( S , 15 , 0 ) ;
 ssSetInputPortRequiredContiguous ( S , 15 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 15 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 15 ,
-false ) ; ssSetInputPortSampleTime ( S , 15 , 0.0 ) ;
+false ) ; ssSetInputPortSampleTime ( S , 15 , 0.004 ) ;
 ssSetInputPortOffsetTime ( S , 15 , 0.0 ) ; if ( !
 ssSetInputPortVectorDimension ( S , 16 , 1 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 16 , FIXED_DIMS_MODE ) ;
@@ -230,10 +230,10 @@ SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 16 , SS_DOUBLE )
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 16 , unitIdReg ) ;
 #endif
-} ssSetInputPortDirectFeedThrough ( S , 16 , 1 ) ;
+} ssSetInputPortDirectFeedThrough ( S , 16 , 0 ) ;
 ssSetInputPortRequiredContiguous ( S , 16 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 16 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 16 ,
-false ) ; ssSetInputPortSampleTime ( S , 16 , 0.0 ) ;
+false ) ; ssSetInputPortSampleTime ( S , 16 , 0.004 ) ;
 ssSetInputPortOffsetTime ( S , 16 , 0.0 ) ; if ( !
 ssSetInputPortVectorDimension ( S , 17 , 1 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 17 , FIXED_DIMS_MODE ) ;
@@ -248,136 +248,32 @@ ssSetInputPortRequiredContiguous ( S , 17 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 17 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 17 ,
 false ) ; ssSetInputPortSampleTime ( S , 17 , 0.0 ) ;
 ssSetInputPortOffsetTime ( S , 17 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 18 , 3 ) ) return ;
+ssSetInputPortVectorDimension ( S , 18 , 1 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 18 , FIXED_DIMS_MODE ) ;
 ssSetInputPortFrameData ( S , 18 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 18 , SS_DOUBLE )
+SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 18 , SS_BOOLEAN )
 ; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 18 , unitIdReg ) ;
 #endif
-} ssSetInputPortDirectFeedThrough ( S , 18 , 0 ) ;
+} ssSetInputPortDirectFeedThrough ( S , 18 , 1 ) ;
 ssSetInputPortRequiredContiguous ( S , 18 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 18 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 18 ,
-false ) ; ssSetInputPortSampleTime ( S , 18 , 0.004 ) ;
+false ) ; ssSetInputPortSampleTime ( S , 18 , 0.0 ) ;
 ssSetInputPortOffsetTime ( S , 18 , 0.0 ) ; if ( !
 ssSetInputPortVectorDimension ( S , 19 , 1 ) ) return ;
 ssSetInputPortDimensionsMode ( S , 19 , FIXED_DIMS_MODE ) ;
 ssSetInputPortFrameData ( S , 19 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 19 , SS_DOUBLE )
+SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 19 , SS_BOOLEAN )
 ; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
 #if defined (MATLAB_MEX_FILE)
 UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 19 , unitIdReg ) ;
 #endif
-} ssSetInputPortDirectFeedThrough ( S , 19 , 0 ) ;
+} ssSetInputPortDirectFeedThrough ( S , 19 , 1 ) ;
 ssSetInputPortRequiredContiguous ( S , 19 , 1 ) ; ssSetInputPortOptimOpts ( S
 , 19 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 19 ,
-false ) ; ssSetInputPortSampleTime ( S , 19 , 0.004 ) ;
-ssSetInputPortOffsetTime ( S , 19 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 20 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 20 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 20 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 20 , SS_DOUBLE )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 20 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 20 , 0 ) ;
-ssSetInputPortRequiredContiguous ( S , 20 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 20 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 20 ,
-false ) ; ssSetInputPortSampleTime ( S , 20 , 0.004 ) ;
-ssSetInputPortOffsetTime ( S , 20 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 21 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 21 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 21 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 21 , SS_DOUBLE )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 21 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 21 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 21 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 21 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 21 ,
-false ) ; ssSetInputPortSampleTime ( S , 21 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 21 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 22 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 22 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 22 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 22 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 22 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 22 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 22 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 22 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 22 ,
-false ) ; ssSetInputPortSampleTime ( S , 22 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 22 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 23 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 23 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 23 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 23 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 23 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 23 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 23 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 23 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 23 ,
-false ) ; ssSetInputPortSampleTime ( S , 23 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 23 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 24 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 24 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 24 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 24 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 24 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 24 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 24 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 24 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 24 ,
-false ) ; ssSetInputPortSampleTime ( S , 24 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 24 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 25 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 25 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 25 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 25 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 25 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 25 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 25 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 25 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 25 ,
-false ) ; ssSetInputPortSampleTime ( S , 25 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 25 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 26 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 26 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 26 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 26 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 26 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 26 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 26 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 26 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 26 ,
-false ) ; ssSetInputPortSampleTime ( S , 26 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 26 , 0.0 ) ; if ( !
-ssSetInputPortVectorDimension ( S , 27 , 1 ) ) return ;
-ssSetInputPortDimensionsMode ( S , 27 , FIXED_DIMS_MODE ) ;
-ssSetInputPortFrameData ( S , 27 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
-SS_SIMMODE_SIZES_CALL_ONLY ) { ssSetInputPortDataType ( S , 27 , SS_BOOLEAN )
-; } if ( ssGetSimMode ( S ) != SS_SIMMODE_SIZES_CALL_ONLY ) {
-#if defined (MATLAB_MEX_FILE)
-UnitId unitIdReg ; ssRegisterUnitFromExpr ( S , "" , & unitIdReg ) ; if ( unitIdReg == INVALID_UNIT_ID ) return ; ssSetInputPortUnit ( S , 27 , unitIdReg ) ;
-#endif
-} ssSetInputPortDirectFeedThrough ( S , 27 , 1 ) ;
-ssSetInputPortRequiredContiguous ( S , 27 , 1 ) ; ssSetInputPortOptimOpts ( S
-, 27 , SS_NOT_REUSABLE_AND_LOCAL ) ; ssSetInputPortOverWritable ( S , 27 ,
-false ) ; ssSetInputPortSampleTime ( S , 27 , 0.0 ) ;
-ssSetInputPortOffsetTime ( S , 27 , 0.0 ) ; if ( ! ssSetNumOutputPorts ( S ,
+false ) ; ssSetInputPortSampleTime ( S , 19 , 0.0 ) ;
+ssSetInputPortOffsetTime ( S , 19 , 0.0 ) ; if ( ! ssSetNumOutputPorts ( S ,
 1 ) ) return ; if ( ! ssSetOutputPortVectorDimension ( S , 0 , 1 ) ) return ;
 ssSetOutputPortDimensionsMode ( S , 0 , FIXED_DIMS_MODE ) ;
 ssSetOutputPortFrameData ( S , 0 , FRAME_NO ) ; if ( ssGetSimMode ( S ) !=
@@ -411,17 +307,11 @@ ssSetInputPortIsNotDerivPort ( S , 6 , 1 ) ; ssSetInputPortIsNotDerivPort ( S
 ssSetInputPortIsNotDerivPort ( S , 9 , 1 ) ; ssSetInputPortIsNotDerivPort ( S
 , 10 , 1 ) ; ssSetInputPortIsNotDerivPort ( S , 11 , 1 ) ;
 ssSetInputPortIsNotDerivPort ( S , 12 , 0 ) ; ssSetInputPortIsNotDerivPort ( S
-, 13 , 0 ) ; ssSetInputPortIsNotDerivPort ( S , 14 , 0 ) ;
-ssSetInputPortIsNotDerivPort ( S , 15 , 0 ) ; ssSetInputPortIsNotDerivPort ( S
-, 16 , 0 ) ; ssSetInputPortIsNotDerivPort ( S , 17 , 0 ) ;
+, 13 , 0 ) ; ssSetInputPortIsNotDerivPort ( S , 14 , 1 ) ;
+ssSetInputPortIsNotDerivPort ( S , 15 , 1 ) ; ssSetInputPortIsNotDerivPort ( S
+, 16 , 1 ) ; ssSetInputPortIsNotDerivPort ( S , 17 , 0 ) ;
 ssSetInputPortIsNotDerivPort ( S , 18 , 1 ) ; ssSetInputPortIsNotDerivPort ( S
-, 19 , 1 ) ; ssSetInputPortIsNotDerivPort ( S , 20 , 1 ) ;
-ssSetInputPortIsNotDerivPort ( S , 21 , 0 ) ; ssSetInputPortIsNotDerivPort ( S
-, 22 , 1 ) ; ssSetInputPortIsNotDerivPort ( S , 23 , 1 ) ;
-ssSetInputPortIsNotDerivPort ( S , 24 , 1 ) ; ssSetInputPortIsNotDerivPort ( S
-, 25 , 1 ) ; ssSetInputPortIsNotDerivPort ( S , 26 , 1 ) ;
-ssSetInputPortIsNotDerivPort ( S , 27 , 1 ) ;
-ssSetModelReferenceSampleTimeInheritanceRule ( S ,
+, 19 , 1 ) ; ssSetModelReferenceSampleTimeInheritanceRule ( S ,
 DISALLOW_SAMPLE_TIME_INHERITANCE ) ; ssSetAcceptsFcnCallInputs ( S ) ;
 ssSetModelReferenceNormalModeSupport ( S ,
 MDL_START_AND_MDL_PROCESS_PARAMS_OK ) ; ssSupportsMultipleExecInstances ( S ,
@@ -462,11 +352,11 @@ toFileNames [ ] = { "" } ; static const char * fromFileNames [ ] = { "" } ;
 if ( ! ssSetModelRefFromFiles ( S , 0 , fromFileNames ) ) return ; if ( !
 ssSetModelRefToFiles ( S , 0 , toFileNames ) ) return ; } }
 #define MDL_SETUP_RUNTIME_RESOURCES
-static void mdlSetupRuntimeResources ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; ssNonContDerivSigFeedingOutports mr_nonContOutput0 [ 8 ] ; ssNonContDerivSigFeedingOutports * mr_nonContOutputArray [ 1 ] ; void * sysRanPtr = ( NULL ) ; int_T contextTid = 0 ; ssGetContextSysRanBCPtr ( S , & sysRanPtr ) ; ssGetContextSysTid ( S , & contextTid ) ; if ( contextTid == CONSTANT_TID ) { contextTid = 0 ; } mr_nonContOutputArray [ 0 ] = mr_nonContOutput0 ; simTgtAllocOPModelData ( S ) ; euoytwxg03 ( S , mr_nonContOutputArray , slmrGetTopTidFromMdlRefChildTid ( S , 0 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 1 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 2 , true ) , & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX , sysRanPtr , contextTid , ( ( NULL ) ) , ( ( NULL ) ) , 0 , - 1 ) ; ssSetModelMappingInfoPtr ( S , & ( dw -> rtm . DataMapInfo . mmi ) ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 0 , mr_nonContOutput0 ) ) return ; } euejti40ny ( & ( dw -> rtm ) , & ( dw -> rtdw ) ) ; }
+static void mdlSetupRuntimeResources ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; ssNonContDerivSigFeedingOutports mr_nonContOutput0 [ 4 ] ; ssNonContDerivSigFeedingOutports * mr_nonContOutputArray [ 1 ] ; void * sysRanPtr = ( NULL ) ; int_T contextTid = 0 ; ssGetContextSysRanBCPtr ( S , & sysRanPtr ) ; ssGetContextSysTid ( S , & contextTid ) ; if ( contextTid == CONSTANT_TID ) { contextTid = 0 ; } mr_nonContOutputArray [ 0 ] = mr_nonContOutput0 ; simTgtAllocOPModelData ( S ) ; euoytwxg03 ( S , mr_nonContOutputArray , slmrGetTopTidFromMdlRefChildTid ( S , 0 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 1 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 2 , true ) , & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX , sysRanPtr , contextTid , ( ( NULL ) ) , ( ( NULL ) ) , 0 , - 1 ) ; ssSetModelMappingInfoPtr ( S , & ( dw -> rtm . DataMapInfo . mmi ) ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 0 , mr_nonContOutput0 ) ) return ; } euejti40ny ( & ( dw -> rtm ) , & ( dw -> rtdw ) ) ; }
 #define MDL_START
 static void mdlStart ( SimStruct * S ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * )
 ssGetDWork ( S , 0 ) ; mdlProcessParameters ( S ) ; jroluecfsa ( & ( dw ->
-rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } static void mdlOutputs ( SimStruct * S , int_T tid ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; real_T const * i_ma40pafjwj = ( real_T * ) ssGetInputPortSignal ( S , 5 ) ; real_T const * i_p2sgj15ycb = ( real_T * ) ssGetInputPortSignal ( S , 12 ) ; real_T const * i_m4xl00l1vu = ( real_T * ) ssGetInputPortSignal ( S , 13 ) ; real_T const * i_gio42vcj0y = ( real_T * ) ssGetInputPortSignal ( S , 14 ) ; real_T const * i_mlzcvkfrx2 = ( real_T * ) ssGetInputPortSignal ( S , 15 ) ; real_T const * i_px31uzeike = ( real_T * ) ssGetInputPortSignal ( S , 16 ) ; real_T const * i_jkc0rtrq5y = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; real_T const * i_jmnal5dzie = ( real_T * ) ssGetInputPortSignal ( S , 21 ) ; boolean_T const * i_bxn2ao4rv5 = ( boolean_T * ) ssGetInputPortSignal ( S , 22 ) ; boolean_T const * i_hqqdi3shxh = ( boolean_T * ) ssGetInputPortSignal ( S , 23 ) ; boolean_T const * i_bvwadt2zgt = ( boolean_T * ) ssGetInputPortSignal ( S , 24 ) ; boolean_T const * i_k5kqhxhtbi = ( boolean_T * ) ssGetInputPortSignal ( S , 25 ) ; boolean_T const * i_jdsr0dujgy = ( boolean_T * ) ssGetInputPortSignal ( S , 26 ) ; boolean_T const * i_f1rxgcxxut = ( boolean_T * ) ssGetInputPortSignal ( S , 27 ) ; PropulsionBus * o_B_3_1 = ( PropulsionBus * ) ssGetOutputPortSignal ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; if ( tid == PARAMETER_TUNING_TID ) { hexMotorModelTID2 ( & ( dw -> rtb ) ) ; } if ( tid != CONSTANT_TID && tid != PARAMETER_TUNING_TID ) { if ( ssIsSampleHit ( S , 0 , tid ) || ssIsMinorTimeStep ( S ) ) { hexMotorModel ( & ( dw -> rtm ) , i_ma40pafjwj , i_p2sgj15ycb , i_m4xl00l1vu , i_gio42vcj0y , i_mlzcvkfrx2 , i_px31uzeike , i_jkc0rtrq5y , i_jmnal5dzie , i_bxn2ao4rv5 , i_hqqdi3shxh , i_bvwadt2zgt , i_k5kqhxhtbi , i_jdsr0dujgy , i_f1rxgcxxut , o_B_3_1 , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX ) ; } } }
+rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; } static void mdlOutputs ( SimStruct * S , int_T tid ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; real_T const * i_ma40pafjwj = ( real_T * ) ssGetInputPortSignal ( S , 5 ) ; real_T const * i_p2sgj15ycb = ( real_T * ) ssGetInputPortSignal ( S , 12 ) ; real_T const * i_m4xl00l1vu = ( real_T * ) ssGetInputPortSignal ( S , 13 ) ; real_T const * i_jmnal5dzie = ( real_T * ) ssGetInputPortSignal ( S , 17 ) ; boolean_T const * i_bxn2ao4rv5 = ( boolean_T * ) ssGetInputPortSignal ( S , 18 ) ; boolean_T const * i_hqqdi3shxh = ( boolean_T * ) ssGetInputPortSignal ( S , 19 ) ; PropulsionBus * o_B_3_1 = ( PropulsionBus * ) ssGetOutputPortSignal ( S , 0 ) ; ddcad1gntt * localX = ( ddcad1gntt * ) ssGetContStates ( S ) ; if ( tid == PARAMETER_TUNING_TID ) { hexMotorModelTID2 ( & ( dw -> rtb ) ) ; } if ( tid != CONSTANT_TID && tid != PARAMETER_TUNING_TID ) { if ( ssIsSampleHit ( S , 0 , tid ) || ssIsMinorTimeStep ( S ) ) { hexMotorModel ( & ( dw -> rtm ) , i_ma40pafjwj , i_p2sgj15ycb , i_m4xl00l1vu , i_jmnal5dzie , i_bxn2ao4rv5 , i_hqqdi3shxh , o_B_3_1 , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX ) ; } } }
 #define MDL_UPDATE
 static void mdlUpdate ( SimStruct * S , int_T tid ) { cw0pxo3kgck * dw = ( cw0pxo3kgck * ) ssGetDWork ( S , 0 ) ; cgknnxzlts ( & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) ) ; return ; }
 #define MDL_DERIVATIVES

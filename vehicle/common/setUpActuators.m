@@ -133,6 +133,81 @@ switch lower(setupVehicleType)
         vehicleParams.actuator.tfNumerator = 250000;
         vehicleParams.actuator.tfDenominator = [1 700 250000];
 
+    case "vtol_tailsitter"
+        % Twin-rotor tailsitter (Fase aerial track, see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md).
+        % Reuses hexarotor's exact rigid-body-with-N-rotors engine (same rationale as
+        % quadrotor/octarotor/evtol above) -- only rotor count/geometry/coefficients differ. Prop
+        % "7x4SF" (7 in diameter) and twin-motor layout from
+        % LADAC-Examples/modules/ladac-examples-data/LADAC_params/Arkbird/tailsitter_params_Arkbird.m
+        % (propPos_c, propDir). kct_nd/kcp_nd are an order-of-magnitude fit (not vendor-validated) to
+        % produce roughly 1.5x this vehicle's own weight (1.1 kg) in combined static thrust at
+        % maxRPM -- same methodology as the hexarotor/fixedwing_plane rotor coefficients, scaled
+        % down for this much smaller/lighter airframe. This models only the twin-rotor HOVER
+        % regime -- true tailsitter wing-borne cruise/transition aerodynamics is explicitly out of
+        % scope at this fidelity level (same documented gap as evtol's tiltrotor note).
+        vehicleParams.rotor.diameter_m  = 7 * 0.0254;
+        vehicleParams.rotor.maxRPM      = 15000;
+        vehicleParams.rotor.cmdToRpmData = [0 vehicleParams.rotor.maxRPM];
+        vehicleParams.rotor.cmdToRpmBkpts_nd = [0 1];
+        vehicleParams.rotor.kct_nd = 3.28e-6;
+        vehicleParams.rotor.kcp_nd = 2.03e-7;
+        vehicleParams.rotor.motorLocs = [-0.115 -0.165 0;
+                                          -0.115  0.165 0];
+        vehicleParams.rotor.spinDirectionCW_isTrue = [1 0];
+
+        vehicleParams.actuator.tfNumerator = 250000;
+        vehicleParams.actuator.tfDenominator = [1 700 250000];
+
+    case "ship_semisub"
+        % Semisubmersible platform (MSS/CRAFT/SHIP/models/semisubModels/data_rig.m) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Real vehicle is dynamic-positioning-capable
+        % (independent surge/sway/yaw thrust via azimuth thrusters) -- NOT modeled here as a true
+        % holonomic 3-DOF vehicle because PX4's rover/boat control modes (GND_*) only ever
+        % generate steer+throttle-style commands, never an independent sway command, so a real
+        % holonomic actuation scheme could never actually be driven by this SIL's own PX4 side.
+        % Reuses ship_surface's exact Nomoto-class 2-command architecture instead, with the
+        % platform's own REAL surge/yaw time constants from data_rig.m (T_x=100s, T_n=80s) used
+        % directly as tauThrottle_s/nomotoT (T_y=200s, the sway response, has no equivalent in
+        % this 2-DOF representation and is simply not used).
+        vehicleParams.tauSteer_s = 5.0;
+        vehicleParams.tauThrottle_s = 100.0;
+        vehicleParams.nomotoK_radps_per_rad = 0.0059;
+        vehicleParams.nomotoT_s = 80.0;
+
+    case "ship_surface"
+        % Nomoto-class rudder+propeller ship (subactuated, single rudder/single shaft) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. tauSteer_s/tauThrottle_s here are steering-gear
+        % and engine-spool lag time constants (documentation/reference only -- the
+        % NomotoShipKinematics MATLAB Function block inside ship_surface.slx inlines these same
+        % values as local constants, same rationale as ackermann_rover's own case). Nomoto K/T
+        % (yaw-rate gain/time-constant) are standard order-of-magnitude approximations
+        % (T ~ 2*L/V, K ~ 0.5*V/L) for a 175 m ship at ~8 m/s service speed (see
+        % vehicle/common/setUpVehicle.m's "ship_surface" case for L/V sourcing) -- not measured
+        % from container.m's own hydrodynamic derivatives, which would require porting its full
+        % nonlinear MMG model (out of scope at this fidelity level).
+        vehicleParams.tauSteer_s = 3.0;
+        vehicleParams.tauThrottle_s = 30.0;
+        vehicleParams.nomotoK_radps_per_rad = 0.0229;
+        vehicleParams.nomotoT_s = 43.75;
+
+    case "uuv_dsrv"
+        % Left/right thruster lag time constant -- same differential-thrust kinematic
+        % simplification as uuv_subsea/uuv_npsauv. Real DSRV (Deep Submergence Rescue Vehicle,
+        % MSS/CRAFT/AUV/models/DSRV.m) is actually a depth/pitch-control vehicle (single stern
+        % plane, near-constant forward speed) -- horizontal yaw steering via differential thrust
+        % is NOT how the real vehicle is controlled, an even larger fidelity gap than
+        % uuv_subsea/uuv_npsauv's own remus100/npsauv simplifications. Documented explicitly, not
+        % silently assumed -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        vehicleParams.tauMotor_s = 2.5;
+
+    case "uuv_npsauv"
+        % Left/right thruster lag time constant -- same differential-thrust kinematic
+        % simplification already used by uuv_subsea (real single-prop+control-surfaces npsauv
+        % design is not modeled at this fidelity level, same class of gap as uuv_subsea's own
+        % remus100-vs-differential-thrust simplification) -- see
+        % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md.
+        vehicleParams.tauMotor_s = 2.0;
+
     case "ackermann_rover"
         % Steering servo / drive motor lag time constants for the kinematic-bicycle plant (Fase 3).
         % Documentation/reference only -- the AckermannKinematics MATLAB Function block inside
@@ -232,6 +307,59 @@ switch lower(setupVehicleType)
         vehicleParams.prop.cmdToRpmBkpts_nd = [0 1];
         vehicleParams.prop.kct_nd = 3.6e-5;
         vehicleParams.prop.kcp_nd = 2.24e-6;
+
+    case "c172p"
+        % Cessna 172P (JSBSim reference aircraft) -- see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md
+        % Fase A-C. actuatorsC172p.slx is a direct clone of F16's/fixedwing_plane's actuators.slx
+        % (same servo/rate-limiter/failure-injection topology), so this case defines the exact same
+        % workspace variable names as the "f16"/"fixedwing_plane" cases above.
+        %
+        % Max deflections from c172p.xml <flight_control> aerosurface_scale ranges (real JSBSim
+        % FCS data, not an estimate): elevator -28/+23 deg, aileron -20/+15 deg, rudder -16/+16
+        % deg -- this switch only stores one symmetric magnitude per surface (same convention as
+        % F16/fixedwing_plane), so the larger of the two bounds is used.
+        maxElevatorDefl_deg = 28;
+        maxAilDefl_deg = 20;
+        maxRudderDefl_deg = 16;
+        % JSBSim's own FCS models these surfaces as ideal/instantaneous (no rate limit or lag given
+        % in c172p.xml -- ailerons/elevator/rudder are driven directly by fcs/*-cmd-norm with no
+        % actuator dynamics block). Since this SIL flies the aircraft via PX4-commanded autopilot
+        % servos (not a human pilot on cables), a rate limit/lag IS needed -- these are an explicit
+        % engineering estimate for GA-class autopilot servos (slower/higher-torque than the tiny
+        % RC-class servos fixedwing_plane uses), not sourced from c172p.xml.
+        elevatorDeflRateLimit_degps = 60;
+        aileronDeflRateLimit_degps = 60;
+        rudderDeflRateLimit_degps = 60;
+        tauElevator_s = 0.1;
+        tauAilerons_s = 0.1;
+        tauRudder_s = 0.1;
+
+        % Single tractor propeller + real Lycoming IO-320 piston engine
+        % (enginePistonPropC172p.slx) -- unlike fixedwing_plane's enginePropFixedwing.slx (a
+        % constant-kct_nd/kcp_nd electric-motor fit), this engine model uses the REAL fixed-pitch
+        % propeller thrust/power coefficient tables from jsbsim/engine/prop_75in2f.xml (C_THRUST/
+        % C_POWER vs advance ratio J), evaluated each step against the vehicle's actual airspeed --
+        % see plan §2.3/build_enginePistonPropC172p.m. Values below are documentation/reference
+        % only, same convention as fixedwing_plane's own case -- the MATLAB Function chart inside
+        % enginePistonPropC172p.slx inlines these same constants as local literals (see
+        % optimAeroPX4SIL/CLAUDE.md section 3 on why MATLAB Function blocks in this project read
+        % inlined literals, not vehicleParams struct fields). Keep the two copies in sync by hand.
+        vehicleParams.prop.diameter_m = 75 * 0.0254;      % jsbsim/engine/prop_75in2f.xml <diameter>
+        vehicleParams.prop.maxRPM = 2700;                 % jsbsim/engine/eng_io320.xml <maxrpm>
+        vehicleParams.prop.idleRPM = 550;                 % jsbsim/engine/eng_io320.xml <idlerpm>
+        vehicleParams.prop.maxPower_W = 160 * 745.7;       % jsbsim/engine/eng_io320.xml <maxhp>=160
+        vehicleParams.prop.tauEngine_s = 1.0;              % piston spool-up estimate, slower than
+                                                            % fixedwing_plane's electric motor (0.15s)
+        % C_THRUST(J)/C_POWER(J) tables, copied verbatim from the ACTIVE (non-commented)
+        % <table name="C_THRUST"/"C_POWER"> in jsbsim/engine/prop_75in2f.xml. NOTE: the two real
+        % JSBSim tables do NOT share the same J breakpoint set (C_THRUST stops at J=2.3, C_POWER at
+        % J=2.4, both before the final constant-extrapolation point at J=5.0) -- kept as two
+        % independent breakpoint arrays rather than forcing them to match, to avoid silently
+        % dropping/misaligning a real data point.
+        vehicleParams.prop.J_bkpts_CT_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 5.0];
+        vehicleParams.prop.CT_data       = [0.073 0.073 0.072 0.071 0.069 0.066 0.062 0.055 0.045 0.034 0.024 0.013 -0.006 -0.013 -0.024 -0.034 -0.045 -0.055 -0.062 -0.066 -0.069 -0.071 -0.072 -0.073 -0.073];
+        vehicleParams.prop.J_bkpts_CP_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 5.0];
+        vehicleParams.prop.CP_data       = [0.0660 0.0700 0.0700 0.0660 0.0600 0.0530 0.0501 0.0469 0.0426 0.0360 0.0282 0.0191 0.0155 0.0191 0.0282 0.0360 0.0426 0.0469 0.0501 0.0516 0.0525 0.0525 0.0522 0.0511 0.0504 0.0493];
 
     otherwise
         error("setUpActuators:NoActuatorModelDefined", char("No real actuator model (motor/ESC/" + ...
