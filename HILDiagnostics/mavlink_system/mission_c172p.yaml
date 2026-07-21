@@ -23,10 +23,24 @@ mission:
   loiter_time_s: 0.0 # unused with is_fly_through=true, kept only for schema symmetry with other missions
 
   clear_existing: true
+  # Bakes a MAV_CMD_NAV_TAKEOFF item as waypoint 0 and switches controller_mavsdk.py onto the
+  # mission_raw plugin instead of the simplified mission plugin used by config.yaml/mission.yaml.
+  # REQUIRED for fixed-wing -- confirmed live, twice, that arming straight into AUTO_MISSION with
+  # no takeoff item causes a full loss of control (attitude/altitude diverged to essentially a
+  # crash), reproduced identically whether driven by this script or by hand via
+  # `commander mode auto:mission` + `commander arm` at the PX4 console. A standalone
+  # action.takeoff() beforehand avoids the crash but leaves PX4 stuck in AUTO_LOITER, never
+  # navigating -- neither is how a real fixed-wing mission is authored; a NAV_TAKEOFF item is.
+  # Hexarotor's mission.yaml does not set this and must not need it (that path is tested and
+  # working end-to-end as-is).
+  include_takeoff_item: true
   # RTL after mission, not a scripted autoland: c172p's landing flare/approach has not been validated
   # against live PX4 SITL yet (see optimAeroPX4SIL/CLAUDE.md section 5, "Not yet validated against
   # live PX4 SITL / EKF2"). RTL brings it back to a loiter over home using PX4's own tested RTL
   # logic instead of trusting an unverified auto-land sequence on the first real flight test.
+  # With include_takeoff_item, this is baked into the raw mission plan as a trailing
+  # MAV_CMD_NAV_RETURN_TO_LAUNCH item rather than set via set_return_to_launch_after_mission()
+  # (mission_raw has no equivalent call).
   rtl_after_mission: true
   land_after_mission: false
   takeoff_settle_s: 2.0

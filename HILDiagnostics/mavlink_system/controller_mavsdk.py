@@ -10,8 +10,25 @@ from typing import Any
 from mavsdk import System
 from mavsdk.action import ActionError
 from mavsdk.mission import MissionError, MissionItem, MissionPlan
+from mavsdk.mission_raw import MissionItem as RawMissionItem
+from mavsdk.mission_raw import MissionRawError
 from mavsdk.telemetry import LandedState
 import yaml
+
+# MAVLink MAV_FRAME/MAV_CMD/MAV_MISSION_TYPE values used by _build_raw_mission_items -- pulled
+# in as plain ints (not a pymavlink import) since this file otherwise has no MAVLink dependency
+# of its own; controller_mavsdk.py talks to PX4 exclusively through MAVSDK.
+_MAV_FRAME_GLOBAL_RELATIVE_ALT_INT = 6
+# Command-only items (no lat/lon/alt of their own) need MAV_FRAME_MISSION, not a positional
+# frame -- confirmed via a standalone probe: RETURN_TO_LAUNCH with frame=
+# GLOBAL_RELATIVE_ALT_INT (6) got rejected outright (UNSUPPORTED) by upload_mission(), the
+# identical item with frame=MISSION (2) uploaded fine.
+_MAV_FRAME_MISSION = 2
+_MAV_CMD_NAV_WAYPOINT = 16
+_MAV_CMD_NAV_TAKEOFF = 22
+_MAV_CMD_NAV_RETURN_TO_LAUNCH = 20
+_MAV_CMD_DO_CHANGE_SPEED = 178
+_MAV_MISSION_TYPE_MISSION = 0
 
 from safety import confirm_real_vehicle_allowed, validate_takeoff_altitude
 
@@ -205,11 +222,26 @@ class MavsdkInstructor:
             print("MAVSDK DRY-RUN: land after mission")
             return
 
+        rtl_after_mission = bool(mission_config.get("rtl_after_mission", False))
+        # include_takeoff_item: fixed-wing missions need PX4 to own the whole ground-to-cruise
+        # transition as ONE continuous mission (MAV_CMD_NAV_TAKEOFF as item 0), not a separate
+        # action.takeoff() followed by a mission upload -- confirmed live on c172p that arming
+        # straight into AUTO_MISSION with no takeoff item at all causes a full loss of control
+        # (attitude/altitude diverged, essentially a crash), while a standalone action.takeoff()
+        # first gets it safely airborne but then PX4 hands off to AUTO_LOITER instead of
+        # AUTO_MISSION and it never navigates. Neither of those is a real mission-authoring
+        # pattern; a NAV_TAKEOFF item is. Left opt-in (default False) so hexarotor's
+        # already-working path (config.yaml/mission.yaml, tested end-to-end) is untouched.
+        use_takeoff_item = bool(mission_config.get("include_takeoff_item", False))
+
+        if use_takeoff_item:
+            await self._run_takeoff_item_mission(mission_config, mission_items, rtl_after_mission)
+            return
+
         if bool(mission_config.get("clear_existing", True)):
             print("MAVSDK: clearing existing onboard mission")
             await self._run_mission_call("clear_mission", self.drone.mission.clear_mission)
 
-        rtl_after_mission = bool(mission_config.get("rtl_after_mission", False))
         print(f"MAVSDK: RTL after mission set to {rtl_after_mission}")
         await self._run_mission_call(
             "set_return_to_launch_after_mission",
@@ -244,6 +276,7 @@ class MavsdkInstructor:
         await self._wait_mission_complete(
             expected_total=len(mission_items),
             timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
+            plugin=self.drone.mission,
         )
 
         if bool(mission_config.get("land_after_mission", True)):
@@ -251,6 +284,136 @@ class MavsdkInstructor:
             await self._wait_landed(timeout_s=float(mission_config.get("land_timeout_s", 90.0)))
 
         print("MAVSDK: MISSION SUCCESS: takeoff, waypoint mission, and landing completed")
+
+    async def _run_takeoff_item_mission(
+        self,
+        mission_config: dict[str, Any],
+        mission_items: list[MissionItem],
+        rtl_after_mission: bool,
+    ) -> None:
+        # A NAV_TAKEOFF item's x/y=0,0 is NOT treated as "use wherever we are" by PX4's mission
+        # feasibility checker, despite that being the usual real-GCS convention -- confirmed
+        # live: it reads 0,0 as literal lat=0/lon=0 (off the coast of west Africa) and rejects
+        # the mission as "First waypoint too far away: 7178487m, 5000 max". Fetch the vehicle's
+        # actual current position and use that instead.
+        current_lat, current_lon = await self._get_current_position()
+        raw_items = self._build_raw_mission_items(
+            mission_config, mission_items, rtl_after_mission, current_lat, current_lon
+        )
+        print(
+            f"MAVSDK: mission_raw plan has {len(raw_items)} item(s) "
+            "(takeoff + waypoints + RTL, exactly like a QGroundControl-authored fixed-wing plan)"
+        )
+
+        print("MAVSDK: clearing existing onboard mission (mission_raw)")
+        await self._run_mission_call(
+            "clear_mission (raw)", self.drone.mission_raw.clear_mission, exc_types=MissionRawError
+        )
+
+        print("MAVSDK: uploading mission (mission_raw)")
+        await self._run_mission_call(
+            "upload_mission (raw)",
+            lambda: self.drone.mission_raw.upload_mission(raw_items),
+            exc_types=MissionRawError,
+        )
+        await self._run_mission_call(
+            "set_current_mission_item (raw)",
+            lambda: self.drone.mission_raw.set_current_mission_item(0),
+            exc_types=MissionRawError,
+        )
+        print("MAVSDK: mission upload accepted")
+
+        if self.vehicle_config.get("auto_arm", False):
+            await self.arm()
+        else:
+            print("MAVSDK: auto_arm=false; mission start may be rejected by PX4")
+
+        # No standalone action.takeoff() here on purpose -- item 0 of raw_items IS the takeoff,
+        # PX4 flies it as part of AUTO_MISSION once started, same as arming under a
+        # QGroundControl-uploaded fixed-wing plan.
+        print("MAVSDK: starting waypoint mission (raw, PX4 owns the takeoff item)")
+        await self._run_mission_call(
+            "start_mission (raw)", self.drone.mission_raw.start_mission, exc_types=MissionRawError
+        )
+        await self._wait_mission_complete(
+            expected_total=len(raw_items),
+            timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
+            plugin=self.drone.mission_raw,
+        )
+        print(
+            "MAVSDK: mission_raw items exhausted -- if the last item was RETURN_TO_LAUNCH, PX4 "
+            "is now flying itself home/landing autonomously; this script does not wait for that "
+            "separately (see land_after_mission handling in the non-raw path for why: an "
+            "explicit auto-land sequence is untrusted for this airframe, RTL's own landing is not)."
+        )
+        print("MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, and RTL handoff completed")
+
+    async def _get_current_position(self) -> tuple[float, float]:
+        async for position in self.drone.telemetry.position():
+            return position.latitude_deg, position.longitude_deg
+        raise RuntimeError("MAVSDK: telemetry.position() stream ended before yielding a fix")
+
+    def _build_raw_mission_items(
+        self,
+        mission_config: dict[str, Any],
+        mission_items: list[MissionItem],
+        rtl_after_mission: bool,
+        current_lat: float,
+        current_lon: float,
+    ) -> list[RawMissionItem]:
+        takeoff_altitude = float(self.vehicle_config.get("takeoff_altitude_m", 25.0))
+
+        items: list[RawMissionItem] = []
+        seq = 0
+
+        # x/y = the vehicle's actual current position, NOT 0/0 -- see the comment in
+        # _run_takeoff_item_mission on why 0/0 (the usual "wherever we are" convention) doesn't
+        # work here: PX4's feasibility checker reads it as literal lat=0/lon=0 and rejects the
+        # mission as being ~7178 km from home.
+        items.append(
+            RawMissionItem(
+                seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_TAKEOFF,
+                1, 1,
+                0.0, 0.0, 0.0, float("nan"),
+                round(current_lat * 1e7), round(current_lon * 1e7), takeoff_altitude,
+                _MAV_MISSION_TYPE_MISSION,
+            )
+        )
+        seq += 1
+
+        # NOT inserting a MAV_CMD_DO_CHANGE_SPEED item here (tried it, upload_mission() rejected
+        # the whole plan with UNSUPPORTED -- mission_raw's upload validation apparently doesn't
+        # accept a bare DO_* command mixed in with NAV_* items, at least not shaped this way).
+        # Cruise speed falls back to PX4's own FW_AIRSPD_TRIM default instead of
+        # mission_c172p.yaml's speed_m_s -- a real gap, but a separate problem from the takeoff
+        # item this method exists to fix. Revisit if per-mission airspeed control matters later.
+        for item in mission_items:
+            hold_time = 0.0 if math.isnan(item.loiter_time_s) else item.loiter_time_s
+            items.append(
+                RawMissionItem(
+                    seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_WAYPOINT,
+                    0, 1,
+                    hold_time, item.acceptance_radius_m, 0.0, float("nan"),
+                    round(item.latitude_deg * 1e7), round(item.longitude_deg * 1e7),
+                    item.relative_altitude_m,
+                    _MAV_MISSION_TYPE_MISSION,
+                )
+            )
+            seq += 1
+
+        if rtl_after_mission:
+            items.append(
+                RawMissionItem(
+                    seq, _MAV_FRAME_MISSION, _MAV_CMD_NAV_RETURN_TO_LAUNCH,
+                    0, 1,
+                    0.0, 0.0, 0.0, 0.0,
+                    0, 0, 0.0,
+                    _MAV_MISSION_TYPE_MISSION,
+                )
+            )
+            seq += 1
+
+        return items
 
     async def dump_params(self, path: str | Path) -> None:
         """Write all current PX4 parameters to a text file (name=value per line).
@@ -308,7 +471,12 @@ class MavsdkInstructor:
         raise last_exc
 
     async def _run_mission_call(
-        self, name: str, action, attempts: int = 4, timeout_s: float = 15.0
+        self,
+        name: str,
+        action,
+        attempts: int = 4,
+        timeout_s: float = 15.0,
+        exc_types: type[Exception] | tuple[type[Exception], ...] = MissionError,
     ) -> None:
         # The mission microservice's MISSION_CLEAR_ALL/MISSION_ACK-style RPCs are a single
         # request/response pair with no built-in retry (unlike telemetry streams, which just
@@ -318,14 +486,17 @@ class MavsdkInstructor:
         # human retrying the same QGroundControl button click would recover from the same
         # transient loss. Also wrapped in wait_for -- see _run_action's comment on why relying
         # on the call to raise its own timeout isn't reliable enough on its own.
-        last_exc: MissionError | asyncio.TimeoutError | None = None
+        # exc_types defaults to MissionError (the `mission` plugin); pass MissionRawError for
+        # the `mission_raw` plugin used by _run_takeoff_item_mission -- same RPC, different
+        # exception type.
+        last_exc: Exception | None = None
         for attempt in range(1, attempts + 1):
             try:
                 print(f"MAVSDK: sending {name}() (attempt {attempt}/{attempts})")
                 await asyncio.wait_for(action(), timeout=timeout_s)
                 print(f"MAVSDK: {name} accepted")
                 return
-            except (MissionError, asyncio.TimeoutError) as exc:
+            except (exc_types, asyncio.TimeoutError) as exc:
                 last_exc = exc
                 print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc!r}")
                 if attempt < attempts:
@@ -506,16 +677,21 @@ class MavsdkInstructor:
                 print(f"MAVSDK: takeoff climb pending rel_alt={rel_altitude:.2f} m")
                 last_print = now
 
-    async def _wait_mission_complete(self, expected_total: int, timeout_s: float) -> None:
+    async def _wait_mission_complete(self, expected_total: int, timeout_s: float, plugin=None) -> None:
+        # plugin: self.drone.mission (default) or self.drone.mission_raw -- both expose
+        # is_mission_finished()/mission_progress() with the same shape, so the raw-mission path
+        # (_run_takeoff_item_mission) can reuse this unchanged instead of duplicating it.
+        if plugin is None:
+            plugin = self.drone.mission
         print("MAVSDK: monitoring mission progress")
         done_event = asyncio.Event()
         progress_task = asyncio.create_task(
-            self._monitor_mission_progress(expected_total, done_event)
+            self._monitor_mission_progress(expected_total, done_event, plugin)
         )
         deadline = asyncio.get_running_loop().time() + timeout_s
         try:
             while True:
-                if done_event.is_set() or await self.drone.mission.is_mission_finished():
+                if done_event.is_set() or await plugin.is_mission_finished():
                     print("MAVSDK: all mission waypoints reached")
                     return
                 if asyncio.get_running_loop().time() >= deadline:
@@ -525,9 +701,13 @@ class MavsdkInstructor:
             progress_task.cancel()
             await asyncio.gather(progress_task, return_exceptions=True)
 
-    async def _monitor_mission_progress(self, expected_total: int, done_event: asyncio.Event) -> None:
+    async def _monitor_mission_progress(
+        self, expected_total: int, done_event: asyncio.Event, plugin=None
+    ) -> None:
+        if plugin is None:
+            plugin = self.drone.mission
         last_seen: tuple[int, int] | None = None
-        async for progress in self.drone.mission.mission_progress():
+        async for progress in plugin.mission_progress():
             current = int(progress.current)
             total = int(progress.total)
             if (current, total) != last_seen:
