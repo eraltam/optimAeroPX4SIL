@@ -9,7 +9,7 @@ from typing import Any
 
 from mavsdk import System
 from mavsdk.action import ActionError
-from mavsdk.mission import MissionItem, MissionPlan
+from mavsdk.mission import MissionError, MissionItem, MissionPlan
 from mavsdk.telemetry import LandedState
 import yaml
 
@@ -196,15 +196,20 @@ class MavsdkInstructor:
 
         if bool(mission_config.get("clear_existing", True)):
             print("MAVSDK: clearing existing onboard mission")
-            await self.drone.mission.clear_mission()
+            await self._run_mission_call("clear_mission", self.drone.mission.clear_mission)
 
         rtl_after_mission = bool(mission_config.get("rtl_after_mission", False))
         print(f"MAVSDK: RTL after mission set to {rtl_after_mission}")
-        await self.drone.mission.set_return_to_launch_after_mission(rtl_after_mission)
+        await self._run_mission_call(
+            "set_return_to_launch_after_mission",
+            lambda: self.drone.mission.set_return_to_launch_after_mission(rtl_after_mission),
+        )
 
         print("MAVSDK: uploading mission")
-        await self.drone.mission.upload_mission(plan)
-        await self.drone.mission.set_current_mission_item(0)
+        await self._run_mission_call("upload_mission", lambda: self.drone.mission.upload_mission(plan))
+        await self._run_mission_call(
+            "set_current_mission_item", lambda: self.drone.mission.set_current_mission_item(0)
+        )
         print("MAVSDK: mission upload accepted")
 
         if self.vehicle_config.get("auto_arm", False):
@@ -224,7 +229,7 @@ class MavsdkInstructor:
             print("MAVSDK: auto_takeoff=false; starting uploaded mission without explicit takeoff")
 
         print("MAVSDK: starting waypoint mission")
-        await self.drone.mission.start_mission()
+        await self._run_mission_call("start_mission", self.drone.mission.start_mission)
         await self._wait_mission_complete(
             expected_total=len(mission_items),
             timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
@@ -269,6 +274,29 @@ class MavsdkInstructor:
         except ActionError as exc:
             print(f"MAVSDK: {name} failed: {exc}")
             raise
+
+    async def _run_mission_call(self, name: str, action, attempts: int = 4) -> None:
+        # The mission microservice's MISSION_CLEAR_ALL/MISSION_ACK-style RPCs are a single
+        # request/response pair with no built-in retry (unlike telemetry streams, which just
+        # keep publishing) -- a single UDP packet lost on this bridge (WSL2 NAT hop +
+        # pymavlink forward relay, see listener_pymavlink.py) times out the whole call with no
+        # recovery. Retrying the same idempotent call a few times is cheap and matches how a
+        # human retrying the same QGroundControl button click would recover from the same
+        # transient loss.
+        last_exc: MissionError | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                print(f"MAVSDK: sending {name}() (attempt {attempt}/{attempts})")
+                await action()
+                print(f"MAVSDK: {name} accepted")
+                return
+            except MissionError as exc:
+                last_exc = exc
+                print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc}")
+                if attempt < attempts:
+                    await asyncio.sleep(2.0)
+        assert last_exc is not None
+        raise last_exc
 
     async def _print_position(self, samples: int) -> None:
         count = 0
