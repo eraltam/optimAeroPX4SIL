@@ -101,10 +101,21 @@ class MavsdkInstructor:
             return
 
         try:
-            await self.drone.action.set_takeoff_altitude(altitude)
-        except ActionError as exc:
-            print(f"MAVSDK: set_takeoff_altitude failed: {exc}")
-            raise
+            await self._run_action(
+                "set_takeoff_altitude", lambda: self.drone.action.set_takeoff_altitude(altitude)
+            )
+        except (ActionError, asyncio.TimeoutError) as exc:
+            # Non-fatal, unlike every other action call here: confirmed live that this
+            # specific call (a PARAM_SET/PARAM_VALUE round trip, unlike arm/mission's
+            # COMMAND_LONG/MAVLink-mission-protocol messages) is consistently broken on this
+            # relay path -- all 4 retries timed out every time, not a one-off transient loss.
+            # PX4 already has a reasonable MIS_TAKEOFF_ALT default from the airframe file, so
+            # skip the override and fly with that instead of blocking the whole sequence over
+            # a "nice to have" altitude tweak.
+            print(
+                f"MAVSDK: set_takeoff_altitude failed after retries ({exc!r}), continuing with "
+                "PX4's existing MIS_TAKEOFF_ALT instead"
+            )
         await self._run_action("takeoff", self.drone.action.takeoff)
 
     async def land(self) -> None:
@@ -266,33 +277,57 @@ class MavsdkInstructor:
         out_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         print(f"MAVSDK: wrote {len(lines)} parameters to {out_path}")
 
-    async def _run_action(self, name: str, action) -> None:
-        try:
-            print(f"MAVSDK: sending {name}()")
-            await action()
-            print(f"MAVSDK: {name} accepted")
-        except ActionError as exc:
-            print(f"MAVSDK: {name} failed: {exc}")
-            raise
+    async def _run_action(
+        self, name: str, action, attempts: int = 4, timeout_s: float = 15.0
+    ) -> None:
+        # Same single-shot-RPC-with-no-retry problem as mission calls (see
+        # _run_mission_call below) -- confirmed live: a hexarotor's set_takeoff_altitude()/
+        # takeoff() hung after arm() succeeded, and PX4's own preflight-disarm timer kicked in
+        # before the (never-arriving) response would have. arm()/land()/return_to_launch()/
+        # disarm() all go through here too and are equally exposed.
+        #
+        # Retrying alone isn't enough: confirmed live that a lost packet doesn't always surface
+        # as ActionError -- set_takeoff_altitude() just hung with no response for 4.5+ minutes,
+        # never raising anything for the retry loop to catch. MAVSDK's action calls apparently
+        # have no client-side timeout of their own, unlike mission calls (which do eventually
+        # raise MissionError: TIMEOUT on their own). Wrapping each attempt in asyncio.wait_for
+        # turns that hang into somethig retryable too.
+        last_exc: ActionError | asyncio.TimeoutError | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                print(f"MAVSDK: sending {name}() (attempt {attempt}/{attempts})")
+                await asyncio.wait_for(action(), timeout=timeout_s)
+                print(f"MAVSDK: {name} accepted")
+                return
+            except (ActionError, asyncio.TimeoutError) as exc:
+                last_exc = exc
+                print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc!r}")
+                if attempt < attempts:
+                    await asyncio.sleep(2.0)
+        assert last_exc is not None
+        raise last_exc
 
-    async def _run_mission_call(self, name: str, action, attempts: int = 4) -> None:
+    async def _run_mission_call(
+        self, name: str, action, attempts: int = 4, timeout_s: float = 15.0
+    ) -> None:
         # The mission microservice's MISSION_CLEAR_ALL/MISSION_ACK-style RPCs are a single
         # request/response pair with no built-in retry (unlike telemetry streams, which just
         # keep publishing) -- a single UDP packet lost on this bridge (WSL2 NAT hop +
         # pymavlink forward relay, see listener_pymavlink.py) times out the whole call with no
         # recovery. Retrying the same idempotent call a few times is cheap and matches how a
         # human retrying the same QGroundControl button click would recover from the same
-        # transient loss.
-        last_exc: MissionError | None = None
+        # transient loss. Also wrapped in wait_for -- see _run_action's comment on why relying
+        # on the call to raise its own timeout isn't reliable enough on its own.
+        last_exc: MissionError | asyncio.TimeoutError | None = None
         for attempt in range(1, attempts + 1):
             try:
                 print(f"MAVSDK: sending {name}() (attempt {attempt}/{attempts})")
-                await action()
+                await asyncio.wait_for(action(), timeout=timeout_s)
                 print(f"MAVSDK: {name} accepted")
                 return
-            except MissionError as exc:
+            except (MissionError, asyncio.TimeoutError) as exc:
                 last_exc = exc
-                print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc}")
+                print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc!r}")
                 if attempt < attempts:
                     await asyncio.sleep(2.0)
         assert last_exc is not None
