@@ -14,12 +14,11 @@ import time
 from pymavlink import mavutil
 
 TOPICS = [
-    "vehicle_thrust_setpoint",
     "vehicle_torque_setpoint",
-    "actuator_motors",
-    "vehicle_land_detected",
-    "vehicle_control_mode",
+    "actuator_servos",
+    "actuator_outputs",
     "actuator_armed",
+    "vehicle_control_mode",
 ]
 
 

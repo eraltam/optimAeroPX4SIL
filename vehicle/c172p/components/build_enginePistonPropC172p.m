@@ -138,13 +138,14 @@ else
     chart = charts(1);
 
     lines = { ...
-'function [thrust_N, torque_Nm, motorAngVel_radps, fuelRate_kgps] = pistonPropThrustModel(cmdThrottle_unit, engineFailure_isTrue, airspeedInBody_mps, airDensity_kgpm3)'
+'function [thrust_N, torque_Nm, motorAngVel_radps, fuelRate_kgps] = pistonPropThrustModel(cmdThrottle_unit, controllerArmed, engineFailure_isTrue, airspeedInBody_mps, airDensity_kgpm3)'
 '%#codegen'
 'persistent omega_radps_state;'
 'if isempty(omega_radps_state)'
-'    omega_radps_state = 550 * 2 * pi / 60;'  % start at idle RPM, not zero -- a piston engine
-                                                % does not stop between samples like the electric
-                                                % motor case
+'    omega_radps_state = 0;'  % engine is stopped until armed -- see optimAeroPX4SIL/CLAUDE.md
+                                % for why controllerArmed must gate this (previously this state
+                                % initialized straight to idle RPM regardless of arm state,
+                                % producing ~99N of phantom thrust at rest, disarmed)
 'end'
 ''
 '% Real Lycoming IO-320 limits (jsbsim/engine/eng_io320.xml) and Fixed-Pitch 75in prop tables'
@@ -164,12 +165,14 @@ else
 'J_bkpts_CP = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 5.0];'
 'CP_data    = [0.0660 0.0700 0.0700 0.0660 0.0600 0.0530 0.0501 0.0469 0.0426 0.0360 0.0282 0.0191 0.0155 0.0191 0.0282 0.0360 0.0426 0.0469 0.0501 0.0516 0.0525 0.0525 0.0522 0.0511 0.0504 0.0493];'
 ''
-'if engineFailure_isTrue'
-'    throttleCmd_nd = 0;'
-'else'
+'engineRunning = controllerArmed && ~engineFailure_isTrue;'
+'if engineRunning'
 '    throttleCmd_nd = max(min(cmdThrottle_unit, 1), 0);'
+'    targetRPM = idleRPM + (maxRPM - idleRPM) * throttleCmd_nd;'
+'else'
+'    throttleCmd_nd = 0;'
+'    targetRPM = 0;'
 'end'
-'targetRPM = idleRPM + (maxRPM - idleRPM) * throttleCmd_nd;'
 'targetOmega_radps = targetRPM * 2 * pi / 60;'
 ''
 'alpha = Ts_s / (tauEngine_s + Ts_s);'
@@ -218,9 +221,10 @@ add_line(modelName, 'AirDataBus/1', 'Select_AirData/1', 'autorouting', 'on');
 add_line(modelName, 'EnvironmentBus/1', 'Select_Environment/1', 'autorouting', 'on');
 
 add_line(modelName, 'Select_EngineCmd/1', [fcnName '/1'], 'autorouting', 'on');
-add_line(modelName, 'Select_Failure/1', [fcnName '/2'], 'autorouting', 'on');
-add_line(modelName, 'Select_AirData/1', [fcnName '/3'], 'autorouting', 'on');
-add_line(modelName, 'Select_Environment/1', [fcnName '/4'], 'autorouting', 'on');
+add_line(modelName, 'controllerArmed/1', [fcnName '/2'], 'autorouting', 'on');
+add_line(modelName, 'Select_Failure/1', [fcnName '/3'], 'autorouting', 'on');
+add_line(modelName, 'Select_AirData/1', [fcnName '/4'], 'autorouting', 'on');
+add_line(modelName, 'Select_Environment/1', [fcnName '/5'], 'autorouting', 'on');
 
 % pistonPropThrustModel outputs: thrust_N, torque_Nm, motorAngVel_radps, fuelRate_kgps
 add_line(modelName, [fcnName '/1'], 'ForceVecMux/1', 'autorouting', 'on');
@@ -240,13 +244,13 @@ add_line(modelName, 'PropulsionBus_Creator/1', 'PropulsionBus/1', 'autorouting',
 %% ====================================================================
 %% CONFIG SET -- see the matching comment in build_enginePropFixedwing.m.
 %% ====================================================================
-if evalin('base', "exist('standardSILConfiguraitonParams','var')") == 1
+if evalin('base', "exist('standardSILConfigurationParams','var')") == 1
     configSetRef = Simulink.ConfigSetRef;
-    configSetRef.SourceName = 'standardSILConfiguraitonParams';
+    configSetRef.SourceName = 'standardSILConfigurationParams';
     attachConfigSet(modelName, configSetRef, true);
     setActiveConfigSet(modelName, configSetRef.Name);
 else
-    warning(['standardSILConfiguraitonParams not found in base workspace -- ' ...
+    warning(['standardSILConfigurationParams not found in base workspace -- ' ...
         'leaving this model on its own local Fixed-step config. Re-run ' ...
         'attachConfigSet/setActiveConfigSet manually once it is loaded.']);
 end
