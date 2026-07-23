@@ -9,6 +9,14 @@ vehicle:
   # etc.) go into a void and every one of them times out, even though inbound telemetry/health
   # looks fine (that direction doesn't depend on this relay at all). WSL IP changes across
   # reboots -- reconfirm with `wsl hostname -I` if this stops connecting.
+  # 2026-07-23: briefly retargeted to 18580 while diagnosing a "REJ. WP CMD: partner id mismatch"
+  # mission-upload failure (the relay forwards MAVSDK's captured bytes through a different socket,
+  # which breaks PX4's waypoint-manager session/partner tracking for the stateful MISSION_COUNT/
+  # MISSION_ITEM handshake -- confirmed independent of which instance this points at). Per
+  # instruction, this relay is left unchanged/unrepaired for actual HITL use -- reverted to 18570.
+  # SITL mission upload/arm/start now goes through direct_mission_uploader.py instead, which
+  # bypasses this relay entirely with one persistent pymavlink socket. See
+  # PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md section 4.3.13/4.3.14.
   simulink_command_address: "udp://172.31.228.71:18570"
   connect_timeout_s: 180
   telemetry_timeout_s: 15
