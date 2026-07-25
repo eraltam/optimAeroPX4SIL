@@ -452,7 +452,15 @@ switch lower(setupVehicleType)
         referenceAltitude_m = 116 * ft2m;
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;
-    case "c172p"
+    case {"c172p", "c172pjsbsim"}
+        % Cessna 172P. "c172pjsbsim" (PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md) shares this case
+        % verbatim with the native "c172p" (PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) -- same
+        % real airframe, same reference lat/lon/alt, deliberately kept identical for a fair
+        % side-by-side comparison between the two plants. c172pjsbsim's own plant (JSBSim itself)
+        % integrates mass/inertia/aero internally, so aircraftInertialBody_kgm2/SRef_m2/etc below
+        % are only used for its vestigial MassPropertiesBus (diagnostics only, not real dynamics)
+        % -- see that plan's Phase C.
+        %
         % Cessna 172P (JSBSim reference aircraft) -- see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md
         % Fase A-C. Real geometry/mass/inertia/aero sourced directly from
         % jsbsim/aircraft/c172p/c172p.xml (a published, community-validated JSBSim dataset), not an
@@ -486,6 +494,21 @@ switch lower(setupVehicleType)
             "PLAN_CORRECCION_MULTIVEHICULO_SITL.md Fase 1/3. Add a case for '" + lower(setupVehicleType) + ...
             "' in this switch (or wire in vehicle/" + setupVehicleType + "/data/setUpVehicle_" + ...
             setupVehicleType + ".m if it already has real data) before re-enabling this vehicle."))
+end
+
+if strcmpi(setupVehicleType, "c172pjsbsim")
+    % c172pJSBSim's plant (JSBSim itself) does not initialize from aircraftInitialPosInNED_m at
+    % all -- it maintains its own internal state from aircraft/c172p/c172pJSBSimInit.xml, which
+    % spawns the aircraft at h-sl-ft=0 (sea level), not at this airport's real 116ft MSL elevation
+    % (see that file's own comment about the AGL-vs-MSL IC bug already fixed there).
+    % unpackJSBSimOutputs.m's aircraftPosInNED_m mirrors that: zDown_m = -h_sl_ft*ft2m, i.e. "NED
+    % origin at sea level", not referenceAltitude_m -- unlike every other (non-JSBSim) vehicle in
+    % the switch above, whose plant genuinely starts resting AT referenceAltitude_m. Leaving
+    % referenceAltitude_m at 116ft here would make terrainHeightNED_m (set from
+    % aircraftInitialPosInNED_m below, consumed as ground truth by environment/LocalTerrain.slx)
+    % disagree with where c172pJSBSim's own ground-contact model actually rests by about 35m,
+    % corrupting any AGL/rangefinder computation derived from it.
+    referenceAltitude_m = 0;
 end
 
 aircraftInitialPosInNED_m = [0, 0, -referenceAltitude_m];

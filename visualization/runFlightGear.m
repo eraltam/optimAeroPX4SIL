@@ -35,13 +35,14 @@ switch lower(vehicleParams.type)
         end
     case "hexarotor"
         options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=bigHexy  --aircraft-dir="visualization/bigHexy" --telnet=%d --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost), flightGearTelnetPort);
-    case "c172p"
+    case {"c172p", "c172pjsbsim"}
         % No custom aircraft package needed -- c172p is one of FlightGear's own stock aircraft
         % (unlike bigHexy/f16-block-52 above), and the default `options` string built above this
         % switch already targets --aircraft=c172p, so this case is just an explicit acknowledgment
-        % that "c172p" is a real, supported vehicleParams.type rather than falling through to the
-        % "Unknown vehicle" warning in `otherwise` -- see
-        % PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md §2.1.
+        % that "c172p"/"c172pJSBSim" are real, supported vehicleParams.type values rather than
+        % falling through to the "Unknown vehicle" warning in `otherwise` -- see
+        % PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md §2.1. c172pJSBSim shares the same real
+        % airframe/visual model, see PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md.
     otherwise
         warning("Unknown vehicle for display")
 end

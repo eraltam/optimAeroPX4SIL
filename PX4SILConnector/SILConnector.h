@@ -116,18 +116,25 @@ class SILConnector{
         }
 
         void read_tcp_socket(){
-            
+
+            // bytes_available() reports how much is queued in the OS socket buffer, which is
+            // unbounded from this side -- if PX4 ever gets ahead of our per-step reads (e.g. a
+            // brief stall here), that can exceed sizeof(m_tcp_buffer). Reading it straight into
+            // the fixed 1024-byte buffer without clamping was a silent out-of-bounds write.
+            // Clamp each receive() to the buffer size and loop until the socket is drained.
             auto bytes_available = m_tcp_socket.available();
-            
-            if(bytes_available){
-                
-                auto bytes_received = m_tcp_socket.receive(asio::buffer(m_tcp_buffer,bytes_available));
-                
+
+            while(bytes_available){
+
+                auto bytes_to_read = std::min<std::size_t>(bytes_available, sizeof(m_tcp_buffer));
+
+                auto bytes_received = m_tcp_socket.receive(asio::buffer(m_tcp_buffer,bytes_to_read));
+
                 if(bytes_received){
-                   
+
                     mavlink_message_t encoded_msg;
                     mavlink_status_t status;
-                    
+
                     for (auto i = 0; i < bytes_received; i++)
                     {
                         if (mavlink_parse_char(MAVLINK_COMM_0, m_tcp_buffer[i], &encoded_msg, &status))
@@ -146,6 +153,8 @@ class SILConnector{
                         }
                     }
                 }
+
+                bytes_available = m_tcp_socket.available();
             }
         }
 

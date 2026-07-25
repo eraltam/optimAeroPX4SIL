@@ -301,6 +301,11 @@ try
         % reliably resolve. Still compares against EnumF16FailureType internally, unchanged by the
         % copy -- same rationale as the fixedwing_plane branch above.
         vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
+    elseif strcmpi(vehicleParams.baseVehicleType,"c172pJSBSim")
+        % c172pJSBSim (PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md) uses
+        % vehicle/c172pJSBSim/components/failureInputReadC172pJSBSim.slx, same local-copy rationale
+        % as the c172p branch above (own folder's Model Reference, not cross-referenced).
+        vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
     end
 catch
     error("The selected failure type does not match the selected vehicle. Failure type must be an enum from " + ...
@@ -627,6 +632,10 @@ variantControls = {
         'strcmpi(vehicleParams.type, "c172p")'
     'PX4 Interface/Command Output Variaint/C172p Output Mapping', ...
         'strcmpi(vehicleParams.type, "c172p") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/c172pJSBSim', ...
+        'strcmpi(vehicleParams.type, "c172pJSBSim")'
+    'PX4 Interface/Command Output Variaint/C172pJSBSim Output Mapping', ...
+        'strcmpi(vehicleParams.type, "c172pJSBSim") & strcmpi(vehicleParams.controllerType, "PX4")'
     };
 
 for ii = 1:size(variantControls, 1)

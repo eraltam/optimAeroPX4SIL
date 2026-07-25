@@ -57,9 +57,9 @@ rtSigHierLoggingInfo , rtSigHierLoggingChildIdxs } , 0 , ( NULL ) } ; static
 rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL )
 , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 0
 } , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap ,
-rtSampleTimeMap , rtDimensionArray } , "float" , { 2048735121U , 4163694928U
-, 3508528143U , 3046437346U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0
-, rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
+rtSampleTimeMap , rtDimensionArray } , "float" , { 538330814U , 3815891806U ,
+1597399497U , 1724225697U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 ,
+rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
 hexarotor_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
 static void hexarotor_InitializeSystemRan ( d3tk5bm4nu * const kq2a4ledd0 ,

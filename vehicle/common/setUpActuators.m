@@ -308,7 +308,16 @@ switch lower(setupVehicleType)
         vehicleParams.prop.kct_nd = 3.6e-5;
         vehicleParams.prop.kcp_nd = 2.24e-6;
 
-    case "c172p"
+    case {"c172p", "c172pjsbsim"}
+        % Cessna 172P. "c172pjsbsim" (PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md) reuses
+        % actuatorsC172p.slx byte-for-byte (its own local copy, see that plan's Phase C) -- same
+        % surface deflection limits and rate-limiter/tau estimates apply verbatim; only its own
+        % packJSBSimInputs.m re-normalizes the achieved positions differently downstream, still
+        % using the same maxAilDefl_rad/maxElevatorDefl_rad/maxRudderDefl_rad values as here
+        % (currently duplicated as literals in that file per this project's established MATLAB
+        % Function block convention -- see optimAeroPX4SIL/CLAUDE.md section 3 -- keep in sync by
+        % hand if these change).
+        %
         % Cessna 172P (JSBSim reference aircraft) -- see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md
         % Fase A-C. actuatorsC172p.slx is a direct clone of F16's/fixedwing_plane's actuators.slx
         % (same servo/rate-limiter/failure-injection topology), so this case defines the exact same

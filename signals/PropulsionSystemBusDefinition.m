@@ -338,7 +338,7 @@ switch lower(vehicleType)
         PropulsionBus.PreserveElementDimensions = 0;
         PropulsionBus.Elements = elems;
         assignin('base', 'PropulsionBus', PropulsionBus);
-    case {"fixedwing_plane", "c172p"}
+    case {"fixedwing_plane", "c172p", "c172pjsbsim"}
         % Single tractor-propeller propulsion bus, same shape as F16's own PropulsionBus case
         % above (angVel_radps scalar + EngineForcesMomentsBus + fuelRate_kgps=0, electric motor)
         % -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. c172p

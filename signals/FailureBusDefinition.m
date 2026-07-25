@@ -259,7 +259,7 @@ switch lower(vehicleType)
         clear elems;
         assignin('base', 'FailureBus', FailureBus);
 
-    case {"fixedwing_plane", "c172p"}
+    case {"fixedwing_plane", "c172p", "c172pjsbsim"}
         % Mirrors FailureF16BusDefinition's field names exactly (same failureInjection subsystem
         % topology, cloned from F16's actuators.slx) -- see
         % PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. c172p

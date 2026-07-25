@@ -79,29 +79,48 @@ P_75 ; real_T P_76 ; real_T P_77 ; real_T P_78 ; real_T P_79 ; real_T P_80 ;
 real_T P_81 [ 7 ] ; real_T P_82 ; real_T P_83 ; real_T P_84 ; real_T P_85 ;
 real_T P_86 ; real_T P_87 ; real_T P_88 ; real_T P_89 ; real_T P_90 ; real_T
 P_91 ; real_T P_92 ; real_T P_93 ; real_T P_94 ; real_T P_95 ; real_T P_96 ;
-real_T P_97 ; real_T P_98 ; real_T P_99 ; uint32_T P_100 [ 2 ] ; uint8_T
-P_101 ; uint8_T P_102 ; ignwjs1yw5 gxezufcodw ; ignwjs1yw5 kf3n24jn2o ;
-o3zgyhpjji fj0c5tjfqn ; ignwjs1yw5 cp345krnyk ; ignwjs1yw5 irpvfptwfro ;
-o3zgyhpjji hcrr45luqwm ; } ; struct fu4oizcycu { struct SimStruct_tag *
-_mdlRefSfcnS ; struct { real_T mr_nonContSig0 [ 4 ] ; } NonContDerivMemory ;
-ssNonContDerivSigInfo nonContDerivSignal [ 1 ] ; const rtTimingBridge *
-timingBridge ; struct { rtwCAPI_ModelMappingInfo mmi ;
-rtwCAPI_ModelMapLoggingInstanceInfo mmiLogInstanceInfo ; void * dataAddress [
-14 ] ; int32_T * vardimsAddress [ 14 ] ; RTWLoggingFcnPtr loggingPtrs [ 14 ]
-; sysRanDType * systemRan [ 22 ] ; int_T systemTid [ 22 ] ; } DataMapInfo ;
-struct { int_T mdlref_GlobalTID [ 4 ] ; time_T tStart ; } Timing ; } ;
-typedef struct { edb0zhmkiu rtb ; ia44hvjo5y rtdw ; eyx3wv2dh2 rtm ; }
-pp2a15jtu4d ; extern real_T rtP_gustAmplitude_mps [ 3 ] ; extern real_T
-rtP_gustDuration_sec ; extern real_T rtP_gustLength_m [ 3 ] ; extern real_T
-rtP_gustStartTime_sec ; extern real_T rtP_turbulenceEndTime_sec ; extern
-real_T rtP_turbulenceMinAirspeed_mps ; extern real_T
-rtP_turbulenceStartTime_sec ; extern real_T rtP_turbulenceWingspan_m ; extern
-real_T rtP_xWindInNED_mps ; extern real_T rtP_yWindInNED_mps ; extern real_T
-rtP_zWindInNED_mps ; extern boolean_T rtP_gustEnabled ; extern boolean_T
-rtP_turbulenceEnabled ; extern void d10mathqwe ( SimStruct * _mdlRefSfcnS ,
-int_T mdlref_TID0 , int_T mdlref_TID1 , int_T mdlref_TID2 , int_T mdlref_TID3
-, eyx3wv2dh2 * const nvfdhrszo5 , edb0zhmkiu * localB , ia44hvjo5y * localDW
-, pjetdmxrlz * localX , void * sysRanPtr , int_T contextTid ,
-rtwCAPI_ModelMappingInfo * rt_ParentMMI , const char_T * rt_ChildPath , int_T
-rt_ChildMMIIdx , int_T rt_CSTATEIdx ) ; extern void mr_Air_MdlInfoRegFcn ( SimStruct * mdlRefSfcnS , char_T * modelName , int_T * retVal ) ; extern mxArray * mr_Air_GetDWork ( const pp2a15jtu4d * mdlrefDW ) ; extern void mr_Air_SetDWork ( pp2a15jtu4d * mdlrefDW , const mxArray * ssDW ) ; extern void mr_Air_RegisterSimStateChecksum ( SimStruct * S ) ; extern mxArray * mr_Air_GetSimStateDisallowedBlocks ( ) ; extern const rtwCAPI_ModelMappingStaticInfo * Air_GetCAPIStaticMap ( void ) ; extern void lsqh1j1amb ( pmjpmc3xj2 * localB , o3zgyhpjji * localP , gn2pgumz4h * localX ) ; extern void pl2xgzuyfd ( o3zgyhpjji * localP , gn2pgumz4h * localX ) ; extern void amveagwvyn ( real_T czrclaik1u , real_T b23oompyom , j5szacujht * localDW , o3zgyhpjji * localP , gn2pgumz4h * localX , hv54u51ltk * localXdot ) ; extern void mopdqyjpbc ( j5szacujht * localDW ) ; extern void hcrr45luqw ( eyx3wv2dh2 * const nvfdhrszo5 , boolean_T ggklh3z2e5 , real_T b23oompyom , pmjpmc3xj2 * localB , j5szacujht * localDW , o3zgyhpjji * localP , gn2pgumz4h * localX , lvznggwtdn * localXdis ) ; extern void kaeal31bei ( bcefbm1m2y * localB , ignwjs1yw5 * localP , bg0la130cf * localX ) ; extern void oah2qsrspg ( ignwjs1yw5 * localP , bg0la130cf * localX ) ; extern void in4kdo4fii ( real_T ovv5s253qy , real_T dsnwu1p50a , kypgzv2ykp * localDW , ignwjs1yw5 * localP , bg0la130cf * localX , ilzcqndi0y * localXdot ) ; extern void pd4cmxxlkm ( kypgzv2ykp * localDW ) ; extern void irpvfptwfr ( eyx3wv2dh2 * const nvfdhrszo5 , boolean_T n4jhdk1xsx , real_T dsnwu1p50a , bcefbm1m2y * localB , kypgzv2ykp * localDW , ignwjs1yw5 * localP , bg0la130cf * localX , pefpairmhu * localXdis ) ; extern void eml2bfmjzs ( real_T kmwa5g154p [ 3 ] , real_T blvg3sdhhh [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX ) ; extern void jgoqiwhsgd ( ia44hvjo5y * localDW ) ; extern void nbxqyvr5xm ( edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX , jshtpncyk1 * localXdot ) ; extern void lpjxqqjfle ( eyx3wv2dh2 * const nvfdhrszo5 , edb0zhmkiu * localB , ia44hvjo5y * localDW ) ; extern void hqhjziniu5 ( eyx3wv2dh2 * const nvfdhrszo5 , ia44hvjo5y * localDW ) ; extern void Air ( eyx3wv2dh2 * const nvfdhrszo5 , const real_T eg3sbfk44u [ 3 ] , const real_T doffi3prbl [ 3 ] , const real_T cpujxkpeof [ 9 ] , real_T * at5chrxe5y , real_T * fvlq0ypg1x , real_T * mz3d45gzwh , real_T gmsahj4sto [ 3 ] , real_T * c0ld11rjm1 , real_T kmwa5g154p [ 3 ] , real_T blvg3sdhhh [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX , f5nf4hs4w3 * localXdis ) ; extern void AirTID3 ( eyx3wv2dh2 * const nvfdhrszo5 , real_T g3egqkr3qt [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW ) ; extern void f0nfjjh25d ( eyx3wv2dh2 * const nvfdhrszo5 ) ;
+real_T P_97 ; real_T P_98 ; real_T P_99 ; real_T P_100 ; real_T P_101 ;
+real_T P_102 ; real_T P_103 ; uint32_T P_104 [ 2 ] ; uint8_T P_105 ; uint8_T
+P_106 ; ignwjs1yw5 gxezufcodw ; ignwjs1yw5 kf3n24jn2o ; o3zgyhpjji fj0c5tjfqn
+; ignwjs1yw5 cp345krnyk ; ignwjs1yw5 irpvfptwfro ; o3zgyhpjji hcrr45luqwm ; }
+; struct fu4oizcycu { struct SimStruct_tag * _mdlRefSfcnS ; struct { real_T
+mr_nonContSig0 [ 4 ] ; } NonContDerivMemory ; ssNonContDerivSigInfo
+nonContDerivSignal [ 1 ] ; const rtTimingBridge * timingBridge ; struct {
+rtwCAPI_ModelMappingInfo mmi ; rtwCAPI_ModelMapLoggingInstanceInfo
+mmiLogInstanceInfo ; void * dataAddress [ 14 ] ; int32_T * vardimsAddress [
+14 ] ; RTWLoggingFcnPtr loggingPtrs [ 14 ] ; sysRanDType * systemRan [ 22 ] ;
+int_T systemTid [ 22 ] ; } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 4
+] ; time_T tStart ; } Timing ; } ; typedef struct { edb0zhmkiu rtb ;
+ia44hvjo5y rtdw ; eyx3wv2dh2 rtm ; } pp2a15jtu4d ; extern real_T
+rtP_gustAmplitude_mps [ 3 ] ; extern real_T rtP_gustDuration_sec ; extern
+real_T rtP_gustLength_m [ 3 ] ; extern real_T rtP_gustStartTime_sec ; extern
+real_T rtP_turbulenceEndTime_sec ; extern real_T
+rtP_turbulenceMinAirspeed_mps ; extern real_T rtP_turbulenceStartTime_sec ;
+extern real_T rtP_turbulenceWingspan_m ; extern real_T rtP_xWindInNED_mps ;
+extern real_T rtP_yWindInNED_mps ; extern real_T rtP_zWindInNED_mps ; extern
+boolean_T rtP_gustEnabled ; extern boolean_T rtP_turbulenceEnabled ; extern
+void d10mathqwe ( SimStruct * _mdlRefSfcnS , int_T mdlref_TID0 , int_T
+mdlref_TID1 , int_T mdlref_TID2 , int_T mdlref_TID3 , eyx3wv2dh2 * const
+nvfdhrszo5 , edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX
+, void * sysRanPtr , int_T contextTid , rtwCAPI_ModelMappingInfo *
+rt_ParentMMI , const char_T * rt_ChildPath , int_T rt_ChildMMIIdx , int_T
+rt_CSTATEIdx ) ; extern void mr_Air_MdlInfoRegFcn ( SimStruct * mdlRefSfcnS ,
+char_T * modelName , int_T * retVal ) ; extern mxArray * mr_Air_GetDWork ( const
+pp2a15jtu4d * mdlrefDW ) ; extern void mr_Air_SetDWork ( pp2a15jtu4d *
+mdlrefDW , const mxArray * ssDW ) ; extern void
+mr_Air_RegisterSimStateChecksum ( SimStruct * S ) ; extern mxArray *
+mr_Air_GetSimStateDisallowedBlocks ( ) ; extern const
+rtwCAPI_ModelMappingStaticInfo * Air_GetCAPIStaticMap ( void ) ; extern void
+lsqh1j1amb ( pmjpmc3xj2 * localB , o3zgyhpjji * localP , gn2pgumz4h * localX
+) ; extern void pl2xgzuyfd ( o3zgyhpjji * localP , gn2pgumz4h * localX ) ;
+extern void amveagwvyn ( real_T czrclaik1u , real_T b23oompyom , j5szacujht *
+localDW , o3zgyhpjji * localP , gn2pgumz4h * localX , hv54u51ltk * localXdot
+) ; extern void mopdqyjpbc ( j5szacujht * localDW ) ; extern void hcrr45luqw
+( eyx3wv2dh2 * const nvfdhrszo5 , boolean_T ggklh3z2e5 , real_T b23oompyom ,
+pmjpmc3xj2 * localB , j5szacujht * localDW , o3zgyhpjji * localP , gn2pgumz4h
+* localX , lvznggwtdn * localXdis ) ; extern void kaeal31bei ( bcefbm1m2y *
+localB , ignwjs1yw5 * localP , bg0la130cf * localX ) ; extern void oah2qsrspg
+( ignwjs1yw5 * localP , bg0la130cf * localX ) ; extern void in4kdo4fii ( real_T
+ovv5s253qy , real_T dsnwu1p50a , kypgzv2ykp * localDW , ignwjs1yw5 * localP ,
+bg0la130cf * localX , ilzcqndi0y * localXdot ) ; extern void pd4cmxxlkm ( kypgzv2ykp * localDW ) ; extern void irpvfptwfr ( eyx3wv2dh2 * const nvfdhrszo5 , boolean_T n4jhdk1xsx , real_T dsnwu1p50a , bcefbm1m2y * localB , kypgzv2ykp * localDW , ignwjs1yw5 * localP , bg0la130cf * localX , pefpairmhu * localXdis ) ; extern void eml2bfmjzs ( real_T kmwa5g154p [ 3 ] , real_T blvg3sdhhh [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX ) ; extern void jgoqiwhsgd ( ia44hvjo5y * localDW ) ; extern void nbxqyvr5xm ( edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX , jshtpncyk1 * localXdot ) ; extern void lpjxqqjfle ( eyx3wv2dh2 * const nvfdhrszo5 , edb0zhmkiu * localB , ia44hvjo5y * localDW ) ; extern void hqhjziniu5 ( eyx3wv2dh2 * const nvfdhrszo5 , ia44hvjo5y * localDW ) ; extern void Air ( eyx3wv2dh2 * const nvfdhrszo5 , const real_T eg3sbfk44u [ 3 ] , const real_T doffi3prbl [ 3 ] , const real_T cpujxkpeof [ 9 ] , real_T * at5chrxe5y , real_T * fvlq0ypg1x , real_T * mz3d45gzwh , real_T gmsahj4sto [ 3 ] , real_T * c0ld11rjm1 , real_T kmwa5g154p [ 3 ] , real_T blvg3sdhhh [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW , pjetdmxrlz * localX , f5nf4hs4w3 * localXdis ) ; extern void AirTID3 ( eyx3wv2dh2 * const nvfdhrszo5 , real_T g3egqkr3qt [ 3 ] , edb0zhmkiu * localB , ia44hvjo5y * localDW ) ; extern void f0nfjjh25d ( eyx3wv2dh2 * const nvfdhrszo5 ) ;
 #endif

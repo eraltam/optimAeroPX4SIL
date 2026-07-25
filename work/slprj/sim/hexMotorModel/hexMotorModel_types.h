@@ -37,16 +37,19 @@ AirEnvironment ; TerrainEnvironmentBus TerrainEnvironment ; } EnvironmentBus
 #ifndef DEFINED_TYPEDEF_FOR_FailureBus_
 #define DEFINED_TYPEDEF_FOR_FailureBus_
 typedef struct { boolean_T rotorFailure1_nd ; boolean_T rotorFailure2_nd ;
-uint8_T sl_padding0 [ 6 ] ; } FailureBus ;
+boolean_T rotorFailure3_nd ; boolean_T rotorFailure4_nd ; boolean_T
+rotorFailure5_nd ; boolean_T rotorFailure6_nd ; uint8_T sl_padding0 [ 2 ] ; }
+FailureBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_MotorCommandHexBus_
 #define DEFINED_TYPEDEF_FOR_MotorCommandHexBus_
-typedef struct { real_T cmdRotor1_nd ; real_T cmdRotor2_nd ; }
-MotorCommandHexBus ;
+typedef struct { real_T cmdRotor1_nd ; real_T cmdRotor2_nd ; real_T
+cmdRotor3_nd ; real_T cmdRotor4_nd ; real_T cmdRotor5_nd ; real_T
+cmdRotor6_nd ; } MotorCommandHexBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_PropulsionBus_
 #define DEFINED_TYPEDEF_FOR_PropulsionBus_
-typedef struct { real_T rotorAngVel_radps [ 2 ] ; ComponentForcesMomentsBus
+typedef struct { real_T rotorAngVel_radps [ 6 ] ; ComponentForcesMomentsBus
 EngineForcesMomentsBus ; } PropulsionBus ;
 #endif
 #ifndef SS_UINT64

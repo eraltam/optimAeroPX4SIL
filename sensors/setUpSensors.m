@@ -2,7 +2,6 @@
 % GPS data used in the simulation
 parameters.gps.vertPositionAccuracy_m = 40;
 parameters.gps.horzPositionAccuracy_m = 30;
-parameters.gps.vertPositionAccuracy_m = 0;
 parameters.gps.velocityAccuracy_mps = 0.05;
 parameters.gps.decayFactor_nd = 0.999; % 0 -> white noise, 1 -> random walk
 

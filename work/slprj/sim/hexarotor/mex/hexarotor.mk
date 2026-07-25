@@ -1,9 +1,9 @@
-###########################################################################
+﻿###########################################################################
 ## Makefile generated for component 'hexarotor'. 
 ## 
 ## Makefile     : hexarotor.mk
-## Generated on : Tue Jul 14 13:26:20 2026
-## Final product: $(RELATIVE_PATH_TO_ANCHOR)/hexarotor_msf.mexw64
+## Generated on : Thu Jul 23 13:08:51 2026
+## Final product: $(RELATIVE_PATH_TO_ANCHOR)\hexarotor_msf.mexw64
 ## Product type : shared library
 ## 
 ###########################################################################
@@ -22,29 +22,30 @@
 
 PRODUCT_NAME              = hexarotor
 MAKEFILE                  = hexarotor.mk
-MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
-MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
-MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/SITL/AnelloSummer/optimAeroPX4SIL/work
+MATLAB_ROOT               = C:\PROGRA~1\MATLAB\R2026a
+MATLAB_BIN                = C:\PROGRA~1\MATLAB\R2026a\bin
+MATLAB_ARCH_BIN           = $(MATLAB_BIN)\win64
+START_DIR                 = C:\SITL\AnelloSummer\optimAeroPX4SIL\work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
 TGT_FCN_LIB               = ISO_C
 MODEL_HAS_DYNAMICALLY_LOADED_SFCNS = 0
-RELATIVE_PATH_TO_ANCHOR   = ../../../..
+RELATIVE_PATH_TO_ANCHOR   = ..\..\..\..
 MODELREF_LINK_RSPFILE     = hexarotor_ref.rsp
 COMPILER_COMMAND_FILE     = hexarotor_comp.rsp
 CMD_FILE                  = hexarotor.rsp
 DEF_FILE                  = $(PRODUCT_NAME).def
-C_STANDARD_OPTS           = -fwrapv
-CPP_STANDARD_OPTS         = -fwrapv
+C_STANDARD_OPTS           = 
+CPP_STANDARD_OPTS         = 
+NODEBUG                   = 1
 
 ###########################################################################
 ## TOOLCHAIN SPECIFICATIONS
 ###########################################################################
 
-# Toolchain Name:          MinGW64 | gmake (64-bit Windows)
-# Supported Version(s):    14.x
+# Toolchain Name:          Microsoft Visual C++ 2022 v17.0 | nmake (64-bit Windows)
+# Supported Version(s):    17.0
 # ToolchainInfo Version:   2026a
 # Specification Revision:  1.0
 # 
@@ -54,64 +55,53 @@ CPP_STANDARD_OPTS         = -fwrapv
 
 # C_STANDARD_OPTS
 # CPP_STANDARD_OPTS
-# MINGW_ROOT
-# MINGW_C_STANDARD_OPTS
+# NODEBUG
+# cvarsdll
+# cvarsmt
+# conlibsmt
+# ldebug
+# conflags
+# cflags
 
 #-----------
 # MACROS
 #-----------
 
-WARN_FLAGS            = -Wall -W -Wwrite-strings -Winline -Wstrict-prototypes -Wnested-externs -Wpointer-arith -Wcast-align -Wno-stringop-overflow
-WARN_FLAGS_MAX        = $(WARN_FLAGS) -Wcast-qual -Wshadow
-CPP_WARN_FLAGS        = -Wall -W -Wwrite-strings -Winline -Wpointer-arith -Wcast-align -Wno-stringop-overflow
-CPP_WARN_FLAGS_MAX    = $(CPP_WARN_FLAGS) -Wcast-qual -Wshadow
-MW_EXTERNLIB_DIR      = $(MATLAB_ROOT)/extern/lib/win64/mingw64
-SHELL                 = %SystemRoot%/system32/cmd.exe
+MW_EXTERNLIB_DIR    = $(MATLAB_ROOT)\extern\lib\win64\microsoft
+MW_LIB_DIR          = $(MATLAB_ROOT)\lib\win64
+CPU                 = AMD64
+APPVER              = 5.02
+CVARSFLAG           = $(cvarsmt)
+CFLAGS_ADDITIONAL   = -D_CRT_SECURE_NO_WARNINGS
+CPPFLAGS_ADDITIONAL = -EHs -D_CRT_SECURE_NO_WARNINGS /wd4251 /Zc:__cplusplus
+LIBS_TOOLCHAIN      = $(conlibs)
 
 TOOLCHAIN_SRCS = 
 TOOLCHAIN_INCS = 
-TOOLCHAIN_LIBS = -lws2_32
-
-FORMAT_FOR_ECHO_CMD              = $(strip $(subst >,^>,\
-	$(subst <,^<,\
-	$(subst |,^|,\
-	$(subst &,^&,\
-	$(subst ",^",\
-	$(subst ^,^^,\
-	$1)))))))
-FORMAT_FOR_ECHO                  = $(FORMAT_FOR_ECHO_CMD)
-HASH                             = \#
-SEMICOLON                        = ;
-UNESCAPE_SEMICOLONS              = $(subst \;,;,$1)
-ADD_QUOTES                       = $(foreach aPath,$1,"$(aPath)")
+TOOLCHAIN_LIBS = 
 
 #------------------------
 # BUILD TOOL COMMANDS
 #------------------------
 
-# C Compiler: GNU C Compiler
-CC_PATH = $(MINGW_ROOT)
-CC = "$(CC_PATH)/gcc"
+# C Compiler: Microsoft Visual C Compiler
+CC = cl
 
-# Linker: GNU Linker
-LD_PATH = $(MINGW_ROOT)
-LD = "$(LD_PATH)/g++"
+# Linker: Microsoft Visual C Linker
+LD = link
 
-# C++ Compiler: GNU C++ Compiler
-CPP_PATH = $(MINGW_ROOT)
-CPP = "$(CPP_PATH)/g++"
+# C++ Compiler: Microsoft Visual C++ Compiler
+CPP = cl
 
-# C++ Linker: GNU C++ Linker
-CPP_LD_PATH = $(MINGW_ROOT)
-CPP_LD = "$(CPP_LD_PATH)/g++"
+# C++ Linker: Microsoft Visual C++ Linker
+CPP_LD = link
 
-# Archiver: GNU Archiver
-AR_PATH = $(MINGW_ROOT)
-AR = "$(AR_PATH)/ar"
+# Archiver: Microsoft Visual C/C++ Archiver
+AR = lib
 
 # MEX Tool: MEX Tool
 MEX_PATH = $(MATLAB_ARCH_BIN)
-MEX = "$(MEX_PATH)/mex"
+MEX = "$(MEX_PATH)\mex"
 
 # Download: Download
 DOWNLOAD =
@@ -119,59 +109,70 @@ DOWNLOAD =
 # Execute: Execute
 EXECUTE = $(PRODUCT)
 
-# Builder: GMAKE Utility
-MAKE_PATH = $(MINGW_ROOT)
-MAKE = "$(MAKE_PATH)/mingw32-make.exe"
+# Builder: NMAKE Utility
+MAKE = nmake
 
 
 #-------------------------
 # Directives/Utilities
 #-------------------------
 
-CDEBUG              = -g
-C_OUTPUT_FLAG       = -o
-LDDEBUG             = -g
-OUTPUT_FLAG         = -o
-CPPDEBUG            = -g
-CPP_OUTPUT_FLAG     = -o
-CPPLDDEBUG          = -g
-OUTPUT_FLAG         = -o
+CDEBUG              = -Z7
+C_OUTPUT_FLAG       = -Fo
+LDDEBUG             = /DEBUG
+OUTPUT_FLAG         = -out:
+CPPDEBUG            = -Z7
+CPP_OUTPUT_FLAG     = -Fo
+CPPLDDEBUG          = /DEBUG
+OUTPUT_FLAG         = -out:
 ARDEBUG             =
-STATICLIB_OUTPUT_FLAG =
+STATICLIB_OUTPUT_FLAG = -out:
 MEX_DEBUG           = -g
 RM                  = @del
 ECHO                = @echo
-MV                  = @move
-RUN                 =
+MV                  = @ren
+RUN                 = @cmd /C
 
 #----------------------------------------
 # "Faster Builds" Build Configuration
 #----------------------------------------
 
-ARFLAGS              = ruvs
-CFLAGS               = -c $(MINGW_C_STANDARD_OPTS) -m64 -Wno-error=incompatible-pointer-types -Wno-error=stringop-overflow \
-                       -O0
-CPPFLAGS             = -c $(CPP_STANDARD_OPTS) -m64 -Wno-error=incompatible-pointer-types -Wno-error=stringop-overflow \
-                       -O0
-CPP_LDFLAGS          =  -static -m64
-CPP_SHAREDLIB_LDFLAGS  = -shared -Wl,--no-undefined
-DOWNLOAD_FLAGS       =
-EXECUTE_FLAGS        =
-LDFLAGS              =  -static -m64
 MEX_CPPFLAGS         =
 MEX_CPPLDFLAGS       =
 MEX_CFLAGS           =
 MEX_LDFLAGS          =
-MAKE_FLAGS           = -j $(MAX_MAKE_JOBS) -l $(MAX_MAKE_LOAD_AVG) -Oline -f $(MAKEFILE)
-SHAREDLIB_LDFLAGS    = -shared -Wl,--no-undefined
 
 
+
+#---------------------------
+# Model-Specific Options
+#---------------------------
+
+CFLAGS = $(cflags) $(cvarsdll) $(CFLAGS_ADDITIONAL) $(C_STANDARD_OPTS) /Od /Oy-
+
+LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN)
+
+SHAREDLIB_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN) -dll -def:$(DEF_FILE)
+
+CPPFLAGS = /TP $(cflags) $(cvarsdll) $(CPPFLAGS_ADDITIONAL) $(CPP_STANDARD_OPTS) /Od /Oy-
+
+CPP_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN)
+
+CPP_SHAREDLIB_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN) -dll -def:$(DEF_FILE)
+
+ARFLAGS = /nologo
+
+DOWNLOAD_FLAGS = 
+
+EXECUTE_FLAGS = 
+
+MAKE_FLAGS = -f $(MAKEFILE)
 
 ###########################################################################
 ## OUTPUT INFO
 ###########################################################################
 
-PRODUCT = $(RELATIVE_PATH_TO_ANCHOR)/hexarotor_msf.mexw64
+PRODUCT = $(RELATIVE_PATH_TO_ANCHOR)\hexarotor_msf.mexw64
 PRODUCT_TYPE = "shared library"
 BUILD_TYPE = "Shared Library Target"
 
@@ -199,7 +200,7 @@ DEFINES = $(DEFINES_) $(DEFINES_BUILD_ARGS) $(DEFINES_CUSTOM) $(DEFINES_OPTS) $(
 ## SOURCE FILES
 ###########################################################################
 
-SRCS = $(START_DIR)/slprj/sim/hexarotor/hexarotor_msf.c $(MATLAB_ROOT)/extern/version/c_mexapi_version.c
+SRCS = $(START_DIR)\slprj\sim\hexarotor\hexarotor_msf.c $(MATLAB_ROOT)\extern\version\c_mexapi_version.c
 
 ALL_SRCS = $(SRCS)
 
@@ -221,15 +222,15 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexarotor/hexarotorlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/cgMassInertia/cgMassInertialib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/gravity/gravitylib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexActuator/hexActuatorlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexMotorModel/hexMotorModellib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAddFm/hexAddFmlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/hexGroundContact/hexGroundContactlib.lib C:/SITL/AnelloSummer/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib
+MODELREF_LIBS = C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexarotor\hexarotorlib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\cgMassInertia\cgMassInertialib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\gravity\gravitylib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexActuator\hexActuatorlib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexMotorModel\hexMotorModellib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexAddFm\hexAddFmlib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexAero\hexAerolib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexAeroCoefficientsModel\hexAeroCoefficientsModellib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\hexGroundContact\hexGroundContactlib.lib C:\SITL\AnelloSummer\optimAeroPX4SIL\work\slprj\sim\inertialDynamics\inertialDynamicslib.lib
 
-LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
+LIBS = $(START_DIR)\slprj\sim\_sharedutils\rtwshared.lib
 
 ###########################################################################
 ## SYSTEM LIBRARIES
 ###########################################################################
 
-SYSTEM_LIBS = -L"$(MATLAB_ROOT)/extern/lib/win64/mingw64" -L"C:/Program Files/MATLAB/R2026a/extern/lib/win64/mingw64" -llibmwipp -llibfixedpoint -llibmwmathutil -llibmwsl_AsyncioQueue -lsf_runtime -llibmwslexec_simlog -llibmwcoder_ToAsyncQueueTgtAppSvc -llibmwsl_simtarget_instrumentation -llibmwsl_simtarget_core -llibmwstringutil -llibemlrt -llibmx -llibmex
+SYSTEM_LIBS = /LIBPATH:"$(MATLAB_ROOT)\extern\lib\win64\microsoft" "$(MW_LIB_DIR)\libmwipp.lib" "$(MW_EXTERNLIB_DIR)\libmwipp.lib" "$(MW_EXTERNLIB_DIR)\libfixedpoint.lib" "$(MW_EXTERNLIB_DIR)\libmwmathutil.lib" "$(MW_EXTERNLIB_DIR)\libmwsl_AsyncioQueue.lib" "$(MW_EXTERNLIB_DIR)\sf_runtime.lib" "$(MW_EXTERNLIB_DIR)\libmwslexec_simlog.lib" "$(MW_EXTERNLIB_DIR)\libmwcoder_ToAsyncQueueTgtAppSvc.lib" "$(MW_EXTERNLIB_DIR)\libmwsl_simtarget_instrumentation.lib" "$(MW_EXTERNLIB_DIR)\libmwsl_simtarget_core.lib" "$(MW_EXTERNLIB_DIR)\libmwstringutil.lib" "$(MW_EXTERNLIB_DIR)\libemlrt.lib" "$(MW_EXTERNLIB_DIR)\libmx.lib" "$(MW_EXTERNLIB_DIR)\libmex.lib"
 
 ###########################################################################
 ## ADDITIONAL TOOLCHAIN FLAGS
@@ -239,88 +240,72 @@ SYSTEM_LIBS = -L"$(MATLAB_ROOT)/extern/lib/win64/mingw64" -L"C:/Program Files/MA
 # C Compiler
 #---------------
 
-CFLAGS_TFL = -msse2 -fno-predictive-commoning
-CFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
+CFLAGS_ = /wd4701 /wd4100 /wd4189 /wd4090 /wd4505
+CFLAGS_BASIC = $(DEFINES) @$(COMPILER_COMMAND_FILE)
 
-CFLAGS += $(CFLAGS_TFL) $(CFLAGS_BASIC)
-
-#-----------------
-# C++ Compiler
-#-----------------
-
-CPPFLAGS_TFL = -msse2 -fno-predictive-commoning
-CPPFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
-
-CPPFLAGS += $(CPPFLAGS_TFL) $(CPPFLAGS_BASIC)
-
-#---------------
-# C++ Linker
-#---------------
-
-CPP_LDFLAGS_ = -static -Wl,"$(MATLAB_ROOT)/extern/lib/win64/mingw64/exportsmexfileversion.def"
-
-CPP_LDFLAGS += $(CPP_LDFLAGS_)
-
-#------------------------------
-# C++ Shared Library Linker
-#------------------------------
-
-CPP_SHAREDLIB_LDFLAGS_ = -static -Wl,"$(MATLAB_ROOT)/extern/lib/win64/mingw64/exportsmexfileversion.def"
-
-CPP_SHAREDLIB_LDFLAGS += $(CPP_SHAREDLIB_LDFLAGS_)
+CFLAGS = $(CFLAGS) $(CFLAGS_) $(CFLAGS_BASIC)
 
 #-----------
 # Linker
 #-----------
 
-LDFLAGS_ = -static -Wl,"$(MATLAB_ROOT)/extern/lib/win64/mingw64/exportsmexfileversion.def"
+LDFLAGS_ = /IMPLIB:hexarotor_msf.lib /EXPORT:mexFunction /EXPORT:mexfilerequiredapiversion
 
-LDFLAGS += $(LDFLAGS_)
-
-#---------------------
-# MEX C++ Compiler
-#---------------------
-
-MEX_CPP_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
-
-MEX_CPPFLAGS += $(MEX_CPP_Compiler_BASIC)
-
-#-----------------
-# MEX Compiler
-#-----------------
-
-MEX_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
-
-MEX_CFLAGS += $(MEX_Compiler_BASIC)
+LDFLAGS = $(LDFLAGS) $(LDFLAGS_)
 
 #--------------------------
 # Shared Library Linker
 #--------------------------
 
-SHAREDLIB_LDFLAGS_ = -static -Wl,"$(MATLAB_ROOT)/extern/lib/win64/mingw64/exportsmexfileversion.def"
+SHAREDLIB_LDFLAGS_ = /IMPLIB:hexarotor_msf.lib /EXPORT:mexFunction /EXPORT:mexfilerequiredapiversion
 
-SHAREDLIB_LDFLAGS += $(SHAREDLIB_LDFLAGS_)
+SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS) $(SHAREDLIB_LDFLAGS_)
+
+#-----------------
+# C++ Compiler
+#-----------------
+
+CPPFLAGS_ = /wd4701 /wd4100 /wd4189 /wd4090 /wd4505
+CPPFLAGS_BASIC = $(DEFINES) @$(COMPILER_COMMAND_FILE)
+
+CPPFLAGS = $(CPPFLAGS) $(CPPFLAGS_) $(CPPFLAGS_BASIC)
+
+#---------------
+# C++ Linker
+#---------------
+
+CPP_LDFLAGS_ = /IMPLIB:hexarotor_msf.lib /EXPORT:mexFunction /EXPORT:mexfilerequiredapiversion
+
+CPP_LDFLAGS = $(CPP_LDFLAGS) $(CPP_LDFLAGS_)
+
+#------------------------------
+# C++ Shared Library Linker
+#------------------------------
+
+CPP_SHAREDLIB_LDFLAGS_ = /IMPLIB:hexarotor_msf.lib /EXPORT:mexFunction /EXPORT:mexfilerequiredapiversion
+
+CPP_SHAREDLIB_LDFLAGS = $(CPP_SHAREDLIB_LDFLAGS) $(CPP_SHAREDLIB_LDFLAGS_)
 
 ###########################################################################
 ## INLINED COMMANDS
 ###########################################################################
 
 
-MINGW_C_STANDARD_OPTS = $(C_STANDARD_OPTS)
+!include $(MATLAB_ROOT)\rtw\c\tools\vcdefs.mak
 
 
 ###########################################################################
 ## PHONY TARGETS
 ###########################################################################
 
-.PHONY : all build clean info prebuild download execute
+.PHONY : all build clean info prebuild download execute set_environment_variables
 
 
 all : build
-	@echo $(call FORMAT_FOR_ECHO,### Successfully generated all binary outputs.)
+	@cmd /C @echo ### Successfully generated all binary outputs.
 
 
-build : prebuild $(PRODUCT)
+build : set_environment_variables prebuild $(PRODUCT)
 
 
 prebuild : 
@@ -332,6 +317,11 @@ download : $(PRODUCT)
 execute : download
 
 
+set_environment_variables : 
+	@set INCLUDE=$(INCLUDES);$(INCLUDE)
+	@set LIB=$(LIB)
+
+
 ###########################################################################
 ## FINAL TARGET
 ###########################################################################
@@ -341,9 +331,9 @@ execute : download
 #----------------------------------------
 
 $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS) $(MODELREF_LIBS) $(LIBS)
-	@echo $(call FORMAT_FOR_ECHO,### Creating shared library "$(PRODUCT)" ...)
-	$(LD) $(SHAREDLIB_LDFLAGS) -o $(PRODUCT) @$(CMD_FILE) -Wl,--start-group @$(MODELREF_LINK_RSPFILE) $(LIBS) $(SYSTEM_LIBS) $(TOOLCHAIN_LIBS) -Wl,--end-group
-	@echo $(call FORMAT_FOR_ECHO,### Created: "$(PRODUCT)")
+	@cmd /C @echo ### Creating shared library "$(PRODUCT)" ...
+	$(LD) $(SHAREDLIB_LDFLAGS) -out:$(PRODUCT) @$(CMD_FILE) @$(MODELREF_LINK_RSPFILE) $(LIBS) $(SYSTEM_LIBS) $(TOOLCHAIN_LIBS)
+	@cmd /C @echo ### Created: "$(PRODUCT)"
 
 
 ###########################################################################
@@ -354,76 +344,44 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS) $(MODELREF_LIBS) $(LIBS)
 # SOURCE-TO-OBJECT
 #---------------------
 
-%.obj : %.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
+.c.obj:
+	$(CC) $(CFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.cpp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+.cpp.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+.cc.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.cp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+.cxx.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+{$(RELATIVE_PATH_TO_ANCHOR)}.c.obj:
+	$(CC) $(CFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.CPP
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+{$(RELATIVE_PATH_TO_ANCHOR)}.cpp.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.c++
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+{$(RELATIVE_PATH_TO_ANCHOR)}.cc.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : %.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+{$(RELATIVE_PATH_TO_ANCHOR)}.cxx.obj:
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
+hexarotor_msf.obj : "$(START_DIR)\slprj\sim\hexarotor\hexarotor_msf.c"
+	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\hexarotor\hexarotor_msf.c"
 
 
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cpp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.CPP
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c++
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-hexarotor_msf.obj : $(START_DIR)/slprj/sim/hexarotor/hexarotor_msf.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
-
-
-c_mexapi_version.obj : $(MATLAB_ROOT)/extern/version/c_mexapi_version.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
+c_mexapi_version.obj : "$(MATLAB_ROOT)\extern\version\c_mexapi_version.c"
+	$(CC) $(CFLAGS) -Fo"$@" "$(MATLAB_ROOT)\extern\version\c_mexapi_version.c"
 
 
 ###########################################################################
@@ -438,37 +396,37 @@ $(ALL_OBJS) : $(COMPILER_COMMAND_FILE) $(MAKEFILE)
 ###########################################################################
 
 info : 
-	@echo $(call FORMAT_FOR_ECHO,### PRODUCT = $(PRODUCT))
-	@echo $(call FORMAT_FOR_ECHO,### PRODUCT_TYPE = $(PRODUCT_TYPE))
-	@echo $(call FORMAT_FOR_ECHO,### BUILD_TYPE = $(BUILD_TYPE))
-	@echo $(call FORMAT_FOR_ECHO,### INCLUDES = $(INCLUDES))
-	@echo $(call FORMAT_FOR_ECHO,### DEFINES = $(DEFINES))
-	@echo $(call FORMAT_FOR_ECHO,### ALL_SRCS = $(ALL_SRCS))
-	@echo $(call FORMAT_FOR_ECHO,### ALL_OBJS = $(ALL_OBJS))
-	@echo $(call FORMAT_FOR_ECHO,### LIBS = $(LIBS))
-	@echo $(call FORMAT_FOR_ECHO,### MODELREF_LIBS = $(MODELREF_LIBS))
-	@echo $(call FORMAT_FOR_ECHO,### SYSTEM_LIBS = $(SYSTEM_LIBS))
-	@echo $(call FORMAT_FOR_ECHO,### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS))
-	@echo $(call FORMAT_FOR_ECHO,### CFLAGS = $(CFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### LDFLAGS = $(LDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### CPPFLAGS = $(CPPFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### CPP_LDFLAGS = $(CPP_LDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### CPP_SHAREDLIB_LDFLAGS = $(CPP_SHAREDLIB_LDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### ARFLAGS = $(ARFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### MEX_CFLAGS = $(MEX_CFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### MEX_CPPFLAGS = $(MEX_CPPFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### MEX_LDFLAGS = $(MEX_LDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### EXECUTE_FLAGS = $(EXECUTE_FLAGS))
-	@echo $(call FORMAT_FOR_ECHO,### MAKE_FLAGS = $(MAKE_FLAGS))
+	@cmd /C @echo ### PRODUCT = $(PRODUCT)
+	@cmd /C @echo ### PRODUCT_TYPE = $(PRODUCT_TYPE)
+	@cmd /C @echo ### BUILD_TYPE = $(BUILD_TYPE)
+	@cmd /C @echo ### INCLUDES = $(INCLUDES)
+	@cmd /C @echo ### DEFINES = $(DEFINES)
+	@cmd /C @echo ### ALL_SRCS = $(ALL_SRCS)
+	@cmd /C @echo ### ALL_OBJS = $(ALL_OBJS)
+	@cmd /C @echo ### LIBS = $(LIBS)
+	@cmd /C @echo ### MODELREF_LIBS = $(MODELREF_LIBS)
+	@cmd /C @echo ### SYSTEM_LIBS = $(SYSTEM_LIBS)
+	@cmd /C @echo ### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS)
+	@cmd /C @echo ### CFLAGS = $(CFLAGS)
+	@cmd /C @echo ### LDFLAGS = $(LDFLAGS)
+	@cmd /C @echo ### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS)
+	@cmd /C @echo ### CPPFLAGS = $(CPPFLAGS)
+	@cmd /C @echo ### CPP_LDFLAGS = $(CPP_LDFLAGS)
+	@cmd /C @echo ### CPP_SHAREDLIB_LDFLAGS = $(CPP_SHAREDLIB_LDFLAGS)
+	@cmd /C @echo ### ARFLAGS = $(ARFLAGS)
+	@cmd /C @echo ### MEX_CFLAGS = $(MEX_CFLAGS)
+	@cmd /C @echo ### MEX_CPPFLAGS = $(MEX_CPPFLAGS)
+	@cmd /C @echo ### MEX_LDFLAGS = $(MEX_LDFLAGS)
+	@cmd /C @echo ### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS)
+	@cmd /C @echo ### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS)
+	@cmd /C @echo ### EXECUTE_FLAGS = $(EXECUTE_FLAGS)
+	@cmd /C @echo ### MAKE_FLAGS = $(MAKE_FLAGS)
 
 
 clean : 
 	$(ECHO) "### Deleting all derived files ..."
-	$(RM) $(subst /,\,$(PRODUCT))
-	$(RM) $(subst /,\,$(ALL_OBJS))
+	@if exist $(PRODUCT) $(RM) $(PRODUCT)
+	$(RM) $(ALL_OBJS)
 	$(ECHO) "### Deleted all derived files."
 
 

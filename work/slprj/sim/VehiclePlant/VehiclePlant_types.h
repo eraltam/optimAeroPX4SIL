@@ -212,10 +212,10 @@ typedef struct { real_T lat_deg ; real_T lon_deg ; real_T alt_m ; real_T
 yawAngle_rad ; } struct_gcu1l27Ac4krknw6L9ArAE ;
 #endif
 #ifndef SS_UINT64
-#define SS_UINT64 58
+#define SS_UINT64 63
 #endif
 #ifndef SS_INT64
-#define SS_INT64 59
+#define SS_INT64 64
 #endif
 typedef struct ks3glix3e01_ ks3glix3e01 ; typedef struct d2l3uzft5j
 hl0stsvgru ;

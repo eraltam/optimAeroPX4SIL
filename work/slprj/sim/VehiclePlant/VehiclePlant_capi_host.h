@@ -4,12 +4,12 @@
 #include "rtw_capi.h"
 #include "rtw_modelmap.h"
 #include "environment_capi_host.h"
-#include "c172p_capi_host.h"
+#include "actuatorsC172p_capi_host.h"
 #include "sensors_capi_host.h"
 typedef struct { rtwCAPI_ModelMappingInfo mmi ; rtwCAPI_ModelMappingInfo *
 childMMI [ 3 ] ; environment_host_DataMapInfo_T child0 ;
-c172p_host_DataMapInfo_T child1 ; sensors_host_DataMapInfo_T child2 ; }
-VehiclePlant_host_DataMapInfo_T ;
+actuatorsC172p_host_DataMapInfo_T child1 ; sensors_host_DataMapInfo_T child2
+; } VehiclePlant_host_DataMapInfo_T ;
 #ifdef __cplusplus
 extern "C" {
 #endif

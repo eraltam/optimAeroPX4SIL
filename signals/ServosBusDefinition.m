@@ -455,7 +455,7 @@ switch lower(vehicleType)
         ServosBus.Elements = elems;
         clear elems;
         assignin('base', 'ServosBus', ServosBus);
-    case {"fixedwing_plane", "c172p"}
+    case {"fixedwing_plane", "c172p", "c172pjsbsim"}
         % Achieved (post actuator-dynamics) control-surface state for the generic ala-fija
         % vehicle -- see PLAN_VEHICULOS_AEREOS_Y_MARINOS_SITL.md. Mirrors ServosBusDefinitionF16's
         % field names exactly (posAileron_rad/posRudder_rad/posElevator_rad) since
