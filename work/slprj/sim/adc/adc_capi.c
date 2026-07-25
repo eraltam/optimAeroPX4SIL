@@ -52,9 +52,9 @@ rtSigHierLoggingInfo , rtSigHierLoggingChildIdxs } , 0 , ( NULL ) } ; static
 rtwCAPI_ModelMappingStaticInfo mmiStatic = { { rtBlockSignals , 0 , ( NULL )
 , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL ) , 0 } , { rtBlockStates , 0
 } , { rtDataTypeMap , rtDimensionMap , rtFixPtMap , rtElementMap ,
-rtSampleTimeMap , rtDimensionArray } , "float" , { 222433548U , 2552225144U ,
-4269159888U , 1506458290U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0 ,
-rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
+rtSampleTimeMap , rtDimensionArray } , "float" , { 2055602592U , 4025801155U
+, 2877141322U , 3777291563U } , & mmiStaticInfoLogging , 0 , ( boolean_T ) 0
+, rt_LoggedStateIdxList } ; const rtwCAPI_ModelMappingStaticInfo *
 adc_GetCAPIStaticMap ( void ) { return & mmiStatic ; }
 #ifndef HOST_CAPI_BUILD
 static void adc_InitializeSystemRan ( ejys33derb * const hsrfiqrkgc ,

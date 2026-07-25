@@ -89,17 +89,41 @@ class MavsdkInstructor:
                 f"status after {timeout_s}s"
             ) from exc
 
-    async def _poll_health_until_ready(self) -> None:
-        async for health in self.drone.telemetry.health():
-            if health.is_global_position_ok and health.is_home_position_ok and health.is_armable:
-                print("MAVSDK: position health is OK and vehicle is armable")
+    async def _poll_health_until_ready(self, attempts: int = 4) -> None:
+        # mavsdk_server's gRPC layer can throw an "Unexpected error in RPC handling" on the
+        # very first item of a freshly-opened stream if it's still settling right after
+        # connect() (confirmed live 2026-07-24, immediately following a large 922-parameter
+        # dump) -- same transient-RPC-hiccup class _run_action/_run_mission_call already retry
+        # around, just surfacing here as a stream error instead of an action timeout. Re-opening
+        # the subscription a few times is enough for it to clear; PX4's own health state is
+        # unaffected by this, only the gRPC bridge.
+        last_exc: Exception | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                async for health in self.drone.telemetry.health():
+                    if (
+                        health.is_global_position_ok
+                        and health.is_home_position_ok
+                        and health.is_armable
+                    ):
+                        print("MAVSDK: position health is OK and vehicle is armable")
+                        return
+                    print(
+                        "MAVSDK: health pending "
+                        f"global={health.is_global_position_ok} "
+                        f"home={health.is_home_position_ok} armable={health.is_armable}"
+                    )
+                    await asyncio.sleep(1.0)
                 return
-            print(
-                "MAVSDK: health pending "
-                f"global={health.is_global_position_ok} home={health.is_home_position_ok} "
-                f"armable={health.is_armable}"
-            )
-            await asyncio.sleep(1.0)
+            except Exception as exc:  # noqa: BLE001 -- mavsdk raises grpc.aio.AioRpcError here
+                last_exc = exc
+                print(
+                    f"MAVSDK: health stream failed on attempt {attempt}/{attempts}: {exc!r}"
+                )
+                if attempt < attempts:
+                    await asyncio.sleep(2.0)
+        assert last_exc is not None
+        raise last_exc
 
     async def arm(self) -> None:
         if not confirm_real_vehicle_allowed(self.config):
@@ -162,12 +186,21 @@ class MavsdkInstructor:
             asyncio.create_task(self._print_flight_mode(samples)),
         ]
         try:
-            await asyncio.wait_for(asyncio.gather(*tasks), timeout=timeout_s)
+            results = await asyncio.wait_for(
+                asyncio.gather(*tasks, return_exceptions=True), timeout=timeout_s
+            )
         except TimeoutError:
             print(f"MAVSDK: telemetry sampling timed out after {timeout_s}s")
             for task in tasks:
                 task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+        # return_exceptions=True so one stream erroring (e.g. a transient mavsdk_server gRPC
+        # hiccup on telemetry.battery(), confirmed live 2026-07-24 -- PX4 itself was still
+        # publishing a healthy battery_status at the time) doesn't abort this purely
+        # informational probe and take the whole mission run down with it.
+        for task, result in zip(tasks, results):
+            if isinstance(result, Exception):
+                print(f"MAVSDK: telemetry probe failed (non-fatal): {result!r}")
 
     async def run_demo_sequence(self) -> None:
         await self.print_basic_telemetry(samples=3)

@@ -19,8 +19,17 @@ mission:
   rtl_after_mission: true
   land_after_mission: false
   takeoff_settle_s: 2.0
-  mission_timeout_s: 300
-  land_timeout_s: 90
+  # _wait_mission_complete()/_wait_landed() in controller_mavsdk.py use asyncio.wait_for, which
+  # times out on REAL wall-clock seconds, not simulated seconds -- but this SIL's MATLAB Simulink
+  # Accelerator-mode lockstep loop runs at roughly 9x slower than real time (confirmed live
+  # 2026-07-24/25: still mid-mission, seq_current=1/6, "in failsafe: no", steadily climbing toward
+  # relative_altitude_m above with commander reporting AUTO_MISSION and no failsafe, when the
+  # un-scaled 300s/90s wall-clock budgets below expired and killed the harness -- PX4 itself kept
+  # flying the uploaded mission autonomously afterward since it doesn't depend on this script).
+  # Scaled ~10x to give a full climb + 4-waypoint racetrack + RTL + land enough real wall-clock
+  # time to actually finish, not because the mission logic itself is slow.
+  mission_timeout_s: 3000
+  land_timeout_s: 900
 
   waypoints:
     - name: "wp1_climbout_north"
