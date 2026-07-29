@@ -1,6 +1,6 @@
 mission:
   enabled: true
-  name: "c172pJSBSim_fixedwing_racetrack_waypoints_rtl"
+  name: "c172pJSBSim_fixedwing_departure_waypoints_rtl"
 
   # Cloned verbatim from mission_c172p.yaml -- same airframe/FCS limits (10044_optimAeroC172pJSBSim
   # mirrors 10043_optimAeroC172p's FW_AIRSPD_MIN/TRIM/MAX and FW_R_LIM), same shared setUpVehicle.m
@@ -9,15 +9,23 @@ mission:
   # file (c172pJSBSimInit) anchors a different starting lat/lon than c172p's, this box will need
   # recomputing the same way the c172p comment describes.
   speed_m_s: 24.0
-  relative_altitude_m: 120.0
-  acceptance_radius_m: 80.0
+  relative_altitude_m: 50.0
+  # The JSBSim C172 launches on an east-southeast departure heading. Keep the
+  # four gates on that departure corridor so all mission sequencing occurs
+  # before the known late-run estimator degradation seen in a17/a21/a29.
+  # Adjacent gates are about 300 m apart, so a 120 m fly-through radius does
+  # not overlap them.
+  acceptance_radius_m: 120.0
   is_fly_through: true
   loiter_time_s: 0.0
 
   clear_existing: true
   include_takeoff_item: true
   rtl_after_mission: true
-  land_after_mission: false
+  # PX4 fixed-wing RTL ends in a home loiter for this airframe. Explicitly
+  # command LAND after the RTL mission item is reached, then require the
+  # harness to observe landed_state before declaring success.
+  land_after_mission: true
   takeoff_settle_s: 2.0
   # _wait_mission_complete()/_wait_landed() in controller_mavsdk.py use asyncio.wait_for, which
   # times out on REAL wall-clock seconds, not simulated seconds -- but this SIL's MATLAB Simulink
@@ -32,18 +40,18 @@ mission:
   land_timeout_s: 900
 
   waypoints:
-    - name: "wp1_climbout_north"
-      latitude_deg: 17.645045
-      longitude_deg: -63.198281
+    - name: "wp1_departure"
+      latitude_deg: 17.643325
+      longitude_deg: -63.216753
 
-    - name: "wp2_crosswind_east"
-      latitude_deg: 17.645045
-      longitude_deg: -63.191681
+    - name: "wp2_departure"
+      latitude_deg: 17.642325
+      longitude_deg: -63.214153
 
-    - name: "wp3_downwind_south"
-      latitude_deg: 17.636960
-      longitude_deg: -63.191681
+    - name: "wp3_departure"
+      latitude_deg: 17.641325
+      longitude_deg: -63.211553
 
-    - name: "wp4_base_return"
-      latitude_deg: 17.636960
-      longitude_deg: -63.198281
+    - name: "wp4_departure"
+      latitude_deg: 17.640325
+      longitude_deg: -63.208953

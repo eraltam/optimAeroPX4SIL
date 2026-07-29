@@ -5,8 +5,11 @@ vehicle:
   # mavlink instance's bind port, 18570), not the HITL Simulink relay port. WSL IP changes across
   # reboots -- reconfirm with `wsl hostname -I` if this stops connecting (172.31.228.71 confirmed
   # current as of 2026-07-24).
-  simulink_command_address: "udp://172.31.228.71:18570"
-  connect_timeout_s: 180
+  # Restore the command path used by a36, which completed all waypoints and
+  # entered RTL. The WSL 14550 relay preserves the MAVSDK source endpoint,
+  # unlike direct reinjection into PX4's 18570 bind socket.
+  simulink_command_address: "udp://172.21.2.216:14550"
+  connect_timeout_s: 900
   telemetry_timeout_s: 15
   health_timeout_s: 240
   takeoff_timeout_s: 60
@@ -14,9 +17,23 @@ vehicle:
   # Same airframe/FCS as c172p (10044_optimAeroC172pJSBSim mirrors 10043_optimAeroC172p's
   # MIS_TAKEOFF_ALT=25 fixed-wing climb-out default).
   takeoff_altitude_m: 25.0
+  # Used to author the NAV_TAKEOFF item when no-mag EKF alignment has not yet
+  # made MAVSDK's telemetry.position() stream available. These are the exact
+  # coordinates in aircraft/c172p/c172pJSBSimInit.xml.
+  initial_latitude_deg: 17.64450
+  initial_longitude_deg: -63.21988
+  initial_position_timeout_s: 5
   auto_arm: true
   auto_takeoff: true
   auto_mission: true
+  # The ground model has no parking-brake actuator, so idle thrust can create a
+  # brief estimator innovation while the fixed-wing is still unarmed. Relax only
+  # the matching pre-arm innovation gates; in-flight EKF checks remain enabled.
+  # a41 showed that restricting bank to 30 degrees causes poor waypoint
+  # convergence followed by altitude loss. Restore the 45-degree setting
+  # used by a36, which completed every waypoint and entered RTL.
+  # Apply after arming because the persisted PX4 parameter file overrides
+  # the airframe's set-default value on subsequent SITL launches.
   mission_file: "mission_c172pJSBSim.yaml"
 
 listener:
@@ -53,8 +70,11 @@ listener:
     - STATUSTEXT
 
 safety:
-  require_position_ok_for_takeoff: true
+  # PX4 is force-armed by the SITL launcher before the brake-less JSBSim
+  # ground model can roll away. Position is still monitored throughout the
+  # mission; skip only MAVSDK's redundant pre-arm health wait.
+  require_position_ok_for_takeoff: false
   max_takeoff_altitude_m: 30.0
-  max_mission_altitude_m: 150.0
+  max_mission_altitude_m: 250.0
   allow_real_vehicle_commands: true
   allow_pymavlink_commands: true

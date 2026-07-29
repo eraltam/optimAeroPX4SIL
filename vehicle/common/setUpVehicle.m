@@ -497,18 +497,12 @@ switch lower(setupVehicleType)
 end
 
 if strcmpi(setupVehicleType, "c172pjsbsim")
-    % c172pJSBSim's plant (JSBSim itself) does not initialize from aircraftInitialPosInNED_m at
-    % all -- it maintains its own internal state from aircraft/c172p/c172pJSBSimInit.xml, which
-    % spawns the aircraft at h-sl-ft=0 (sea level), not at this airport's real 116ft MSL elevation
-    % (see that file's own comment about the AGL-vs-MSL IC bug already fixed there).
-    % unpackJSBSimOutputs.m's aircraftPosInNED_m mirrors that: zDown_m = -h_sl_ft*ft2m, i.e. "NED
-    % origin at sea level", not referenceAltitude_m -- unlike every other (non-JSBSim) vehicle in
-    % the switch above, whose plant genuinely starts resting AT referenceAltitude_m. Leaving
-    % referenceAltitude_m at 116ft here would make terrainHeightNED_m (set from
-    % aircraftInitialPosInNED_m below, consumed as ground truth by environment/LocalTerrain.slx)
-    % disagree with where c172pJSBSim's own ground-contact model actually rests by about 35m,
-    % corrupting any AGL/rangefinder computation derived from it.
-    referenceAltitude_m = 0;
+    % JSBSim initializes from c172pJSBSimInit.xml rather than aircraftInitialPosInNED_m. Keep the
+    % Simulink reference at the same 4.7 ft runway-rest height used by the aircraft's stock
+    % reset00.xml. Zero feet places the aircraft reference point (and therefore part of the
+    % landing gear) below the ground plane, producing violent contact impulses and hundreds of
+    % metres of false GPS-height motion before EKF2 can arm.
+    referenceAltitude_m = 4.7 * ft2m;
 end
 
 aircraftInitialPosInNED_m = [0, 0, -referenceAltitude_m];

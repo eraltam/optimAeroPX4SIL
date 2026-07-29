@@ -5,6 +5,19 @@ parameters.gps.horzPositionAccuracy_m = 30;
 parameters.gps.velocityAccuracy_mps = 0.05;
 parameters.gps.decayFactor_nd = 0.999; % 0 -> white noise, 1 -> random walk
 
+% The legacy 30 m horizontal / 40 m vertical values are intentionally very
+% noisy and make the simulated GPS altitude wander by hundreds of metres.
+% PX4's EKF consequently rejects GPS height against the essentially steady
+% barometer and refuses to arm fixed-wing SIL with
+% "Preflight Fail: height estimate not stable". Use representative
+% aviation-GNSS accuracy for the C172 variants. This changes the aiding
+% sensor only; the selected Generic/Anello IMU model remains untouched.
+if any(strcmpi(vehicleParams.type, ["c172p", "c172pJSBSim"]))
+    parameters.gps.vertPositionAccuracy_m = 1.5;
+    parameters.gps.horzPositionAccuracy_m = 0.8;
+    parameters.gps.decayFactor_nd = 0.95;
+end
+
 % specific accel and gyro not known, so use parameters from a representative
 % device "ICM-42688-P"
 parameters.accel.naturalFrequency_radps = 190;
@@ -29,3 +42,6 @@ parameters.thermo.noisePower_degC = [0.001];
 % default — regression baseline), 2 = AnelloX3 (datasheet-accurate ANELLO X3
 % IMU model from sensors/components/ins_anello.slx).
 INS_VARIANT = 1;
+if strcmpi(vehicleParams.type, "c172pJSBSim")
+    INS_VARIANT = 2;
+end

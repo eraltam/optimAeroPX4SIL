@@ -213,6 +213,7 @@ class MavsdkInstructor:
             or self.vehicle_config.get("auto_takeoff", False)
             or mission_requested
         ):
+            await self._apply_pre_arm_params()
             await self.wait_until_ready()
 
         if mission_requested:
@@ -290,6 +291,7 @@ class MavsdkInstructor:
 
         if self.vehicle_config.get("auto_arm", False):
             await self.arm()
+            await self._apply_post_arm_params()
         else:
             print("MAVSDK: auto_arm=false; mission start may be rejected by PX4")
 
@@ -329,7 +331,23 @@ class MavsdkInstructor:
         # live: it reads 0,0 as literal lat=0/lon=0 (off the coast of west Africa) and rejects
         # the mission as "First waypoint too far away: 7178487m, 5000 max". Fetch the vehicle's
         # actual current position and use that instead.
-        current_lat, current_lon = await self._get_current_position()
+        try:
+            current_lat, current_lon = await asyncio.wait_for(
+                self._get_current_position(),
+                timeout=float(self.vehicle_config.get("initial_position_timeout_s", 15.0)),
+            )
+        except asyncio.TimeoutError:
+            try:
+                current_lat = float(self.vehicle_config["initial_latitude_deg"])
+                current_lon = float(self.vehicle_config["initial_longitude_deg"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise TimeoutError(
+                    "MAVSDK: no current position fix and no valid configured initial coordinates"
+                ) from exc
+            print(
+                "MAVSDK: current position unavailable before yaw alignment; "
+                f"using configured SITL reset position {current_lat:.7f}, {current_lon:.7f}"
+            )
         raw_items = self._build_raw_mission_items(
             mission_config, mission_items, rtl_after_mission, current_lat, current_lon
         )
@@ -358,6 +376,7 @@ class MavsdkInstructor:
 
         if self.vehicle_config.get("auto_arm", False):
             await self.arm()
+            await self._apply_post_arm_params()
         else:
             print("MAVSDK: auto_arm=false; mission start may be rejected by PX4")
 
@@ -373,13 +392,47 @@ class MavsdkInstructor:
             timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
             plugin=self.drone.mission_raw,
         )
-        print(
-            "MAVSDK: mission_raw items exhausted -- if the last item was RETURN_TO_LAUNCH, PX4 "
-            "is now flying itself home/landing autonomously; this script does not wait for that "
-            "separately (see land_after_mission handling in the non-raw path for why: an "
-            "explicit auto-land sequence is untrusted for this airframe, RTL's own landing is not)."
-        )
-        print("MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, and RTL handoff completed")
+        print("MAVSDK: mission_raw items exhausted; RTL handoff completed")
+
+        if bool(mission_config.get("land_after_mission", False)):
+            print("MAVSDK: commanding fixed-wing landing after RTL handoff")
+            await self.land()
+            await self._wait_landed(
+                timeout_s=float(mission_config.get("land_timeout_s", 900.0))
+            )
+            print(
+                "MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, RTL handoff, "
+                "and landing completed"
+            )
+        else:
+            print(
+                "MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, and RTL "
+                "handoff completed (landing not requested)"
+            )
+
+    async def _apply_post_arm_params(self) -> None:
+        """Apply optional staged EKF settings after initialization but before takeoff."""
+        params = self.vehicle_config.get("post_arm_params", {})
+        for name, value in params.items():
+            print(f"MAVSDK: setting post-arm parameter {name}={value}")
+            if isinstance(value, int):
+                call = self.drone.param.set_param_int(name, value)
+            else:
+                call = self.drone.param.set_param_float(name, float(value))
+            await asyncio.wait_for(call, timeout=15.0)
+            print(f"MAVSDK: post-arm parameter {name} accepted")
+
+    async def _apply_pre_arm_params(self) -> None:
+        """Apply optional pre-arm thresholds before waiting on PX4's armable flag."""
+        params = self.vehicle_config.get("pre_arm_params", {})
+        for name, value in params.items():
+            print(f"MAVSDK: setting pre-arm parameter {name}={value}")
+            if isinstance(value, int):
+                call = self.drone.param.set_param_int(name, value)
+            else:
+                call = self.drone.param.set_param_float(name, float(value))
+            await asyncio.wait_for(call, timeout=15.0)
+            print(f"MAVSDK: pre-arm parameter {name} accepted")
 
     async def _get_current_position(self) -> tuple[float, float]:
         async for position in self.drone.telemetry.position():

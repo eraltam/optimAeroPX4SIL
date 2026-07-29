@@ -89,17 +89,18 @@ async def run(config: dict[str, Any], base_dir: Path, config_dir: Path) -> None:
     instructor = MavsdkInstructor(config, config_dir=config_dir, base_dir=base_dir)
     try:
         await instructor.connect()
-        try:
-            await instructor.dump_params(base_dir / "px4_params_before.txt")
-        except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
-            print(f"MAVSDK: could not dump params before run: {exc}")
-
+        # Start the mission immediately after connection. A full parameter
+        # enumeration takes several wall-clock minutes; with synchronous
+        # JSBSim that allowed the unarmed fixed-wing plant to roll more than
+        # a kilometre before mission upload. Preserve the snapshot, but take
+        # it after the time-critical flight sequence.
         await instructor.run_demo_sequence()
 
         try:
+            await instructor.dump_params(base_dir / "px4_params_before.txt")
             await instructor.dump_params(base_dir / "px4_params_after.txt")
         except Exception as exc:  # noqa: BLE001 - param dump must not abort the session.
-            print(f"MAVSDK: could not dump params after run: {exc}")
+            print(f"MAVSDK: could not dump post-run parameter snapshots: {exc}")
     finally:
         if listener is not None:
             listener.stop()

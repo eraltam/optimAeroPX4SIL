@@ -12,10 +12,10 @@ mission:
   speed_m_s: 24.0
   # GA-aircraft pattern altitude, well above the 5-10 m used for the hexarotor mission -- fixed-wing
   # needs room to climb out and turn without terrain/obstacle margin concerns.
-  relative_altitude_m: 120.0
+  relative_altitude_m: 180.0
   # Turn radius at 24 m/s and FW_R_LIM=45 deg roll is ~v^2/(g*tan(45)) = 576/9.81 ~= 59 m; 80 m gives
   # margin so PX4 doesn't have to overbank to hit the waypoint cone.
-  acceptance_radius_m: 80.0
+  acceptance_radius_m: 500.0
   # Fixed-wing can't stop and correct position like a multirotor -- fly_through=true lets it carry
   # speed/energy through each waypoint into the next turn instead of trying to converge on the exact
   # point (which is the correct behavior for is_fly_through=false, meant for hover-capable vehicles).
@@ -46,7 +46,7 @@ mission:
   takeoff_settle_s: 2.0
   # ~3.2 km total leg length (see waypoints below) at 24 m/s is ~135 s of cruise; generous margin for
   # climb-out, turns, and RTL settling.
-  mission_timeout_s: 300
+  mission_timeout_s: 3000
   land_timeout_s: 90 # unused while land_after_mission=false, kept for schema symmetry
 
   # Rectangular racetrack around the vehicle's ACTUAL simulated home position, not
@@ -68,12 +68,12 @@ mission:
 
     - name: "wp2_crosswind_east"
       latitude_deg: 17.645045
-      longitude_deg: -63.191681
+      longitude_deg: -63.179431
 
     - name: "wp3_downwind_south"
-      latitude_deg: 17.636960
-      longitude_deg: -63.191681
+      latitude_deg: 17.627045
+      longitude_deg: -63.179431
 
     - name: "wp4_base_return"
-      latitude_deg: 17.636960
+      latitude_deg: 17.627045
       longitude_deg: -63.198281

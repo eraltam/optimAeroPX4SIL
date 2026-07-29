@@ -1,9 +1,9 @@
-﻿###########################################################################
+###########################################################################
 ## Makefile generated for component 'rtwshared'. 
 ## 
 ## Makefile     : rtwshared.mk
-## Generated on : Thu Jul 23 13:06:52 2026
-## Final product: .\rtwshared.lib
+## Generated on : Wed Jul 29 03:59:14 2026
+## Final product: ./rtwshared.lib
 ## Product type : static library
 ## 
 ###########################################################################
@@ -21,29 +21,28 @@
 
 PRODUCT_NAME              = rtwshared
 MAKEFILE                  = rtwshared.mk
-MATLAB_ROOT               = C:\PROGRA~1\MATLAB\R2026a
-MATLAB_BIN                = C:\PROGRA~1\MATLAB\R2026a\bin
-MATLAB_ARCH_BIN           = $(MATLAB_BIN)\win64
-START_DIR                 = C:\SITL\AnelloSummer\optimAeroPX4SIL\work
+MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
+MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
+MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
+START_DIR                 = C:/Users/Usuario/AnelloSummer/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
 TGT_FCN_LIB               = ISO_C
 MODEL_HAS_DYNAMICALLY_LOADED_SFCNS = 
-RELATIVE_PATH_TO_ANCHOR   = ..\..\..
+RELATIVE_PATH_TO_ANCHOR   = ../../..
 COMPILER_COMMAND_FILE     = rtwshared_comp.rsp
 CMD_FILE                  = rtwshared.rsp
-C_STANDARD_OPTS           = 
-CPP_STANDARD_OPTS         = 
-NODEBUG                   = 1
+C_STANDARD_OPTS           = -fwrapv
+CPP_STANDARD_OPTS         = -fwrapv
 MODELLIB                  = rtwshared.lib
 
 ###########################################################################
 ## TOOLCHAIN SPECIFICATIONS
 ###########################################################################
 
-# Toolchain Name:          Microsoft Visual C++ 2022 v17.0 | nmake (64-bit Windows)
-# Supported Version(s):    17.0
+# Toolchain Name:          MinGW64 | gmake (64-bit Windows)
+# Supported Version(s):    14.x
 # ToolchainInfo Version:   2026a
 # Specification Revision:  1.0
 # 
@@ -53,53 +52,64 @@ MODELLIB                  = rtwshared.lib
 
 # C_STANDARD_OPTS
 # CPP_STANDARD_OPTS
-# NODEBUG
-# cvarsdll
-# cvarsmt
-# conlibsmt
-# ldebug
-# conflags
-# cflags
+# MINGW_ROOT
+# MINGW_C_STANDARD_OPTS
 
 #-----------
 # MACROS
 #-----------
 
-MW_EXTERNLIB_DIR    = $(MATLAB_ROOT)\extern\lib\win64\microsoft
-MW_LIB_DIR          = $(MATLAB_ROOT)\lib\win64
-CPU                 = AMD64
-APPVER              = 5.02
-CVARSFLAG           = $(cvarsmt)
-CFLAGS_ADDITIONAL   = -D_CRT_SECURE_NO_WARNINGS
-CPPFLAGS_ADDITIONAL = -EHs -D_CRT_SECURE_NO_WARNINGS /wd4251 /Zc:__cplusplus
-LIBS_TOOLCHAIN      = $(conlibs)
+WARN_FLAGS            = -Wall -W -Wwrite-strings -Winline -Wstrict-prototypes -Wnested-externs -Wpointer-arith -Wcast-align -Wno-stringop-overflow
+WARN_FLAGS_MAX        = $(WARN_FLAGS) -Wcast-qual -Wshadow
+CPP_WARN_FLAGS        = -Wall -W -Wwrite-strings -Winline -Wpointer-arith -Wcast-align -Wno-stringop-overflow
+CPP_WARN_FLAGS_MAX    = $(CPP_WARN_FLAGS) -Wcast-qual -Wshadow
+MW_EXTERNLIB_DIR      = $(MATLAB_ROOT)/extern/lib/win64/mingw64
+SHELL                 = %SystemRoot%/system32/cmd.exe
 
 TOOLCHAIN_SRCS = 
 TOOLCHAIN_INCS = 
-TOOLCHAIN_LIBS = 
+TOOLCHAIN_LIBS = -lws2_32
+
+FORMAT_FOR_ECHO_CMD              = $(strip $(subst >,^>,\
+	$(subst <,^<,\
+	$(subst |,^|,\
+	$(subst &,^&,\
+	$(subst ",^",\
+	$(subst ^,^^,\
+	$1)))))))
+FORMAT_FOR_ECHO                  = $(FORMAT_FOR_ECHO_CMD)
+HASH                             = \#
+SEMICOLON                        = ;
+UNESCAPE_SEMICOLONS              = $(subst \;,;,$1)
+ADD_QUOTES                       = $(foreach aPath,$1,"$(aPath)")
 
 #------------------------
 # BUILD TOOL COMMANDS
 #------------------------
 
-# C Compiler: Microsoft Visual C Compiler
-CC = cl
+# C Compiler: GNU C Compiler
+CC_PATH = $(MINGW_ROOT)
+CC = "$(CC_PATH)/gcc"
 
-# Linker: Microsoft Visual C Linker
-LD = link
+# Linker: GNU Linker
+LD_PATH = $(MINGW_ROOT)
+LD = "$(LD_PATH)/g++"
 
-# C++ Compiler: Microsoft Visual C++ Compiler
-CPP = cl
+# C++ Compiler: GNU C++ Compiler
+CPP_PATH = $(MINGW_ROOT)
+CPP = "$(CPP_PATH)/g++"
 
-# C++ Linker: Microsoft Visual C++ Linker
-CPP_LD = link
+# C++ Linker: GNU C++ Linker
+CPP_LD_PATH = $(MINGW_ROOT)
+CPP_LD = "$(CPP_LD_PATH)/g++"
 
-# Archiver: Microsoft Visual C/C++ Archiver
-AR = lib
+# Archiver: GNU Archiver
+AR_PATH = $(MINGW_ROOT)
+AR = "$(AR_PATH)/ar"
 
 # MEX Tool: MEX Tool
 MEX_PATH = $(MATLAB_ARCH_BIN)
-MEX = "$(MEX_PATH)\mex"
+MEX = "$(MEX_PATH)/mex"
 
 # Download: Download
 DOWNLOAD =
@@ -107,70 +117,59 @@ DOWNLOAD =
 # Execute: Execute
 EXECUTE = $(PRODUCT)
 
-# Builder: NMAKE Utility
-MAKE = nmake
+# Builder: GMAKE Utility
+MAKE_PATH = $(MINGW_ROOT)
+MAKE = "$(MAKE_PATH)/mingw32-make.exe"
 
 
 #-------------------------
 # Directives/Utilities
 #-------------------------
 
-CDEBUG              = -Z7
-C_OUTPUT_FLAG       = -Fo
-LDDEBUG             = /DEBUG
-OUTPUT_FLAG         = -out:
-CPPDEBUG            = -Z7
-CPP_OUTPUT_FLAG     = -Fo
-CPPLDDEBUG          = /DEBUG
-OUTPUT_FLAG         = -out:
+CDEBUG              = -g
+C_OUTPUT_FLAG       = -o
+LDDEBUG             = -g
+OUTPUT_FLAG         = -o
+CPPDEBUG            = -g
+CPP_OUTPUT_FLAG     = -o
+CPPLDDEBUG          = -g
+OUTPUT_FLAG         = -o
 ARDEBUG             =
-STATICLIB_OUTPUT_FLAG = -out:
+STATICLIB_OUTPUT_FLAG =
 MEX_DEBUG           = -g
 RM                  = @del
 ECHO                = @echo
-MV                  = @ren
-RUN                 = @cmd /C
+MV                  = @move
+RUN                 =
 
 #----------------------------------------
 # "Faster Builds" Build Configuration
 #----------------------------------------
 
+ARFLAGS              = ruvs
+CFLAGS               = -c $(MINGW_C_STANDARD_OPTS) -m64 -Wno-error=incompatible-pointer-types -Wno-error=stringop-overflow \
+                       -O0
+CPPFLAGS             = -c $(CPP_STANDARD_OPTS) -m64 -Wno-error=incompatible-pointer-types -Wno-error=stringop-overflow \
+                       -O0
+CPP_LDFLAGS          =  -static -m64
+CPP_SHAREDLIB_LDFLAGS  = -shared -Wl,--no-undefined
+DOWNLOAD_FLAGS       =
+EXECUTE_FLAGS        =
+LDFLAGS              =  -static -m64
 MEX_CPPFLAGS         =
 MEX_CPPLDFLAGS       =
 MEX_CFLAGS           =
 MEX_LDFLAGS          =
+MAKE_FLAGS           = -j $(MAX_MAKE_JOBS) -l $(MAX_MAKE_LOAD_AVG) -Oline -f $(MAKEFILE)
+SHAREDLIB_LDFLAGS    = -shared -Wl,--no-undefined
 
 
-
-#---------------------------
-# Model-Specific Options
-#---------------------------
-
-CFLAGS = $(cflags) $(cvarsdll) $(CFLAGS_ADDITIONAL) $(C_STANDARD_OPTS) /Od /Oy-
-
-LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN)
-
-SHAREDLIB_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN) -dll -def:$(DEF_FILE)
-
-CPPFLAGS = /TP $(cflags) $(cvarsdll) $(CPPFLAGS_ADDITIONAL) $(CPP_STANDARD_OPTS) /Od /Oy-
-
-CPP_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN)
-
-CPP_SHAREDLIB_LDFLAGS = $(ldebug) $(conflags) $(LIBS_TOOLCHAIN) -dll -def:$(DEF_FILE)
-
-ARFLAGS = /nologo
-
-DOWNLOAD_FLAGS = 
-
-EXECUTE_FLAGS = 
-
-MAKE_FLAGS = -f $(MAKEFILE)
 
 ###########################################################################
 ## OUTPUT INFO
 ###########################################################################
 
-PRODUCT = .\rtwshared.lib
+PRODUCT = ./rtwshared.lib
 PRODUCT_TYPE = "static library"
 BUILD_TYPE = "Model Reference Library"
 
@@ -196,7 +195,7 @@ DEFINES = $(DEFINES_BUILD_ARGS) $(DEFINES_CUSTOM) $(DEFINES_OPTS)
 ## SOURCE FILES
 ###########################################################################
 
-SRCS = $(START_DIR)\slprj\sim\_sharedutils\rt_nonfinite.c $(START_DIR)\slprj\sim\_sharedutils\rtGetInf.c $(START_DIR)\slprj\sim\_sharedutils\binsearch_u32d_prevIdx.c $(START_DIR)\slprj\sim\_sharedutils\intrp2d_la_pw.c $(START_DIR)\slprj\sim\_sharedutils\plook_bincpa.c $(START_DIR)\slprj\sim\_sharedutils\rt_nrand_Upu32_Yd_f_pw_snf.c $(START_DIR)\slprj\sim\_sharedutils\rt_urand_Upu32_Yd_f_pw_snf.c $(START_DIR)\slprj\sim\_sharedutils\rtGetNaN.c $(START_DIR)\slprj\sim\_sharedutils\CalcPAltCOESA.c $(START_DIR)\slprj\sim\_sharedutils\InitCalcAtmosCOESA.c $(START_DIR)\slprj\sim\_sharedutils\eml_rand_shr3cong_idhNEfES.c $(START_DIR)\slprj\sim\_sharedutils\genrand_uint32_vector_K67AoNKW.c $(START_DIR)\slprj\sim\_sharedutils\genrandu_bUoLFLaa.c $(START_DIR)\slprj\sim\_sharedutils\genrandu_mNGNhqv8.c $(START_DIR)\slprj\sim\_sharedutils\look1_binlxpw.c $(START_DIR)\slprj\sim\_sharedutils\rt_TDelayInterpolate.c $(START_DIR)\slprj\sim\_sharedutils\rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.c
+SRCS = $(START_DIR)/slprj/sim/_sharedutils/rt_nonfinite.c $(START_DIR)/slprj/sim/_sharedutils/rtGetInf.c $(START_DIR)/slprj/sim/_sharedutils/binsearch_u32d_prevIdx.c $(START_DIR)/slprj/sim/_sharedutils/intrp2d_la_pw.c $(START_DIR)/slprj/sim/_sharedutils/plook_bincpa.c $(START_DIR)/slprj/sim/_sharedutils/rt_nrand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rt_urand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rtGetNaN.c $(START_DIR)/slprj/sim/_sharedutils/CalcPAltCOESA.c $(START_DIR)/slprj/sim/_sharedutils/InitCalcAtmosCOESA.c $(START_DIR)/slprj/sim/_sharedutils/eml_rand_shr3cong_idhNEfES.c $(START_DIR)/slprj/sim/_sharedutils/genrand_uint32_vector_K67AoNKW.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_bUoLFLaa.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_mNGNhqv8.c
 
 ALL_SRCS = $(SRCS)
 
@@ -204,7 +203,7 @@ ALL_SRCS = $(SRCS)
 ## OBJECTS
 ###########################################################################
 
-OBJS = rt_nonfinite.obj rtGetInf.obj binsearch_u32d_prevIdx.obj intrp2d_la_pw.obj plook_bincpa.obj rt_nrand_Upu32_Yd_f_pw_snf.obj rt_urand_Upu32_Yd_f_pw_snf.obj rtGetNaN.obj CalcPAltCOESA.obj InitCalcAtmosCOESA.obj eml_rand_shr3cong_idhNEfES.obj genrand_uint32_vector_K67AoNKW.obj genrandu_bUoLFLaa.obj genrandu_mNGNhqv8.obj look1_binlxpw.obj rt_TDelayInterpolate.obj rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.obj
+OBJS = rt_nonfinite.obj rtGetInf.obj binsearch_u32d_prevIdx.obj intrp2d_la_pw.obj plook_bincpa.obj rt_nrand_Upu32_Yd_f_pw_snf.obj rt_urand_Upu32_Yd_f_pw_snf.obj rtGetNaN.obj CalcPAltCOESA.obj InitCalcAtmosCOESA.obj eml_rand_shr3cong_idhNEfES.obj genrand_uint32_vector_K67AoNKW.obj genrandu_bUoLFLaa.obj genrandu_mNGNhqv8.obj
 
 ALL_OBJS = $(OBJS)
 
@@ -234,38 +233,56 @@ SYSTEM_LIBS =
 # C Compiler
 #---------------
 
-CFLAGS_BASIC = $(DEFINES) @$(COMPILER_COMMAND_FILE)
+CFLAGS_TFL = -msse2 -fno-predictive-commoning
+CFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
 
-CFLAGS = $(CFLAGS) $(CFLAGS_BASIC)
+CFLAGS += $(CFLAGS_TFL) $(CFLAGS_BASIC)
 
 #-----------------
 # C++ Compiler
 #-----------------
 
-CPPFLAGS_BASIC = $(DEFINES) @$(COMPILER_COMMAND_FILE)
+CPPFLAGS_TFL = -msse2 -fno-predictive-commoning
+CPPFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
 
-CPPFLAGS = $(CPPFLAGS) $(CPPFLAGS_BASIC)
+CPPFLAGS += $(CPPFLAGS_TFL) $(CPPFLAGS_BASIC)
+
+#---------------------
+# MEX C++ Compiler
+#---------------------
+
+MEX_CPP_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
+
+MEX_CPPFLAGS += $(MEX_CPP_Compiler_BASIC)
+
+#-----------------
+# MEX Compiler
+#-----------------
+
+MEX_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
+
+MEX_CFLAGS += $(MEX_Compiler_BASIC)
 
 ###########################################################################
 ## INLINED COMMANDS
 ###########################################################################
 
 
-!include $(MATLAB_ROOT)\rtw\c\tools\vcdefs.mak
+MINGW_C_STANDARD_OPTS = $(C_STANDARD_OPTS)
 
 
 ###########################################################################
 ## PHONY TARGETS
 ###########################################################################
 
-.PHONY : all build clean info prebuild download execute set_environment_variables
+.PHONY : all build clean info prebuild download execute
 
 
 all : build
-	@cmd /C @echo ### Successfully generated all binary outputs.
+	@echo $(call FORMAT_FOR_ECHO,### Successfully generated all binary outputs.)
 
 
-build : set_environment_variables prebuild $(PRODUCT)
+build : prebuild $(PRODUCT)
 
 
 prebuild : 
@@ -277,11 +294,6 @@ download : $(PRODUCT)
 execute : download
 
 
-set_environment_variables : 
-	@set INCLUDE=$(INCLUDES);$(INCLUDE)
-	@set LIB=$(LIB)
-
-
 ###########################################################################
 ## FINAL TARGET
 ###########################################################################
@@ -291,9 +303,9 @@ set_environment_variables :
 #---------------------------------
 
 $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
-	@cmd /C @echo ### Creating static library "$(PRODUCT)" ...
-	$(AR) $(ARFLAGS) -out:$(PRODUCT) @$(CMD_FILE)
-	@cmd /C @echo ### Created: "$(PRODUCT)"
+	@echo $(call FORMAT_FOR_ECHO,### Creating static library "$(PRODUCT)" ...)
+	$(AR) $(ARFLAGS)  $(PRODUCT) @$(CMD_FILE)
+	@echo $(call FORMAT_FOR_ECHO,### Created: "$(PRODUCT)")
 
 
 ###########################################################################
@@ -304,120 +316,156 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 # SOURCE-TO-OBJECT
 #---------------------
 
-.c.obj:
-	$(CC) $(CFLAGS) -Fo"$@" "$<"
+%.obj : %.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-.cpp.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-.cc.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-.cxx.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(RELATIVE_PATH_TO_ANCHOR)}.c.obj:
-	$(CC) $(CFLAGS) -Fo"$@" "$<"
+%.obj : %.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(RELATIVE_PATH_TO_ANCHOR)}.cpp.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(RELATIVE_PATH_TO_ANCHOR)}.cc.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(RELATIVE_PATH_TO_ANCHOR)}.cxx.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : %.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(START_DIR)}.c.obj:
-	$(CC) $(CFLAGS) -Fo"$@" "$<"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-{$(START_DIR)}.cpp.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(START_DIR)}.cc.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-{$(START_DIR)}.cxx.obj:
-	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-rt_nonfinite.obj : "$(START_DIR)\slprj\sim\_sharedutils\rt_nonfinite.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rt_nonfinite.c"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-rtGetInf.obj : "$(START_DIR)\slprj\sim\_sharedutils\rtGetInf.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rtGetInf.c"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-binsearch_u32d_prevIdx.obj : "$(START_DIR)\slprj\sim\_sharedutils\binsearch_u32d_prevIdx.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\binsearch_u32d_prevIdx.c"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-intrp2d_la_pw.obj : "$(START_DIR)\slprj\sim\_sharedutils\intrp2d_la_pw.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\intrp2d_la_pw.c"
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-plook_bincpa.obj : "$(START_DIR)\slprj\sim\_sharedutils\plook_bincpa.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\plook_bincpa.c"
+%.obj : $(START_DIR)/%.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-rt_nrand_Upu32_Yd_f_pw_snf.obj : "$(START_DIR)\slprj\sim\_sharedutils\rt_nrand_Upu32_Yd_f_pw_snf.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rt_nrand_Upu32_Yd_f_pw_snf.c"
+%.obj : $(START_DIR)/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-rt_urand_Upu32_Yd_f_pw_snf.obj : "$(START_DIR)\slprj\sim\_sharedutils\rt_urand_Upu32_Yd_f_pw_snf.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rt_urand_Upu32_Yd_f_pw_snf.c"
+%.obj : $(START_DIR)/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-rtGetNaN.obj : "$(START_DIR)\slprj\sim\_sharedutils\rtGetNaN.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rtGetNaN.c"
+%.obj : $(START_DIR)/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-CalcPAltCOESA.obj : "$(START_DIR)\slprj\sim\_sharedutils\CalcPAltCOESA.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\CalcPAltCOESA.c"
+%.obj : $(START_DIR)/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-InitCalcAtmosCOESA.obj : "$(START_DIR)\slprj\sim\_sharedutils\InitCalcAtmosCOESA.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\InitCalcAtmosCOESA.c"
+%.obj : $(START_DIR)/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-eml_rand_shr3cong_idhNEfES.obj : "$(START_DIR)\slprj\sim\_sharedutils\eml_rand_shr3cong_idhNEfES.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\eml_rand_shr3cong_idhNEfES.c"
+%.obj : $(START_DIR)/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-genrand_uint32_vector_K67AoNKW.obj : "$(START_DIR)\slprj\sim\_sharedutils\genrand_uint32_vector_K67AoNKW.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\genrand_uint32_vector_K67AoNKW.c"
+%.obj : $(START_DIR)/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-genrandu_bUoLFLaa.obj : "$(START_DIR)\slprj\sim\_sharedutils\genrandu_bUoLFLaa.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\genrandu_bUoLFLaa.c"
+rt_nonfinite.obj : $(START_DIR)/slprj/sim/_sharedutils/rt_nonfinite.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-genrandu_mNGNhqv8.obj : "$(START_DIR)\slprj\sim\_sharedutils\genrandu_mNGNhqv8.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\genrandu_mNGNhqv8.c"
+rtGetInf.obj : $(START_DIR)/slprj/sim/_sharedutils/rtGetInf.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-look1_binlxpw.obj : "$(START_DIR)\slprj\sim\_sharedutils\look1_binlxpw.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\look1_binlxpw.c"
+binsearch_u32d_prevIdx.obj : $(START_DIR)/slprj/sim/_sharedutils/binsearch_u32d_prevIdx.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-rt_TDelayInterpolate.obj : "$(START_DIR)\slprj\sim\_sharedutils\rt_TDelayInterpolate.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rt_TDelayInterpolate.c"
+intrp2d_la_pw.obj : $(START_DIR)/slprj/sim/_sharedutils/intrp2d_la_pw.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.obj : "$(START_DIR)\slprj\sim\_sharedutils\rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.c"
-	$(CC) $(CFLAGS) -Fo"$@" "$(START_DIR)\slprj\sim\_sharedutils\rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.c"
+plook_bincpa.obj : $(START_DIR)/slprj/sim/_sharedutils/plook_bincpa.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+rt_nrand_Upu32_Yd_f_pw_snf.obj : $(START_DIR)/slprj/sim/_sharedutils/rt_nrand_Upu32_Yd_f_pw_snf.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+rt_urand_Upu32_Yd_f_pw_snf.obj : $(START_DIR)/slprj/sim/_sharedutils/rt_urand_Upu32_Yd_f_pw_snf.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+rtGetNaN.obj : $(START_DIR)/slprj/sim/_sharedutils/rtGetNaN.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+CalcPAltCOESA.obj : $(START_DIR)/slprj/sim/_sharedutils/CalcPAltCOESA.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+InitCalcAtmosCOESA.obj : $(START_DIR)/slprj/sim/_sharedutils/InitCalcAtmosCOESA.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+eml_rand_shr3cong_idhNEfES.obj : $(START_DIR)/slprj/sim/_sharedutils/eml_rand_shr3cong_idhNEfES.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+genrand_uint32_vector_K67AoNKW.obj : $(START_DIR)/slprj/sim/_sharedutils/genrand_uint32_vector_K67AoNKW.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+genrandu_bUoLFLaa.obj : $(START_DIR)/slprj/sim/_sharedutils/genrandu_bUoLFLaa.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+genrandu_mNGNhqv8.obj : $(START_DIR)/slprj/sim/_sharedutils/genrandu_mNGNhqv8.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
 ###########################################################################
@@ -432,37 +480,37 @@ $(ALL_OBJS) : rtw_proj.tmw
 ###########################################################################
 
 info : 
-	@cmd /C @echo ### PRODUCT = $(PRODUCT)
-	@cmd /C @echo ### PRODUCT_TYPE = $(PRODUCT_TYPE)
-	@cmd /C @echo ### BUILD_TYPE = $(BUILD_TYPE)
-	@cmd /C @echo ### INCLUDES = $(INCLUDES)
-	@cmd /C @echo ### DEFINES = $(DEFINES)
-	@cmd /C @echo ### ALL_SRCS = $(ALL_SRCS)
-	@cmd /C @echo ### ALL_OBJS = $(ALL_OBJS)
-	@cmd /C @echo ### LIBS = $(LIBS)
-	@cmd /C @echo ### MODELREF_LIBS = $(MODELREF_LIBS)
-	@cmd /C @echo ### SYSTEM_LIBS = $(SYSTEM_LIBS)
-	@cmd /C @echo ### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS)
-	@cmd /C @echo ### CFLAGS = $(CFLAGS)
-	@cmd /C @echo ### LDFLAGS = $(LDFLAGS)
-	@cmd /C @echo ### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS)
-	@cmd /C @echo ### CPPFLAGS = $(CPPFLAGS)
-	@cmd /C @echo ### CPP_LDFLAGS = $(CPP_LDFLAGS)
-	@cmd /C @echo ### CPP_SHAREDLIB_LDFLAGS = $(CPP_SHAREDLIB_LDFLAGS)
-	@cmd /C @echo ### ARFLAGS = $(ARFLAGS)
-	@cmd /C @echo ### MEX_CFLAGS = $(MEX_CFLAGS)
-	@cmd /C @echo ### MEX_CPPFLAGS = $(MEX_CPPFLAGS)
-	@cmd /C @echo ### MEX_LDFLAGS = $(MEX_LDFLAGS)
-	@cmd /C @echo ### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS)
-	@cmd /C @echo ### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS)
-	@cmd /C @echo ### EXECUTE_FLAGS = $(EXECUTE_FLAGS)
-	@cmd /C @echo ### MAKE_FLAGS = $(MAKE_FLAGS)
+	@echo $(call FORMAT_FOR_ECHO,### PRODUCT = $(PRODUCT))
+	@echo $(call FORMAT_FOR_ECHO,### PRODUCT_TYPE = $(PRODUCT_TYPE))
+	@echo $(call FORMAT_FOR_ECHO,### BUILD_TYPE = $(BUILD_TYPE))
+	@echo $(call FORMAT_FOR_ECHO,### INCLUDES = $(INCLUDES))
+	@echo $(call FORMAT_FOR_ECHO,### DEFINES = $(DEFINES))
+	@echo $(call FORMAT_FOR_ECHO,### ALL_SRCS = $(ALL_SRCS))
+	@echo $(call FORMAT_FOR_ECHO,### ALL_OBJS = $(ALL_OBJS))
+	@echo $(call FORMAT_FOR_ECHO,### LIBS = $(LIBS))
+	@echo $(call FORMAT_FOR_ECHO,### MODELREF_LIBS = $(MODELREF_LIBS))
+	@echo $(call FORMAT_FOR_ECHO,### SYSTEM_LIBS = $(SYSTEM_LIBS))
+	@echo $(call FORMAT_FOR_ECHO,### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS))
+	@echo $(call FORMAT_FOR_ECHO,### CFLAGS = $(CFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### LDFLAGS = $(LDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### CPPFLAGS = $(CPPFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### CPP_LDFLAGS = $(CPP_LDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### CPP_SHAREDLIB_LDFLAGS = $(CPP_SHAREDLIB_LDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### ARFLAGS = $(ARFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### MEX_CFLAGS = $(MEX_CFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### MEX_CPPFLAGS = $(MEX_CPPFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### MEX_LDFLAGS = $(MEX_LDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### EXECUTE_FLAGS = $(EXECUTE_FLAGS))
+	@echo $(call FORMAT_FOR_ECHO,### MAKE_FLAGS = $(MAKE_FLAGS))
 
 
 clean : 
 	$(ECHO) "### Deleting all derived files ..."
-	@if exist $(PRODUCT) $(RM) $(PRODUCT)
-	$(RM) $(ALL_OBJS)
+	$(RM) $(subst /,\,$(PRODUCT))
+	$(RM) $(subst /,\,$(ALL_OBJS))
 	$(ECHO) "### Deleted all derived files."
 
 

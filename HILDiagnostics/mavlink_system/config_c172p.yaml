@@ -17,7 +17,7 @@ vehicle:
   # SITL mission upload/arm/start now goes through direct_mission_uploader.py instead, which
   # bypasses this relay entirely with one persistent pymavlink socket. See
   # PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md section 4.3.13/4.3.14.
-  simulink_command_address: "udp://172.31.228.71:18570"
+  simulink_command_address: "udp://172.21.2.216:14550"
   connect_timeout_s: 180
   telemetry_timeout_s: 15
   health_timeout_s: 240
@@ -78,6 +78,6 @@ safety:
   # Raised for c172p's climb-out (120 m relative_altitude_m waypoints, 25 m takeoff altitude) --
   # config.yaml's 10.0 m defaults are sized for the hexarotor mission.
   max_takeoff_altitude_m: 30.0
-  max_mission_altitude_m: 150.0
+  max_mission_altitude_m: 250.0
   allow_real_vehicle_commands: true
   allow_pymavlink_commands: true

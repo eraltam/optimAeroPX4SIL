@@ -1,0 +1,37 @@
+mission:
+  enabled: true
+  name: "c172pJSBSim_wide_zigzag_rtl"
+
+  speed_m_s: 24.0
+  relative_altitude_m: 60.0
+  acceptance_radius_m: 120.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  rtl_after_mission: true
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  mission_timeout_s: 3600
+  land_timeout_s: 1200
+
+  # Wide alternating gates around the eastbound departure corridor.
+  # Each leg is roughly 700-850 m, giving the fixed-wing controller enough
+  # room to establish a bank, reverse direction, and settle before the gate.
+  waypoints:
+    - name: "wp1_left"
+      latitude_deg: 17.647000
+      longitude_deg: -63.216500
+
+    - name: "wp2_right"
+      latitude_deg: 17.641000
+      longitude_deg: -63.212500
+
+    - name: "wp3_left"
+      latitude_deg: 17.647500
+      longitude_deg: -63.208500
+
+    - name: "wp4_right"
+      latitude_deg: 17.640500
+      longitude_deg: -63.204500

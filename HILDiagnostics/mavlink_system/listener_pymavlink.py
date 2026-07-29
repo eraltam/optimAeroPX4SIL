@@ -137,13 +137,18 @@ class PymavlinkListener:
                 if self._stop:
                     return
                 raise
-            self._log_outbound(data)
+            if not self._log_outbound(data):
+                # MAVSDK also routes received autopilot telemetry back toward the
+                # sender. Relaying that telemetry into PX4 creates an amplification
+                # loop. Only GCS-originated command/protocol traffic belongs on the
+                # return path.
+                continue
             try:
                 self._forward_socket.sendto(data, self.command_relay_target)
             except OSError as exc:
                 print(f"pymavlink: command relay to Simulink failed: {exc}")
 
-    def _log_outbound(self, data: bytes) -> None:
+    def _log_outbound(self, data: bytes) -> bool:
         """Decode and print/log MAVSDK's outbound bytes before relaying them, purely for
         visibility -- a parse failure here must never block the relay itself.
         """
@@ -153,12 +158,32 @@ class PymavlinkListener:
             msgs = self._outbound_parser.parse_buffer(data) or []
         except Exception as exc:  # noqa: BLE001 - diagnostics only, must not break the relay
             print(f"pymavlink: MAVSDK -> PX4: <{len(data)} bytes, failed to decode: {exc}>")
-            return
+            return False
+        relay_types = {
+            "HEARTBEAT", "PING", "TIMESYNC",
+            "COMMAND_LONG", "COMMAND_INT", "SET_MODE",
+            "PARAM_REQUEST_READ", "PARAM_REQUEST_LIST", "PARAM_SET",
+            "PARAM_EXT_REQUEST_READ", "PARAM_EXT_REQUEST_LIST", "PARAM_EXT_SET",
+            "MISSION_REQUEST", "MISSION_REQUEST_INT", "MISSION_REQUEST_LIST",
+            "MISSION_COUNT", "MISSION_ITEM", "MISSION_ITEM_INT",
+            "MISSION_CLEAR_ALL", "MISSION_SET_CURRENT", "MISSION_ACK",
+            "REQUEST_DATA_STREAM", "AUTOPILOT_VERSION_REQUEST",
+            "MANUAL_CONTROL", "RC_CHANNELS_OVERRIDE",
+            "SET_POSITION_TARGET_LOCAL_NED", "SET_POSITION_TARGET_GLOBAL_INT",
+            "SET_ATTITUDE_TARGET",
+        }
+        # A UDP datagram can contain several MAVLink frames.  Relaying the
+        # entire datagram when only one frame is command traffic also sends
+        # any bundled PX4 telemetry back into PX4, creating an amplification
+        # loop.  Only relay datagrams composed entirely of return-path frames.
+        should_relay = bool(msgs)
         for msg in msgs:
             msg_type = msg.get_type()
             print(f"{time.strftime('%H:%M:%S')} MAVSDK -> PX4: {msg_type} {msg.to_dict()}")
             if self.logger is not None:
                 self.logger.write(f"MAVSDK_OUT_{msg_type}", msg.to_dict())
+            should_relay = should_relay and msg_type in relay_types
+        return should_relay
 
     def listen_once(self, timeout_s: float = 1.0) -> bool:
         if self.master is None:
