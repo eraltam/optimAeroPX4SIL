@@ -25,6 +25,7 @@ _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT = 6
 # identical item with frame=MISSION (2) uploaded fine.
 _MAV_FRAME_MISSION = 2
 _MAV_CMD_NAV_WAYPOINT = 16
+_MAV_CMD_NAV_LAND = 21
 _MAV_CMD_NAV_TAKEOFF = 22
 _MAV_CMD_NAV_RETURN_TO_LAUNCH = 20
 _MAV_CMD_DO_CHANGE_SPEED = 178
@@ -129,7 +130,8 @@ class MavsdkInstructor:
         if not confirm_real_vehicle_allowed(self.config):
             print("MAVSDK DRY-RUN: arm()")
             return
-        await self._run_action("arm", self.drone.action.arm)
+        attempts = int(self.vehicle_config.get("arm_attempts", 4))
+        await self._run_action("arm", self.drone.action.arm, attempts=attempts)
 
     async def takeoff(self) -> None:
         altitude = float(self.vehicle_config.get("takeoff_altitude_m", 3.0))
@@ -214,7 +216,15 @@ class MavsdkInstructor:
             or mission_requested
         ):
             await self._apply_pre_arm_params()
-            await self.wait_until_ready()
+            try:
+                await self.wait_until_ready()
+            except TimeoutError:
+                if not self.vehicle_config.get("continue_on_health_timeout", False):
+                    raise
+                print(
+                    "MAVSDK: stationary pre-arm health gate timed out; continuing to "
+                    "mission upload before the separately ordered SITL force-arm"
+                )
 
         if mission_requested:
             await self.run_waypoint_mission(mission_path)
@@ -353,7 +363,7 @@ class MavsdkInstructor:
         )
         print(
             f"MAVSDK: mission_raw plan has {len(raw_items)} item(s) "
-            "(takeoff + waypoints + RTL, exactly like a QGroundControl-authored fixed-wing plan)"
+            "(takeoff + waypoints + explicit fixed-wing termination)"
         )
 
         print("MAVSDK: clearing existing onboard mission (mission_raw)")
@@ -385,24 +395,32 @@ class MavsdkInstructor:
         # QGroundControl-uploaded fixed-wing plan.
         print("MAVSDK: starting waypoint mission (raw, PX4 owns the takeoff item)")
         await self._run_mission_call(
-            "start_mission (raw)", self.drone.mission_raw.start_mission, exc_types=MissionRawError
+            "start_mission (raw)",
+            self.drone.mission_raw.start_mission,
+            attempts=int(self.vehicle_config.get("start_mission_attempts", 4)),
+            exc_types=MissionRawError,
         )
+        delayed_params_task = asyncio.create_task(self._apply_delayed_post_start_params())
         await self._wait_mission_complete(
             expected_total=len(raw_items),
             timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
             plugin=self.drone.mission_raw,
         )
-        print("MAVSDK: mission_raw items exhausted; RTL handoff completed")
+        await delayed_params_task
+        explicit_land = bool(mission_config.get("land_after_mission", False))
+        print("MAVSDK: mission_raw items exhausted")
 
-        if bool(mission_config.get("land_after_mission", False)):
-            print("MAVSDK: commanding fixed-wing landing after RTL handoff")
-            await self.land()
+        if explicit_land:
+            # The raw plan already contains an approach waypoint and NAV_LAND.
+            # Sending action.land() only after an RTL item never works for fixed
+            # wing: RTL remains active while orbiting home and therefore never
+            # becomes a completed mission item.
             await self._wait_landed(
                 timeout_s=float(mission_config.get("land_timeout_s", 900.0))
             )
             print(
-                "MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, RTL handoff, "
-                "and landing completed"
+                "MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, explicit "
+                "approach, and landing completed"
             )
         else:
             print(
@@ -421,6 +439,23 @@ class MavsdkInstructor:
                 call = self.drone.param.set_param_float(name, float(value))
             await asyncio.wait_for(call, timeout=15.0)
             print(f"MAVSDK: post-arm parameter {name} accepted")
+
+    async def _apply_delayed_post_start_params(self) -> None:
+        """Apply optional EKF settings after takeoff has begun and yaw is observable."""
+        params = self.vehicle_config.get("delayed_post_start_params", {})
+        if not params:
+            return
+        delay_s = float(self.vehicle_config.get("delayed_post_start_params_delay_s", 0.0))
+        print(f"MAVSDK: waiting {delay_s:.1f}s before delayed post-start parameters")
+        await asyncio.sleep(delay_s)
+        for name, value in params.items():
+            print(f"MAVSDK: setting delayed post-start parameter {name}={value}")
+            if isinstance(value, int):
+                call = self.drone.param.set_param_int(name, value)
+            else:
+                call = self.drone.param.set_param_float(name, float(value))
+            await asyncio.wait_for(call, timeout=15.0)
+            print(f"MAVSDK: delayed post-start parameter {name} accepted")
 
     async def _apply_pre_arm_params(self) -> None:
         """Apply optional pre-arm thresholds before waiting on PX4's armable flag."""
@@ -448,6 +483,24 @@ class MavsdkInstructor:
         current_lon: float,
     ) -> list[RawMissionItem]:
         takeoff_altitude = float(self.vehicle_config.get("takeoff_altitude_m", 25.0))
+        takeoff_heading_deg = float(self.vehicle_config.get("takeoff_heading_deg", 105.0))
+        takeoff_runway_m = float(self.vehicle_config.get("takeoff_runway_m", 700.0))
+
+        # A fixed-wing NAV_TAKEOFF item at the exact current position has no
+        # usable runway bearing. PX4 then steers toward an undefined/behind
+        # track while still on its wheels instead of accelerating straight to
+        # rotation speed. Place the takeoff target ahead on the configured
+        # runway heading; altitude remains relative to home.
+        earth_radius_m = 6371000.0
+        heading_rad = math.radians(takeoff_heading_deg)
+        lat_rad = math.radians(current_lat)
+        takeoff_lat = current_lat + math.degrees(
+            takeoff_runway_m * math.cos(heading_rad) / earth_radius_m
+        )
+        takeoff_lon = current_lon + math.degrees(
+            takeoff_runway_m * math.sin(heading_rad)
+            / (earth_radius_m * math.cos(lat_rad))
+        )
 
         items: list[RawMissionItem] = []
         seq = 0
@@ -461,7 +514,7 @@ class MavsdkInstructor:
                 seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_TAKEOFF,
                 1, 1,
                 0.0, 0.0, 0.0, float("nan"),
-                round(current_lat * 1e7), round(current_lon * 1e7), takeoff_altitude,
+                round(takeoff_lat * 1e7), round(takeoff_lon * 1e7), takeoff_altitude,
                 _MAV_MISSION_TYPE_MISSION,
             )
         )
@@ -487,7 +540,50 @@ class MavsdkInstructor:
             )
             seq += 1
 
-        if rtl_after_mission:
+        if bool(mission_config.get("land_after_mission", False)):
+            # A fixed-wing NAV_RETURN_TO_LAUNCH item is intentionally not used
+            # here. PX4 circles home at RTL altitude indefinitely, so the item
+            # never completes and the old post-mission action.land() call is
+            # unreachable. Author a straight-in approach followed by NAV_LAND.
+            landing_heading_deg = float(
+                mission_config.get("landing_heading_deg", takeoff_heading_deg)
+            )
+            landing_approach_m = float(
+                mission_config.get("landing_approach_m", 900.0)
+            )
+            landing_approach_alt_m = float(
+                mission_config.get("landing_approach_altitude_m", 60.0)
+            )
+            landing_heading_rad = math.radians(landing_heading_deg)
+            approach_lat = current_lat - math.degrees(
+                landing_approach_m * math.cos(landing_heading_rad) / earth_radius_m
+            )
+            approach_lon = current_lon - math.degrees(
+                landing_approach_m * math.sin(landing_heading_rad)
+                / (earth_radius_m * math.cos(lat_rad))
+            )
+            items.append(
+                RawMissionItem(
+                    seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_WAYPOINT,
+                    0, 1,
+                    0.0, 120.0, 0.0, float("nan"),
+                    round(approach_lat * 1e7), round(approach_lon * 1e7),
+                    landing_approach_alt_m,
+                    _MAV_MISSION_TYPE_MISSION,
+                )
+            )
+            seq += 1
+            items.append(
+                RawMissionItem(
+                    seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_LAND,
+                    0, 1,
+                    0.0, 0.0, 0.0, landing_heading_deg,
+                    round(current_lat * 1e7), round(current_lon * 1e7), 0.0,
+                    _MAV_MISSION_TYPE_MISSION,
+                )
+            )
+            seq += 1
+        elif rtl_after_mission:
             items.append(
                 RawMissionItem(
                     seq, _MAV_FRAME_MISSION, _MAV_CMD_NAV_RETURN_TO_LAUNCH,

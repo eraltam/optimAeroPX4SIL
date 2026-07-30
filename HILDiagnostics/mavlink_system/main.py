@@ -157,6 +157,11 @@ def main() -> None:
     try:
         try:
             asyncio.run(run(config, base_dir=base_dir, config_dir=config_path.parent))
+            (base_dir / "mission_success.marker").write_text(
+                "Mission controller completed successfully.\n",
+                encoding="utf-8",
+            )
+            print(f"main: wrote success marker to {base_dir / 'mission_success.marker'}")
         except KeyboardInterrupt:
             print("main: Ctrl+C received")
     finally:

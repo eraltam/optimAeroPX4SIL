@@ -11,12 +11,18 @@ vehicle:
   simulink_command_address: "udp://172.21.2.216:14550"
   connect_timeout_s: 900
   telemetry_timeout_s: 15
-  health_timeout_s: 240
+  # Upload the mission even if the stationary barometric-height preflight
+  # check remains pending. The aircraft is held by JSBSim wheel brakes until
+  # the mission exists; arming is handled after upload.
+  health_timeout_s: 30
+  continue_on_health_timeout: true
   takeoff_timeout_s: 60
   param_dump_timeout_s: 30
   # Same airframe/FCS as c172p (10044_optimAeroC172pJSBSim mirrors 10043_optimAeroC172p's
   # MIS_TAKEOFF_ALT=25 fixed-wing climb-out default).
   takeoff_altitude_m: 25.0
+  takeoff_heading_deg: 105.0
+  takeoff_runway_m: 700.0
   # Used to author the NAV_TAKEOFF item when no-mag EKF alignment has not yet
   # made MAVSDK's telemetry.position() stream available. These are the exact
   # coordinates in aircraft/c172p/c172pJSBSimInit.xml.
@@ -24,6 +30,10 @@ vehicle:
   initial_longitude_deg: -63.21988
   initial_position_timeout_s: 5
   auto_arm: true
+  # Keep telemetry/capture alive while SITL-only forced arming waits for the
+  # heading estimator to align on the ground.
+  arm_attempts: 90
+  start_mission_attempts: 30
   auto_takeoff: true
   auto_mission: true
   # The ground model has no parking-brake actuator, so idle thrust can create a
@@ -73,7 +83,7 @@ safety:
   # PX4 is force-armed by the SITL launcher before the brake-less JSBSim
   # ground model can roll away. Position is still monitored throughout the
   # mission; skip only MAVSDK's redundant pre-arm health wait.
-  require_position_ok_for_takeoff: false
+  require_position_ok_for_takeoff: true
   max_takeoff_altitude_m: 30.0
   max_mission_altitude_m: 250.0
   allow_real_vehicle_commands: true

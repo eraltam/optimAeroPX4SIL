@@ -67,15 +67,21 @@ aircraftVelInNED_mps = DCM_be' * aircraftVelInBody_mps;
 aircraftAngVelInBody_radps = [p_radps; q_radps; r_radps];
 aircraftAngAccelInBody_radps2 = [pdot_radps2; qdot_radps2; rdot_radps2];
 
-% JSBSim's accelerations/{u,v,w}dot-ft_sec2 are TOTAL body-axis acceleration at the CG (includes
-% gravity's contribution via the equations of motion) -- i.e. the same "raw inertial acceleration"
-% quantity every other vehicle's plant supplies for this field. `aircraftAccelbe_mps2` must stay
-% the RAW acceleration here, NOT specific force: both ins.slx's "Three-axis Inertial Measurement
-% Unit" block (aerolibnav) and ANELLO_X3_IMU_Vehicle_fcn_SIL.m already subtract gravity themselves
-% (their own g_body/Gb input) to turn raw acceleration into specific force. Subtracting gravity a
-% second time here double-counted it, producing a stationary-aircraft accelerometer reading of
-% ~2x g (~19.6 m/s^2) instead of ~9.81 m/s^2. Do not re-add a gravity subtraction here.
-aircraftAccelInBody_mps2 = [udot_ftps2; vdot_ftps2; wdot_ftps2] * ft2m;
+% JSBSim's accelerations/{u,v,w}dot-ft_sec2 are derivatives of the BODY-FRAME
+% velocity components.  They are not by themselves the inertial acceleration
+% vector expressed in body axes.  For a rotating body frame,
+%
+%   a_body = d(v_body)/dt + omega_body x v_body.
+%
+% Omitting omega x v created a large fictitious lateral acceleration during
+% coordinated turns and omitted the corresponding normal load.  In a112 this
+% appeared as roughly +/-3..10 m/s^2 lateral specific force while truth implied
+% approximately zero, causing EKF roll to exceed physical roll by 10..18 deg.
+% Keep this as RAW inertial acceleration, not specific force: ins.slx and
+% ANELLO_X3_IMU_Vehicle_fcn_SIL subtract gravity downstream.
+bodyVelDerivative_mps2 = [udot_ftps2; vdot_ftps2; wdot_ftps2] * ft2m;
+aircraftAccelInBody_mps2 = bodyVelDerivative_mps2 + ...
+    cross(aircraftAngVelInBody_radps, aircraftVelInBody_mps);
 aircraftAccelbe_mps2 = aircraftAccelInBody_mps2;
 
 aircraftEulerAngles_rad = [phi_rad; theta_rad; psi_rad];

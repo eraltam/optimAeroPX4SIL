@@ -202,8 +202,14 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             gps.lat = (int32_t)(*xyz_measured[1]);
             gps.lon = (int32_t)(*xyz_measured[2]);
             gps.alt = (int32_t)(*xyz_measured[3]);
-            gps.eph = (uint16_t)(*xyz_measured[4]);
-            gps.epv = (uint16_t)(*xyz_measured[5]);
+            // The Simulink GPS model injects C172 position noise but may output
+            // zero uncertainty. Reporting perfect accuracy makes EKF2 reject
+            // normal samples and repeatedly reset position/yaw. MAVLink units
+            // are centimetres; enforce floors consistent with setUpSensors.m.
+            const uint16_t reported_eph = (uint16_t)(*xyz_measured[4]);
+            const uint16_t reported_epv = (uint16_t)(*xyz_measured[5]);
+            gps.eph = reported_eph < 80 ? 80 : reported_eph;
+            gps.epv = reported_epv < 150 ? 150 : reported_epv;
             gps.vel = (uint16_t)std::floor(*xyz_measured[6]);
             gps.vn = (int16_t)std::floor(*xyz_measured[7]);
             gps.ve = (int16_t)std::floor(*xyz_measured[8]);

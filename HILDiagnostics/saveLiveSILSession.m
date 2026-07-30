@@ -26,14 +26,25 @@ function sessionDir = saveLiveSILSession(sessionId, opts)
 arguments
     sessionId (1,1) string
     opts.px4LogRoot (1,1) string = ""
-    opts.maxUlogAge_s (1,1) double = 3600
+    opts.maxUlogAge_s (1,1) double = 7200
 end
 
 thisDir = string(fileparts(mfilename("fullpath")));
 repoRoot = fileparts(thisDir);
 
 if strlength(opts.px4LogRoot) == 0
-    opts.px4LogRoot = fullfile(repoRoot, "PX4-Autopilot", "build", "px4_sitl_default", "rootfs", "log");
+    envLogRoot = string(getenv("PX4_LOG_ROOT"));
+    candidateRoots = [
+        envLogRoot
+        fullfile(repoRoot, "PX4-Autopilot", "build", "px4_sitl_default", "rootfs", "log")
+        "\\wsl.localhost\Ubuntu-22.04\home\eraltam\PX4-Autopilot-optimAero\build\px4_sitl_default\rootfs\log"
+    ];
+    existingRoot = find(strlength(candidateRoots) > 0 & isfolder(candidateRoots), 1);
+    if isempty(existingRoot)
+        opts.px4LogRoot = candidateRoots(2);
+    else
+        opts.px4LogRoot = candidateRoots(existingRoot);
+    end
 end
 
 sessionName = "session_" + sanitizeSessionId(sessionId);
@@ -56,6 +67,14 @@ if evalin("base", "exist('logsout','var')")
     data.logsout = evalin("base", "logsout");
     found(end + 1) = "logsout";
 end
+if evalin("base", "exist('simOut','var')")
+    data.simOut = evalin("base", "simOut");
+    found(end + 1) = "simOut";
+end
+if evalin("base", "exist('runError','var')")
+    data.runError = evalin("base", "runError");
+    found(end + 1) = "runError";
+end
 
 baseVars = evalin("base", "who");
 logVars = baseVars(startsWith(baseVars, "log_"));
@@ -67,9 +86,19 @@ end
 
 data.sessionId = sessionId;
 data.savedAt_utc = char(datetime("now", "TimeZone", "UTC", "Format", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+data.matlabVersion = version;
+data.matlabRelease = version("-release");
+data.px4LogRoot = char(opts.px4LogRoot);
 
 matPath = fullfile(sessionDir, "matlab_signals.mat");
-save(matPath, "-struct", "data");
+save(matPath, "-struct", "data", "-v7.3");
+matInfo = dir(matPath);
+matVariables = whos("-file", matPath);
+if isempty(matVariables) || matInfo.bytes < 1024
+    error("saveLiveSILSession:InvalidMatArtifact", ...
+        "MAT artifact validation failed: %s (%d bytes, %d variables)", ...
+        matPath, matInfo.bytes, numel(matVariables));
+end
 
 if isempty(found)
     warning("saveLiveSILSession:NoSignals", ...
@@ -103,7 +132,26 @@ end
 
 destPath = fullfile(sessionDir, "px4.ulg");
 copyfile(newestPath, destPath);
+destInfo = dir(destPath);
+if isempty(destInfo) || destInfo.bytes == 0
+    error("saveLiveSILSession:InvalidUlogArtifact", ...
+        "ULG artifact validation failed after copying to %s", destPath);
+end
 fprintf("Copied ulog (%.0f s old): %s -> %s\n", ageSeconds, newestPath, destPath);
+
+manifest = struct( ...
+    "sessionId", char(sessionId), ...
+    "savedAt_utc", data.savedAt_utc, ...
+    "matlabFile", "matlab_signals.mat", ...
+    "matlabBytes", matInfo.bytes, ...
+    "matlabVariables", {string({matVariables.name})}, ...
+    "ulogFile", "px4.ulg", ...
+    "ulogBytes", destInfo.bytes, ...
+    "ulogSource", newestPath, ...
+    "ulogAgeSeconds", ageSeconds);
+writeTextFile(fullfile(sessionDir, "artifacts.json"), jsonencode(manifest, PrettyPrint=true));
+fprintf("Validated paired artifacts and wrote %s\n", ...
+    fullfile(sessionDir, "artifacts.json"));
 end
 
 function sessionId = sanitizeSessionId(rawSessionId)

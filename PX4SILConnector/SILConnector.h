@@ -85,8 +85,8 @@ class SILConnector{
         std::array<float,16> m_hil_actuator_controls;
         std::array<uint8_t,1> m_hil_actuator_mode;
         std::chrono::time_point<std::chrono::steady_clock> m_last_heartbeat_time;
-        std::chrono::time_point<std::chrono::steady_clock> m_last_hil_gps_time;
-        std::chrono::time_point<std::chrono::steady_clock> m_last_distance_sensor_time;
+        uint64_t m_last_hil_gps_time_usec{0};
+        uint64_t m_last_distance_sensor_time_usec{0};
 
     public:
         SILConnector(const std::string &source_address,const unsigned int & source_port)
@@ -102,8 +102,8 @@ class SILConnector{
             m_acceptor.accept(m_tcp_socket);
 
             m_last_heartbeat_time = std::chrono::steady_clock::now();
-            m_last_hil_gps_time = std::chrono::steady_clock::now(); 
-            m_last_distance_sensor_time = std::chrono::steady_clock::now(); 
+            m_last_hil_gps_time_usec = 0;
+            m_last_distance_sensor_time_usec = 0;
 
         }
 
@@ -198,7 +198,7 @@ class SILConnector{
                     m_last_heartbeat_time=now;
                 }
 
-                mavlink_hil_sensor_t hil_sensor_msg;
+                mavlink_hil_sensor_t hil_sensor_msg{};
                 hil_sensor_msg.time_usec = time_usec;
                 hil_sensor_msg.xacc = imu.xacc;
                 hil_sensor_msg.yacc = imu.yacc;
@@ -219,13 +219,12 @@ class SILConnector{
 
                 bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send],&encoded_msg);
 
-                now = std::chrono::steady_clock::now();
-                
-                elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now-m_last_hil_gps_time);
-                
-                if(elapsed.count()>200){ //5Hz
+                // Drive simulated sensor rates from simulation time. This remains
+                // deterministic when Simulink is deliberately paced below real time.
+                if (m_last_hil_gps_time_usec == 0
+                    || time_usec - m_last_hil_gps_time_usec >= 200000) { // 5 Hz
 
-                    mavlink_hil_gps_t hil_gps_msg;
+                    mavlink_hil_gps_t hil_gps_msg{};
                     hil_gps_msg.time_usec = time_usec;
                     hil_gps_msg.fix_type = gps.fix_type;
                     hil_gps_msg.lat = gps.lat;
@@ -240,21 +239,24 @@ class SILConnector{
                     hil_gps_msg.cog = gps.cog;
                     hil_gps_msg.satellites_visible = gps.satellites_visible;
                     hil_gps_msg.id = (uint8_t)0;
-                    hil_gps_msg.yaw = (uint16_t)0;
+                    // PX4 is configured to fuse the model's simulated magnetometer for
+                    // heading. Do not simultaneously advertise course-over-ground as a
+                    // dual-antenna GNSS yaw measurement: a101 showed repeated heading and
+                    // horizontal-position resets when those independent yaw observations
+                    // disagreed during turns. Zero means GNSS yaw is unavailable; course
+                    // remains present in `cog` for ordinary velocity/course processing.
+                    hil_gps_msg.yaw = 0;
 
                     mavlink_msg_hil_gps_encode_chan(1, 200, MAVLINK_COMM_0, &encoded_msg, &hil_gps_msg);
 
                     bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send],&encoded_msg);
                     
-                    m_last_hil_gps_time = now;
+                    m_last_hil_gps_time_usec = time_usec;
 
                 }
 
-                now = std::chrono::steady_clock::now();
-                
-                elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now-m_last_distance_sensor_time);
-
-                if(elapsed.count()>10){ //50Hz
+                if (m_last_distance_sensor_time_usec == 0
+                    || time_usec - m_last_distance_sensor_time_usec >= 20000) { // 50 Hz
 
                     uint16_t min_distance = 2;
                     uint16_t max_distance = 5000;
@@ -274,7 +276,7 @@ class SILConnector{
                         signal_quality = (uint8_t)((high_signal_strength - signal_strength) / (high_signal_strength - low_signal_strength)*100);
                     }
 
-                    mavlink_distance_sensor_t distance_sensor_msg;
+                    mavlink_distance_sensor_t distance_sensor_msg{};
                     distance_sensor_msg.time_boot_ms=(uint32_t)(time_usec /(1e3));
                     distance_sensor_msg.min_distance=(uint16_t)min_distance;
                     distance_sensor_msg.max_distance=(uint16_t)max_distance;
@@ -295,7 +297,7 @@ class SILConnector{
 
                     bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send], &encoded_msg);
 
-                    m_last_distance_sensor_time = now;
+                    m_last_distance_sensor_time_usec = time_usec;
 
                 }
                 
@@ -338,7 +340,8 @@ class SILConnector{
                 attitude_quaternion[2] = cpsi * stheta * cphi + spsi * ctheta * sphi;
                 attitude_quaternion[3] = spsi * ctheta * cphi - cpsi * stheta * sphi;
 
-                mavlink_hil_state_quaternion_t hil_state_quaternion;
+                mavlink_hil_state_quaternion_t hil_state_quaternion{};
+                hil_state_quaternion.time_usec = time_usec;
                 hil_state_quaternion.attitude_quaternion[0] = attitude_quaternion[0];
                 hil_state_quaternion.attitude_quaternion[1] = attitude_quaternion[1];
                 hil_state_quaternion.attitude_quaternion[2] = attitude_quaternion[2];
