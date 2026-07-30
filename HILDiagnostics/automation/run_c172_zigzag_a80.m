@@ -56,6 +56,15 @@ assert(~isempty(unpackerChart), "Could not find embedded JSBSim output unpacker"
 unpackerChart.Script = fileread(fullfile(repoRoot, ...
     "vehicle", "c172pJSBSim", "components", "unpackJSBSimOutputs.m"));
 
+% Preserve the existing plant safety limits while filtering isolated
+% solver/transition spikes. Invalid or extreme states still abort
+% immediately; ordinary limit crossings must persist for 0.5 seconds.
+abortPath = "VehicleSilSimulation/CheckAbort";
+abortChart = sf.find("-isa", "Stateflow.EMChart", "Path", abortPath);
+assert(~isempty(abortChart), "Could not find CheckAbort MATLAB Function");
+abortChart.Script = fileread(fullfile(repoRoot, ...
+    "HILDiagnostics", "automation", "checkAbort.m"));
+
 % The connector's optional 17-element truth port is grounded in the stock
 % model. Route the existing synchronized groundTruthData vector into it.
 groundLine = get_param("VehicleSilSimulation/PX4 Interface/Ground", "LineHandles");
