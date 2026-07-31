@@ -668,6 +668,11 @@ if ~bdIsLoaded(modelName)
     load_system(modelName);
 end
 
+% Only hexarotor's FlightGear variant exposes a configurable telnet TCP port
+% for per-rotor commands (FlightGearVisualizationHexarotor). c172p/c172pJSBSim
+% and F-16 use the fixed-wing template (FlightGear Preconfigured 6DoF
+% Animation only, no telnet rotor link), so there is nothing to reconfigure
+% here for them -- see FlightGearVisualizationC172p, added 2026-07-30.
 if ~strcmpi(vehicleType, "hexarotor")
     return
 end

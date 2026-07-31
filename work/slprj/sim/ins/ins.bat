@@ -1,12 +1,13 @@
 @echo off
 
-call "setup_mingw.bat"
+set skipSetupArg=%2
+if "%skipSetupArg%" NEQ "skip_setup_msvc" (
+call "setup_msvc.bat"
+)
 
 cd .
 
-chcp 1252
-
-if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f ins.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f ins.mk %1)
+if "%1"=="" (nmake  -f ins.mk all) else (nmake  -f ins.mk %1)
 @if errorlevel 1 goto error_exit
 
 exit /B 0

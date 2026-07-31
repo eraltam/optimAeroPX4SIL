@@ -3,12 +3,12 @@ vehicle:
   pymavlink_address: "udpin:0.0.0.0:14550"
   # Same relay caveats as config_c172p.yaml -- point this at PX4's own WSL endpoint (the "Normal"
   # mavlink instance's bind port, 18570), not the HITL Simulink relay port. WSL IP changes across
-  # reboots -- reconfirm with `wsl hostname -I` if this stops connecting (172.31.228.71 confirmed
+  # reboots -- reconfirm with `wsl hostname -I` if this stops connecting (172.31.224.1 confirmed
   # current as of 2026-07-24).
   # Restore the command path used by a36, which completed all waypoints and
   # entered RTL. The WSL 14550 relay preserves the MAVSDK source endpoint,
   # unlike direct reinjection into PX4's 18570 bind socket.
-  simulink_command_address: "udp://172.21.2.216:14550"
+  simulink_command_address: "udp://172.31.228.71:14550"
   connect_timeout_s: 900
   telemetry_timeout_s: 15
   health_timeout_s: 240

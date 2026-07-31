@@ -143,6 +143,18 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     if (ssIsSampleHit(S, 0, tid)){
 
         static std::string eStatus;
+        // Consecutive-exception tolerance added 2026-07-30: every one of several live SITL runs
+        // (see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md) halted cleanly ~90s into a healthy
+        // flight -- PX4's own .ulg log shows nav_state still AUTO_MISSION, armed, failsafe=0, and
+        // every failure_detector_status flag 0 right up to the last recorded sample, ruling out a
+        // PX4-side fault. The only other thing that can stop this sim outright is this catch
+        // block's ssSetErrorStatus call below, which previously fired on the very first exception
+        // from send()/receive() -- including a single transient WSL2/loopback TCP hiccup that a
+        // healthy connection would otherwise recover from next step. Tolerate a run of isolated
+        // failures (logging each one) and only escalate to a hard stop once they're persistent,
+        // i.e. the connection is actually gone rather than having blipped once.
+        static int consecutiveFailures = 0;
+        constexpr int kMaxConsecutiveFailures = 25;
 
         try
         {
@@ -202,8 +214,19 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             gps.lat = (int32_t)(*xyz_measured[1]);
             gps.lon = (int32_t)(*xyz_measured[2]);
             gps.alt = (int32_t)(*xyz_measured[3]);
-            gps.eph = (uint16_t)(*xyz_measured[4]);
-            gps.epv = (uint16_t)(*xyz_measured[5]);
+            // xyz_measured[4]/[5] are the gps.slx horizontal/vertical position accuracy in
+            // meters (parameters.gps.horzPositionAccuracy_m/vertPositionAccuracy_m, e.g. 0.8/1.5).
+            // HIL_GPS.eph/epv are uint16 in centimeters per PX4's own ingestion
+            // (simulator_mavlink.cpp: "gps.eph = (float)hil_gps.eph * 1e-2f; // cm -> m") --
+            // casting the raw meters value straight to uint16_t truncated 0.8 -> 0, telling
+            // EKF2 the GPS position was exact (zero accuracy/error). Confirmed this fed into
+            // gps_control.cpp's `pos_noise = max(gps_sample.hacc, EKF2_GPS_P_NOISE)` as hacc=0,
+            // though the EKF2_GPS_P_NOISE floor (default 0.5m, not overridden by this airframe)
+            // meant the practical effect was smaller than the raw eph=0 alone suggests. See
+            // PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md section 4.4 for the full reset
+            // investigation this was found during.
+            gps.eph = (uint16_t)(*xyz_measured[4] * 100.0f);
+            gps.epv = (uint16_t)(*xyz_measured[5] * 100.0f);
             gps.vel = (uint16_t)std::floor(*xyz_measured[6]);
             gps.vn = (int16_t)std::floor(*xyz_measured[7]);
             gps.ve = (int16_t)std::floor(*xyz_measured[8]);
@@ -275,11 +298,19 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             }
             mode[0] = (real_T)hil_actuator_mode[0];
 
+            consecutiveFailures = 0;
+
         }
         catch (const std::exception &e)
         {
-            eStatus = std::string(e.what());
-            ssSetErrorStatus(S, eStatus.c_str());
+            consecutiveFailures++;
+            mexPrintf("pixhawk_sil_connector: step failed (%d/%d consecutive): %s\n",
+                      consecutiveFailures, kMaxConsecutiveFailures, e.what());
+            if (consecutiveFailures >= kMaxConsecutiveFailures)
+            {
+                eStatus = std::string(e.what());
+                ssSetErrorStatus(S, eStatus.c_str());
+            }
         }
     }
 }

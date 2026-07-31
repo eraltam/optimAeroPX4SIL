@@ -49,7 +49,7 @@ rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 2781476071U , 210318853U , 1463477042U , 2977094669U } , &
+{ 2206378502U , 940531173U , 2350405415U , 1988962086U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * environment_GetCAPIStaticMap ( void ) {
 return & mmiStatic ; }

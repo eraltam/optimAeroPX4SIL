@@ -1,0 +1,44 @@
+mission:
+  enabled: true
+  name: "c172pJSBSim_racetrack_rtl"
+
+  # Elongated N-S rectangle (~1500 m legs, ~500 m ends) around the JSBSim home
+  # position (17.64450, -63.21988, from aircraft/c172p/c172pJSBSimInit.xml --
+  # same home as mission_c172pJSBSim_zigzag.yaml/mission_c172pJSBSim.yaml).
+  # NOT the same pattern as mission_c172p.yaml's racetrack, which is built
+  # around the NATIVE c172p plant's own simulated home (~2.8 km offset from
+  # this one, see that file's comments) -- reusing those waypoints directly
+  # against the JSBSim plant would silently trip PX4's first-waypoint
+  # feasibility check the same way that file's own comments describe.
+  speed_m_s: 24.0
+  relative_altitude_m: 60.0
+  acceptance_radius_m: 150.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  rtl_after_mission: true
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  # Scaled ~10x for the ~9x-slower-than-real-time Simulink Accelerator lockstep
+  # loop, same reasoning as mission_c172pJSBSim.yaml.
+  mission_timeout_s: 3000
+  land_timeout_s: 900
+
+  waypoints:
+    - name: "wp1_ne"
+      latitude_deg: 17.651238
+      longitude_deg: -63.217523
+
+    - name: "wp2_se"
+      latitude_deg: 17.637762
+      longitude_deg: -63.217523
+
+    - name: "wp3_sw"
+      latitude_deg: 17.637762
+      longitude_deg: -63.222237
+
+    - name: "wp4_nw"
+      latitude_deg: 17.651238
+      longitude_deg: -63.222237

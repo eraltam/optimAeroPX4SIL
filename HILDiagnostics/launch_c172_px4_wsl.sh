@@ -3,8 +3,8 @@ set -euo pipefail
 
 session_id="${1:?session id required}"
 windows_host="${2:?Windows host address required}"
-px4_root="/home/eraltam/PX4-Autopilot-optimAero"
-session_dir="/mnt/c/Users/Usuario/AnelloSummer/optimAeroPX4SIL/HILDiagnostics/logs/session_${session_id}"
+px4_root="/home/eraltam/SITLV2/PX4-Autopilot-optimAero"
+session_dir="/mnt/c/Users/Edison Altamirano/SITLV2/AnelloSummer/optimAeroPX4SIL/HILDiagnostics/logs/session_${session_id}"
 
 mkdir -p "${session_dir}"
 cd "${px4_root}"

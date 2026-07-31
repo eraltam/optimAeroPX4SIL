@@ -33,7 +33,11 @@ thisDir = string(fileparts(mfilename("fullpath")));
 repoRoot = fileparts(thisDir);
 
 if strlength(opts.px4LogRoot) == 0
-    opts.px4LogRoot = fullfile(repoRoot, "PX4-Autopilot", "build", "px4_sitl_default", "rootfs", "log");
+    % PX4 SITL for this project runs natively in WSL (distro "PX4Simulink"), not the Windows-side
+    % PX4-Autopilot submodule (that copy is for HITL, see CLAUDE_HITL.md) -- the previous default
+    % here pointed at the wrong repo and silently produced zero .ulg matches on every live SIL
+    % run. Reach the WSL rootfs log directory over its UNC share instead.
+    opts.px4LogRoot = "\\wsl.localhost\PX4Simulink\home\eraltam\SITLV2\PX4-Autopilot-optimAero\build\px4_sitl_default\rootfs\log";
 end
 
 sessionName = "session_" + sanitizeSessionId(sessionId);

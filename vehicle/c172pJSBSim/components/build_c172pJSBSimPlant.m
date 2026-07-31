@@ -88,7 +88,7 @@ sfunBlk = [mdl '/JSBSim_SFunction'];
 % not a bare SGPath(string) call, and were not observed to have this problem.
 add_block('simulink/User-Defined Functions/S-Function', sfunBlk, 'Position', [480, 560, 600, 620], ...
     'FunctionName', 'JSBSim_SFunction', ...
-    'Parameters', '''c172p'', stepSize_s, 0, '''', ''c172pJSBSimInit'', ''C:/SITL/AnelloSummer/optimAeroPX4SIL/c172pJSBSim_io.xml''');
+    'Parameters', '''c172p'', stepSize_s, 0, '''', ''c172pJSBSimInit'', ''C:/Users/Edison Altamirano/SITLV2/AnelloSummer/optimAeroPX4SIL/c172pJSBSim_io.xml''');
 add_line(mdl, 'packJSBSimInputs/1', 'JSBSim_SFunction/1', 'autorouting', 'on');
 
 %% ====================================================================

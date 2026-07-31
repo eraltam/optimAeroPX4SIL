@@ -85,8 +85,20 @@ class SILConnector{
         std::array<float,16> m_hil_actuator_controls;
         std::array<uint8_t,1> m_hil_actuator_mode;
         std::chrono::time_point<std::chrono::steady_clock> m_last_heartbeat_time;
-        std::chrono::time_point<std::chrono::steady_clock> m_last_hil_gps_time;
-        std::chrono::time_point<std::chrono::steady_clock> m_last_distance_sensor_time;
+        // GPS and distance-sensor send cadence must be throttled by SIMULATED time (the time_usec
+        // passed in from Simulink each step), not wall-clock steady_clock. This is a lockstep HIL
+        // simulation that commonly runs 6-9x slower than real-time under MATLAB Accelerator mode,
+        // and that ratio varies with host CPU load -- wall-clock throttling made the *simulated*
+        // GPS update interval both far larger than the nominal 200ms (5 Hz) and unpredictably
+        // irregular run to run, starving EKF2 of timely position corrections between updates.
+        // Confirmed via px4.ulg analysis (2026-07-29): estimator_innovation_test_ratios.gps_hpos
+        // sustained ~678 (pass threshold ~1) for seconds before each of ~1-per-5s horizontal
+        // position resets (xy_reset_counter), while raw GPS input itself was pristine
+        // (fix_type=3, eph=0, 10 satellites) -- consistent with GPS fusion being data-starved by
+        // this wall-clock throttle, not a bad GPS signal. See
+        // PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md section 4.4 for the full trace.
+        uint64_t m_last_hil_gps_time_usec = 0;
+        uint64_t m_last_distance_sensor_time_usec = 0;
 
     public:
         SILConnector(const std::string &source_address,const unsigned int & source_port)
@@ -102,8 +114,8 @@ class SILConnector{
             m_acceptor.accept(m_tcp_socket);
 
             m_last_heartbeat_time = std::chrono::steady_clock::now();
-            m_last_hil_gps_time = std::chrono::steady_clock::now(); 
-            m_last_distance_sensor_time = std::chrono::steady_clock::now(); 
+            m_last_hil_gps_time_usec = 0;
+            m_last_distance_sensor_time_usec = 0;
 
         }
 
@@ -122,9 +134,23 @@ class SILConnector{
             // brief stall here), that can exceed sizeof(m_tcp_buffer). Reading it straight into
             // the fixed 1024-byte buffer without clamping was a silent out-of-bounds write.
             // Clamp each receive() to the buffer size and loop until the socket is drained.
+            //
+            // Bug found 2026-07-30 (see PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md): looping
+            // until available()==0 is unbounded -- if PX4 streams data as fast as (or faster
+            // than) this loop drains it, available() never reaches zero and mdlOutputs never
+            // returns, hanging the single MATLAB thread. Confirmed via Windows Event Viewer
+            // (Event 1001/1002, "AppHangB1": "MATLAB.exe stopped interacting with Windows and
+            // was closed") across 4 live SITL runs, every time a short way into the mission's
+            // first climb-out turn -- exactly when PX4's own control loop is working hardest
+            // (and so streaming HIL_ACTUATOR_CONTROLS updates fastest) fighting the roll
+            // disturbance under investigation. Cap the number of drain iterations per step so
+            // this always returns in bounded time; any backlog beyond the cap is simply picked
+            // up on the next step instead of blocking this one indefinitely.
+            constexpr int kMaxDrainIterations = 64;
             auto bytes_available = m_tcp_socket.available();
+            int iterations = 0;
 
-            while(bytes_available){
+            while(bytes_available && iterations < kMaxDrainIterations){
 
                 auto bytes_to_read = std::min<std::size_t>(bytes_available, sizeof(m_tcp_buffer));
 
@@ -155,6 +181,7 @@ class SILConnector{
                 }
 
                 bytes_available = m_tcp_socket.available();
+                iterations++;
             }
         }
 
@@ -219,11 +246,7 @@ class SILConnector{
 
                 bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send],&encoded_msg);
 
-                now = std::chrono::steady_clock::now();
-                
-                elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now-m_last_hil_gps_time);
-                
-                if(elapsed.count()>200){ //5Hz
+                if((time_usec - m_last_hil_gps_time_usec) > 200000){ //5Hz, simulated time
 
                     mavlink_hil_gps_t hil_gps_msg;
                     hil_gps_msg.time_usec = time_usec;
@@ -245,16 +268,12 @@ class SILConnector{
                     mavlink_msg_hil_gps_encode_chan(1, 200, MAVLINK_COMM_0, &encoded_msg, &hil_gps_msg);
 
                     bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send],&encoded_msg);
-                    
-                    m_last_hil_gps_time = now;
+
+                    m_last_hil_gps_time_usec = time_usec;
 
                 }
 
-                now = std::chrono::steady_clock::now();
-                
-                elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now-m_last_distance_sensor_time);
-
-                if(elapsed.count()>10){ //50Hz
+                if((time_usec - m_last_distance_sensor_time_usec) > 10000){ //100Hz, simulated time
 
                     uint16_t min_distance = 2;
                     uint16_t max_distance = 5000;
@@ -295,7 +314,7 @@ class SILConnector{
 
                     bytes_to_send += mavlink_msg_to_send_buffer(&m_tcp_buffer[bytes_to_send], &encoded_msg);
 
-                    m_last_distance_sensor_time = now;
+                    m_last_distance_sensor_time_usec = time_usec;
 
                 }
                 

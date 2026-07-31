@@ -1,0 +1,59 @@
+vehicle:
+  mavsdk_address: "udp://:14540"
+  pymavlink_address: "udpin:0.0.0.0:14550"
+  # WSL IP changes across reboots -- reconfirm with `wsl hostname -I` if this stops connecting
+  # (172.31.224.1 confirmed current as of 2026-07-29).
+  simulink_command_address: "udp://172.31.228.71:14550"
+  connect_timeout_s: 900
+  telemetry_timeout_s: 15
+  health_timeout_s: 240
+  takeoff_timeout_s: 60
+  param_dump_timeout_s: 30
+  takeoff_altitude_m: 25.0
+  initial_latitude_deg: 17.64450
+  initial_longitude_deg: -63.21988
+  initial_position_timeout_s: 5
+  auto_arm: true
+  auto_takeoff: true
+  auto_mission: true
+  mission_file: "mission_c172pJSBSim_racetrack.yaml"
+
+listener:
+  enabled: true
+  log_file: "mavlink_raw_log_c172pJSBSim_racetrack.jsonl"
+  forward_to_mavsdk: true
+  relay_commands_to_simulink: true
+  message_types:
+    - HEARTBEAT
+    - SYS_STATUS
+    - BATTERY_STATUS
+    - ATTITUDE
+    - LOCAL_POSITION_NED
+    - GLOBAL_POSITION_INT
+    - GPS_RAW_INT
+    - VFR_HUD
+    - ACTUATOR_OUTPUT_STATUS
+    - SERVO_OUTPUT_RAW
+    - HIL_ACTUATOR_CONTROLS
+    - HIL_SENSOR
+    - HIL_GPS
+    - HOME_POSITION
+    - ESTIMATOR_STATUS
+    - COMMAND_ACK
+    - MISSION_ACK
+    - MISSION_CURRENT
+    - MISSION_ITEM_REACHED
+    - MISSION_COUNT
+    - MISSION_REQUEST
+    - MISSION_REQUEST_INT
+    - MISSION_ITEM
+    - MISSION_ITEM_INT
+    - EXTENDED_SYS_STATE
+    - STATUSTEXT
+
+safety:
+  require_position_ok_for_takeoff: false
+  max_takeoff_altitude_m: 30.0
+  max_mission_altitude_m: 250.0
+  allow_real_vehicle_commands: true
+  allow_pymavlink_commands: true

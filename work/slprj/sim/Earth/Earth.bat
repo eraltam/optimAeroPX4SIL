@@ -1,12 +1,13 @@
 @echo off
 
-call "setup_mingw.bat"
+set skipSetupArg=%2
+if "%skipSetupArg%" NEQ "skip_setup_msvc" (
+call "setup_msvc.bat"
+)
 
 cd .
 
-chcp 1252
-
-if "%1"=="" ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f Earth.mk all) else ("%MINGW_ROOT%\mingw32-make.exe"  -j 4 -l 4 -Oline -f Earth.mk %1)
+if "%1"=="" (nmake  -f Earth.mk all) else (nmake  -f Earth.mk %1)
 @if errorlevel 1 goto error_exit
 
 exit /B 0

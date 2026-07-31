@@ -49,7 +49,7 @@ rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 1011777017U , 2343999979U , 1279060346U , 1963424282U } , &
+{ 1073810503U , 212051558U , 4033154705U , 1028761251U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * gps_GetCAPIStaticMap ( void ) { return &
 mmiStatic ; }

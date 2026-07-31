@@ -1,0 +1,41 @@
+mission:
+  enabled: true
+  name: "c172pJSBSim_box_rtl"
+
+  speed_m_s: 24.0
+  relative_altitude_m: 60.0
+  acceptance_radius_m: 120.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  rtl_after_mission: true
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  mission_timeout_s: 3600
+  land_timeout_s: 1200
+
+  # Rectangular circuit east of home, four sustained ~90-degree turns instead
+  # of the zigzag's alternating S-turn reversals -- stresses coordinated bank
+  # hold through a full turn rather than rapid roll-direction reversal.
+  # Box is ~780 m (N-S) x ~1060 m (E-W), same leg-length order of magnitude
+  # as the zigzag mission's ~700-850 m legs, using the same tuning
+  # (FW_R_LIM=45, speed/altitude/acceptance radius) already proven by the
+  # zigzag mission.
+  waypoints:
+    - name: "wp1_nw"
+      latitude_deg: 17.647000
+      longitude_deg: -63.216000
+
+    - name: "wp2_ne"
+      latitude_deg: 17.647000
+      longitude_deg: -63.206000
+
+    - name: "wp3_se"
+      latitude_deg: 17.640000
+      longitude_deg: -63.206000
+
+    - name: "wp4_sw"
+      latitude_deg: 17.640000
+      longitude_deg: -63.216000
