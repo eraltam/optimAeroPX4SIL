@@ -67,15 +67,29 @@ aircraftVelInNED_mps = DCM_be' * aircraftVelInBody_mps;
 aircraftAngVelInBody_radps = [p_radps; q_radps; r_radps];
 aircraftAngAccelInBody_radps2 = [pdot_radps2; qdot_radps2; rdot_radps2];
 
-% JSBSim's accelerations/{u,v,w}dot-ft_sec2 are TOTAL body-axis acceleration at the CG (includes
-% gravity's contribution via the equations of motion) -- i.e. the same "raw inertial acceleration"
-% quantity every other vehicle's plant supplies for this field. `aircraftAccelbe_mps2` must stay
-% the RAW acceleration here, NOT specific force: both ins.slx's "Three-axis Inertial Measurement
-% Unit" block (aerolibnav) and ANELLO_X3_IMU_Vehicle_fcn_SIL.m already subtract gravity themselves
-% (their own g_body/Gb input) to turn raw acceleration into specific force. Subtracting gravity a
-% second time here double-counted it, producing a stationary-aircraft accelerometer reading of
-% ~2x g (~19.6 m/s^2) instead of ~9.81 m/s^2. Do not re-add a gravity subtraction here.
-aircraftAccelInBody_mps2 = [udot_ftps2; vdot_ftps2; wdot_ftps2] * ft2m;
+% Both INS implementations form specific force downstream as f = Ab - g_body. JSBSim's
+% accelerations/{u,v,w}dot are derivatives in the rotating body frame, so convert them to inertial
+% acceleration expressed in body axes by adding omega x V. Do not add or subtract gravity here:
+% a stationary ground run proves that this transport-corrected value is approximately zero, after
+% which the INS correctly reports specific force ~= -g. Adding gravity here produced ~0 g at rest;
+% omitting the transport correction in a stale embedded chart produced ~-2 g. This matches the
+% validated reliability implementation in commit 05badb3.
+%
+% udot/vdot/wdot alone is dV/dt as seen in the ROTATING BODY FRAME (JSBSim's FGPropagate: vUVWdot =
+% vForces/mass - vPQR x vUVW), not the true inertial acceleration expressed in body axes. By the
+% rotating-frame transport theorem, a_inertial_body = dV/dt|_body + omega x V. This term is exactly
+% zero in straight, non-rotating flight (why this was never caught by earlier c172pJSBSim
+% validation) and grows with p/q/r otherwise -- including during ground handling, where idle thrust
+% with no parking-brake model can produce nonzero body rates while still disarmed. Same fix already
+% applied to unpackC130JSBSimOutputs.m/unpackF22JSBSimOutputs.m (PLAN_JSBSIM_SFUNCTION_F22_C130.md
+% section 14.1/15); c172p was flagged there as still carrying this bug and not yet fixed.
+omega_body_radps = [p_radps; q_radps; r_radps];
+velocity_body_mps = [u_fps; v_fps; w_fps] * ft2m;
+accelBodyFrame_mps2 = [udot_ftps2; vdot_ftps2; wdot_ftps2] * ft2m;
+omegaCrossV_mps2 = [omega_body_radps(2)*velocity_body_mps(3) - omega_body_radps(3)*velocity_body_mps(2); ...
+                    omega_body_radps(3)*velocity_body_mps(1) - omega_body_radps(1)*velocity_body_mps(3); ...
+                    omega_body_radps(1)*velocity_body_mps(2) - omega_body_radps(2)*velocity_body_mps(1)];
+aircraftAccelInBody_mps2 = accelBodyFrame_mps2 + omegaCrossV_mps2;
 aircraftAccelbe_mps2 = aircraftAccelInBody_mps2;
 
 aircraftEulerAngles_rad = [phi_rad; theta_rad; psi_rad];

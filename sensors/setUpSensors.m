@@ -12,7 +12,7 @@ parameters.gps.decayFactor_nd = 0.999; % 0 -> white noise, 1 -> random walk
 % "Preflight Fail: height estimate not stable". Use representative
 % aviation-GNSS accuracy for the C172 variants. This changes the aiding
 % sensor only; the selected Generic/Anello IMU model remains untouched.
-if any(strcmpi(vehicleParams.type, ["c172p", "c172pJSBSim"]))
+if any(strcmpi(vehicleParams.type, ["c172p", "c172pJSBSim", "c130JSBSim", "f22JSBSim"]))
     parameters.gps.vertPositionAccuracy_m = 1.5;
     parameters.gps.horzPositionAccuracy_m = 0.8;
     parameters.gps.decayFactor_nd = 0.95;
@@ -41,7 +41,7 @@ parameters.thermo.noisePower_degC = [0.001];
 % and optimAeroPX4SIL/CLAUDE.md). 1 = Generic (above ICM-42688-P-like model,
 % default — regression baseline), 2 = AnelloX3 (datasheet-accurate ANELLO X3
 % IMU model from sensors/components/ins_anello.slx).
-INS_VARIANT = 1;
+INS_VARIANT = 2;
 if strcmpi(vehicleParams.type, "c172pJSBSim")
     INS_VARIANT = 2;
 end

@@ -43,6 +43,37 @@ switch lower(vehicleParams.type)
         % falling through to the "Unknown vehicle" warning in `otherwise` -- see
         % PLAN_INCORPORACION_AERONAVES_JSBSIM_SITL.md §2.1. c172pJSBSim shares the same real
         % airframe/visual model, see PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md.
+    case "c130jsbsim"
+        % Community C130 Hercules package (org.flightgear.fgaddon.stable_2024 hangar catalog),
+        % downloaded by the user into FlightGear's separate aircraft-hangar download directory --
+        % NOT under the base fgdata Aircraft/ folder, so (unlike c172p) this needs an explicit
+        % --aircraft-dir, same pattern as the "hexarotor" case above rather than the bare
+        % --aircraft= the f16/c172p cases use. --fdm=null (set in `options` above) means the
+        % package's own bundled YASim FDM is never invoked here -- this is purely the visual/3D
+        % model, driven externally by this SIL's real JSBSim-S-Function plant
+        % (PLAN_JSBSIM_SFUNCTION_F22_C130.md), same as every other vehicle in this switch.
+        % c130-set.xml (plain transport) chosen over the ac130 (gunship)/c130k/kc130 (tanker)
+        % variants also present in this package -- those are cosmetically different loadouts of
+        % the same airframe, not different flight models under --fdm=null.
+        c130DirName = 'C:\Users\Edison Altamirano\FlightGear\Downloads\Aircraft\org.flightgear.fgaddon.stable_2024\Aircraft\C130';
+        if isdir(c130DirName)
+            options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=c130 --aircraft-dir="%s" --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost), c130DirName);
+        else
+            warning("C130 FlightGear package not found at %s -- falling back to default visualization aircraft", c130DirName)
+        end
+    case "f22jsbsim"
+        % Community Lockheed-Martin FA-22A Raptor package (same hangar catalog as C130 above),
+        % downloaded by the user. Two -set.xml variants ship in this package (f22-jsbsim-set.xml,
+        % f22-yasim-set.xml) -- the name match with this SIL's own "f22JSBSim" vehicle is
+        % coincidental, not functional: --fdm=null means neither package FDM is ever invoked
+        % either way, this is visual-model-only, same as the c130jsbsim case above. f22-jsbsim
+        % picked for the name match/documentation clarity, not for any behavioral reason.
+        f22DirName = 'C:\Users\Edison Altamirano\FlightGear\Downloads\Aircraft\org.flightgear.fgaddon.stable_2024\Aircraft\Lockheed-Martin-FA-22A-Raptor';
+        if isdir(f22DirName)
+            options = sprintf('--fdm=null --native-fdm=socket,in,%d,%s,5502,udp --aircraft=f22-jsbsim --aircraft-dir="%s" --fog-fastest --disable-clouds --disable-sound', frameRate_Hz, char(flightGearHost), f22DirName);
+        else
+            warning("F-22 FlightGear package not found at %s -- falling back to default visualization aircraft", f22DirName)
+        end
     otherwise
         warning("Unknown vehicle for display")
 end

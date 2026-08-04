@@ -10,6 +10,6 @@ mkdir -p "${session_dir}"
 cd "${px4_root}"
 
 export PX4_SIM_HOSTNAME="${windows_host}"
-exec make px4_sitl_default optimAeroC172pJSBSim \
+exec make px4_sitl_default optimAeroF22JSBSim \
     >"${session_dir}/px4_console.log" \
     2>"${session_dir}/px4_stderr.log"

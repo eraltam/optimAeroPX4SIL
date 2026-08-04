@@ -1,14 +1,16 @@
 <#
 .SYNOPSIS
     Launch the WSL relay (if not already running), a fresh PX4 SITL instance, and the
-    Windows-side mission harness for a c172pJSBSim SIL session -- everything except MATLAB.
+    Windows-side mission harness for an f22JSBSim SIL session -- everything except MATLAB.
+    Clone of start_mission_c130.ps1, pointed at launch_f22_px4_wsl.sh /
+    optimAeroF22JSBSim instead -- see PLAN_JSBSIM_SFUNCTION_F22_C130.md Phase F.
 
 .PARAMETER SessionId
     Unique name for this run, e.g. "run1". Logs land in HILDiagnostics\logs\session_<SessionId>.
 
 .PARAMETER Config
-    Harness config file (in HILDiagnostics\mavlink_system): config_c172pJSBSim.yaml (straight),
-    config_c172pJSBSim_racetrack.yaml, config_c172pJSBSim_box.yaml, config_c172pJSBSim_zigzag.yaml.
+    Harness config file (in HILDiagnostics\mavlink_system): config_f22JSBSim.yaml (default,
+    straight departure-corridor mission).
 
 .PARAMETER WindowsHost
     This machine's IP as seen from WSL (the vEthernet (WSL) adapter address from `ipconfig`).
@@ -18,12 +20,11 @@
     WSL distro that has PX4-Autopilot-optimAero checked out under ~/SITLV2.
 
 .EXAMPLE
-    .\start_mission.ps1 -SessionId run1
-    .\start_mission.ps1 -SessionId run2 -Config config_c172pJSBSim_racetrack.yaml
+    .\start_mission_f22.ps1 -SessionId run1
 #>
 param(
     [Parameter(Mandatory = $true)][string]$SessionId,
-    [string]$Config = "config_c172pJSBSim.yaml",
+    [string]$Config = "config_f22JSBSim.yaml",
     [string]$WindowsHost = "172.31.224.1",
     [string]$WslDistro = "PX4Simulink",
     [switch]$SkipRelay
@@ -60,7 +61,7 @@ catch {
     $ownerText = if (Test-Path $owner) { Get-Content $owner -Raw } else { "unknown owner" }
     throw "Another optimAero launch owns the mission lock; refusing concurrent startup.`n$ownerText"
 }
-"session=$SessionId`nvehicle=c172`ncreated_utc=$([DateTime]::UtcNow.ToString('o'))" |
+"session=$SessionId`nvehicle=f22`ncreated_utc=$([DateTime]::UtcNow.ToString('o'))" |
     Set-Content -LiteralPath (Join-Path $missionLockDir "owner.txt") -Encoding UTF8
 
 # Wipe any prior contents so reusing a SessionId (e.g. "run1") always starts from a clean
@@ -109,7 +110,7 @@ wsl -d $WslDistro -e bash -lc "pkill -9 -f 'px4_sitl_default' 2>/dev/null; sleep
 Write-Host "Starting PX4 SITL for session '$SessionId'..." -ForegroundColor Cyan
 Start-Process -FilePath "wsl.exe" -ArgumentList @(
     "-d", $WslDistro, "-e", "bash", "-lc",
-    "`"bash '/mnt/c/Users/Edison Altamirano/SITLV2/AnelloSummer/optimAeroPX4SIL/HILDiagnostics/launch_c172_px4_wsl.sh' $SessionId $WindowsHost`""
+    "`"bash '/mnt/c/Users/Edison Altamirano/SITLV2/AnelloSummer/optimAeroPX4SIL/HILDiagnostics/launch_f22_px4_wsl.sh' $SessionId $WindowsHost`""
 )
 
 # Poll px4_console.log for the "waiting for simulator" line instead of a fixed sleep.
@@ -137,9 +138,9 @@ Start-Process -FilePath $pythonExe -ArgumentList @("main.py", "--config", $Confi
 
 Write-Host ""
 Write-Host "Done. In MATLAB now run:" -ForegroundColor Green
-Write-Host "  cd(`"$repoRoot`"); runMissionSIL(`"$SessionId`")"
+Write-Host "  cd(`"$repoRoot`"); runMissionSILF22(`"$SessionId`")"
 Write-Host ""
-Write-Host "Add `"visualizationType`", `"FlightGear`" as extra runMissionSIL args for the FlightGear view."
+Write-Host "Add `"visualizationType`", `"FlightGear`" as extra runMissionSILF22 args for the FlightGear view."
 
 # Reset exit status: earlier native calls (e.g. the relay's `pgrep` probe) legitimately return
 # non-zero when nothing is found yet, and that stale $LASTEXITCODE would otherwise leak out as

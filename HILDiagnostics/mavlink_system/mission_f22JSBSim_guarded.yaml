@@ -1,0 +1,37 @@
+mission:
+  enabled: true
+  name: "f22JSBSim_guarded_first_flight_straight_short"
+
+  # First real closed-loop flight for this vehicle after PLAN_JSBSIM_SFUNCTION_F22_C130.md
+  # section 16/17's actuator-freeze fix (JSBSim's <lag>0</lag> bug: every run17-run25 flew with
+  # zero working elevator/aileron/rudder/TVC). Per explicit instruction: keep the first flight
+  # straight and short, avoid waypoint turns until rotation and initial climb are stable, then
+  # proceed to the normal mission (mission_f22JSBSim.yaml) only if this stays controlled.
+  #
+  # Single waypoint ~1500m along the same 110deg departure heading used by f22JSBSimInit.xml/
+  # mission_f22JSBSim.yaml (same home 17.64450/-63.21988), computed with the same flat-earth
+  # equirectangular approximation this SIL uses elsewhere (unpackF22JSBSimOutputs.m):
+  #   dNorth = 1500*cos(110deg) = -513.0 m, dEast = 1500*sin(110deg) = 1409.5 m
+  #   earthRadius = 6371000 m
+  # No turn is required to reach it from the takeoff heading -- this only exercises rotation,
+  # initial climb, and straight-line tracking, not lateral maneuvering. RTL+land are kept enabled
+  # as an automatic safety net after this leg (a turn during RTL is fine -- by then rotation/climb
+  # are already proven or the run has already been aborted by F22AbortCheck).
+  speed_m_s: 100.0
+  relative_altitude_m: 100.0
+  acceptance_radius_m: 300.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  rtl_after_mission: true
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  mission_timeout_s: 900
+  land_timeout_s: 600
+
+  waypoints:
+    - name: "wp1_short_straight"
+      latitude_deg: 17.639886
+      longitude_deg: -63.206574

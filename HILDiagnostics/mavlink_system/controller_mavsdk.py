@@ -25,7 +25,9 @@ _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT = 6
 # identical item with frame=MISSION (2) uploaded fine.
 _MAV_FRAME_MISSION = 2
 _MAV_CMD_NAV_WAYPOINT = 16
+_MAV_CMD_NAV_LAND = 21
 _MAV_CMD_NAV_TAKEOFF = 22
+_MAV_CMD_NAV_LOITER_TO_ALT = 31
 _MAV_CMD_NAV_RETURN_TO_LAUNCH = 20
 _MAV_CMD_DO_CHANGE_SPEED = 178
 _MAV_MISSION_TYPE_MISSION = 0
@@ -129,7 +131,20 @@ class MavsdkInstructor:
         if not confirm_real_vehicle_allowed(self.config):
             print("MAVSDK DRY-RUN: arm()")
             return
-        await self._run_action("arm", self.drone.action.arm)
+        # Optional per-vehicle overrides (config_<vehicle>.yaml's `arm_attempts`/
+        # `arm_retry_delay_s`) -- default to _run_action's own existing 4 attempts / 2.0s delay
+        # (unchanged for c172pJSBSim and every other vehicle that doesn't set these keys).
+        # PLAN_JSBSIM_SFUNCTION_F22_C130.md section 7: MAVSDK's telemetry.health().is_armable
+        # (checked by wait_until_ready() just before this call) goes true as soon as PX4's EKF2
+        # completes tilt/yaw alignment, but the deeper commander-level health_and_arming_checks
+        # (vertical velocity stability, yaw estimate error) can take substantially longer to clear
+        # on a heavier aircraft with a longer gear-settling transient -- the default 4 attempts *
+        # 2.0s (~6s total) isn't enough patience for that gap on c130JSBSim (observed ~17-46s).
+        arm_attempts = int(self.vehicle_config.get("arm_attempts", 4))
+        arm_retry_delay_s = float(self.vehicle_config.get("arm_retry_delay_s", 2.0))
+        await self._run_action(
+            "arm", self.drone.action.arm, attempts=arm_attempts, retry_delay_s=arm_retry_delay_s
+        )
 
     async def takeoff(self) -> None:
         altitude = float(self.vehicle_config.get("takeoff_altitude_m", 3.0))
@@ -348,12 +363,17 @@ class MavsdkInstructor:
                 "MAVSDK: current position unavailable before yaw alignment; "
                 f"using configured SITL reset position {current_lat:.7f}, {current_lon:.7f}"
             )
+        explicit_land_item = bool(mission_config.get("include_land_item", False))
+        if explicit_land_item and rtl_after_mission:
+            raise ValueError("MAVSDK: include_land_item and rtl_after_mission are mutually exclusive")
         raw_items = self._build_raw_mission_items(
             mission_config, mission_items, rtl_after_mission, current_lat, current_lon
         )
+        terminal_navigation_item = rtl_after_mission or explicit_land_item
+        terminal_label = "RTL" if rtl_after_mission else "LAND" if explicit_land_item else "waypoint"
         print(
             f"MAVSDK: mission_raw plan has {len(raw_items)} item(s) "
-            "(takeoff + waypoints + RTL, exactly like a QGroundControl-authored fixed-wing plan)"
+            f"(takeoff + waypoints + {terminal_label})"
         )
 
         print("MAVSDK: clearing existing onboard mission (mission_raw)")
@@ -391,17 +411,21 @@ class MavsdkInstructor:
             expected_total=len(raw_items),
             timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
             plugin=self.drone.mission_raw,
+            terminal_item_is_rtl=terminal_navigation_item,
         )
-        print("MAVSDK: mission_raw items exhausted; RTL handoff completed")
+        print(f"MAVSDK: mission_raw items exhausted; {terminal_label} handoff completed")
 
         if bool(mission_config.get("land_after_mission", False)):
-            print("MAVSDK: commanding fixed-wing landing after RTL handoff")
-            await self.land()
+            if explicit_land_item:
+                print("MAVSDK: explicit NAV_LAND is active; waiting for its landing confirmation")
+            else:
+                print("MAVSDK: commanding fixed-wing landing after RTL handoff")
+                await self.land()
             await self._wait_landed(
                 timeout_s=float(mission_config.get("land_timeout_s", 900.0))
             )
             print(
-                "MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, RTL handoff, "
+                f"MAVSDK: MISSION SUCCESS: takeoff item, waypoint mission, {terminal_label} handoff, "
                 "and landing completed"
             )
         else:
@@ -499,6 +523,39 @@ class MavsdkInstructor:
             )
             seq += 1
 
+        if bool(mission_config.get("include_land_item", False)):
+            approach_lat = mission_config.get("landing_approach_latitude_deg")
+            approach_lon = mission_config.get("landing_approach_longitude_deg")
+            if approach_lat is not None and approach_lon is not None:
+                approach_alt = float(mission_config.get("landing_approach_altitude_m", 250.0))
+                approach_radius = float(mission_config.get("landing_approach_radius_m", 2200.0))
+                items.append(
+                    RawMissionItem(
+                        seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_LOITER_TO_ALT,
+                        0, 1,
+                        1.0, approach_radius, 0.0, 1.0,
+                        round(float(approach_lat) * 1e7),
+                        round(float(approach_lon) * 1e7),
+                        approach_alt,
+                        _MAV_MISSION_TYPE_MISSION,
+                    )
+                )
+                seq += 1
+            landing_lat = float(mission_config.get("landing_latitude_deg", current_lat))
+            landing_lon = float(mission_config.get("landing_longitude_deg", current_lon))
+            landing_alt = float(mission_config.get("landing_relative_altitude_m", 0.0))
+            landing_heading = float(mission_config.get("landing_heading_deg", float("nan")))
+            items.append(
+                RawMissionItem(
+                    seq, _MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, _MAV_CMD_NAV_LAND,
+                    0, 1,
+                    0.0, 0.0, 0.0, landing_heading,
+                    round(landing_lat * 1e7), round(landing_lon * 1e7), landing_alt,
+                    _MAV_MISSION_TYPE_MISSION,
+                )
+            )
+            seq += 1
+
         return items
 
     async def dump_params(self, path: str | Path) -> None:
@@ -527,7 +584,8 @@ class MavsdkInstructor:
         print(f"MAVSDK: wrote {len(lines)} parameters to {out_path}")
 
     async def _run_action(
-        self, name: str, action, attempts: int = 4, timeout_s: float = 15.0
+        self, name: str, action, attempts: int = 4, timeout_s: float = 15.0,
+        retry_delay_s: float = 2.0,
     ) -> None:
         # Same single-shot-RPC-with-no-retry problem as mission calls (see
         # _run_mission_call below) -- confirmed live: a hexarotor's set_takeoff_altitude()/
@@ -552,7 +610,7 @@ class MavsdkInstructor:
                 last_exc = exc
                 print(f"MAVSDK: {name} failed on attempt {attempt}/{attempts}: {exc!r}")
                 if attempt < attempts:
-                    await asyncio.sleep(2.0)
+                    await asyncio.sleep(retry_delay_s)
         assert last_exc is not None
         raise last_exc
 
@@ -763,16 +821,31 @@ class MavsdkInstructor:
                 print(f"MAVSDK: takeoff climb pending rel_alt={rel_altitude:.2f} m")
                 last_print = now
 
-    async def _wait_mission_complete(self, expected_total: int, timeout_s: float, plugin=None) -> None:
+    async def _wait_mission_complete(
+        self, expected_total: int, timeout_s: float, plugin=None, terminal_item_is_rtl: bool = False
+    ) -> None:
         # plugin: self.drone.mission (default) or self.drone.mission_raw -- both expose
         # is_mission_finished()/mission_progress() with the same shape, so the raw-mission path
         # (_run_takeoff_item_mission) can reuse this unchanged instead of duplicating it.
+        #
+        # terminal_item_is_rtl (2026-08-01, c130run9 post-mortem, PLAN_JSBSIM_SFUNCTION_F22_C130.md
+        # section 13.10): a mission whose LAST item is MAV_CMD_NAV_RETURN_TO_LAUNCH never satisfies
+        # the normal "current >= total" completion check below -- PX4 correctly advances
+        # MISSION_CURRENT up to the RTL item's own index (e.g. 5/6) and holds it there for the
+        # entire RTL+land sequence (RTL is a navigation MODE, not a further-sequenced item), then
+        # resets MISSION_CURRENT to 0/N once the vehicle disarms after landing. "current >= total"
+        # is therefore never true at any point (5>=6 is false, and 0>=6 after the reset is also
+        # false) -- confirmed live via c130run9's own console.log: progress went
+        # 0/6->1/6->2/6->3/6->4/6->5/6->0/6, "MISSION SUCCESS" never printed, the harness was still
+        # awaiting when the vehicle had already landed, disarmed, and sat idle for over a minute.
+        # This silently affects every RTL-terminated raw mission this harness runs (not
+        # `c130JSBSim`-specific), including `f22JSBSim` once it flies far enough to reach RTL.
         if plugin is None:
             plugin = self.drone.mission
         print("MAVSDK: monitoring mission progress")
         done_event = asyncio.Event()
         progress_task = asyncio.create_task(
-            self._monitor_mission_progress(expected_total, done_event, plugin)
+            self._monitor_mission_progress(expected_total, done_event, plugin, terminal_item_is_rtl)
         )
         deadline = asyncio.get_running_loop().time() + timeout_s
         try:
@@ -788,7 +861,11 @@ class MavsdkInstructor:
             await asyncio.gather(progress_task, return_exceptions=True)
 
     async def _monitor_mission_progress(
-        self, expected_total: int, done_event: asyncio.Event, plugin=None
+        self,
+        expected_total: int,
+        done_event: asyncio.Event,
+        plugin=None,
+        terminal_item_is_rtl: bool = False,
     ) -> None:
         if plugin is None:
             plugin = self.drone.mission
@@ -802,6 +879,16 @@ class MavsdkInstructor:
             if total > 0 and total != expected_total:
                 print(f"MAVSDK: mission progress total from PX4 is {total}, expected {expected_total}")
             if total > 0 and current >= total:
+                done_event.set()
+                return
+            # See _wait_mission_complete's own comment: an RTL-terminated mission holds
+            # current == total-1 (the RTL item's own index) for the entire RTL+land sequence and
+            # never reaches current >= total -- treat reaching that final index as completion
+            # instead of waiting for a condition PX4 will never satisfy. The caller is still
+            # responsible for actually confirming landing afterward (_wait_landed), this only
+            # unblocks the mission-progress wait itself.
+            if terminal_item_is_rtl and total > 0 and current >= total - 1:
+                print("MAVSDK: reached terminal RTL item -- treating mission sequence as complete")
                 done_event.set()
                 return
 

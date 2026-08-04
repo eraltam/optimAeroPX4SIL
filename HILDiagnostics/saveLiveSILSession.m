@@ -27,6 +27,7 @@ arguments
     sessionId (1,1) string
     opts.px4LogRoot (1,1) string = ""
     opts.maxUlogAge_s (1,1) double = 3600
+    opts.notBeforeDatenum (1,1) double = -Inf
 end
 
 thisDir = string(fileparts(mfilename("fullpath")));
@@ -87,8 +88,11 @@ end
 
 %% PX4 ulog
 ulogFiles = dir(fullfile(opts.px4LogRoot, "**", "*.ulg"));
+ulogFiles = ulogFiles([ulogFiles.datenum] >= opts.notBeforeDatenum);
 if isempty(ulogFiles)
-    warning("saveLiveSILSession:NoUlog", "No .ulg files found under %s", opts.px4LogRoot);
+    warning("saveLiveSILSession:NoUlog", ...
+        "No .ulg files belonging to this session were found under %s; an older log will not be copied.", ...
+        opts.px4LogRoot);
     return;
 end
 

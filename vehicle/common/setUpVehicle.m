@@ -487,6 +487,73 @@ switch lower(setupVehicleType)
         referenceAltitude_m = 116 * ft2m;
         referenceLatitude_deg = 17.64450;
         referenceLongitude_deg = -63.21988;
+    case "c130jsbsim"
+        % Lockheed C-130 Hercules (JSBSim S-Function hybrid) -- see
+        % PLAN_JSBSIM_SFUNCTION_F22_C130.md. Same vestigial-physics rationale as "c172pjsbsim"
+        % above: c130jsbsim's own plant (real JSBSim, jsbsim/aircraft/C130/C130.xml) integrates
+        % mass/inertia/aero internally, so everything below is only used for its vestigial
+        % MassPropertiesBus (diagnostics/bus-shape compatibility only, not real dynamics).
+        % Unit conversions: 1 LBS=0.453592 kg, 1 FT=0.3048 m, 1 SLUG*FT2=1.35581795 kg*m2.
+        %
+        % Mass: emptywt=105000 LBS + all 5 fuel tanks at nominal "contents" (5x972.2=4861 LBS) =
+        % 109861 LBS. No <pointmass> list in C130.xml (unlike f22.xml's pilot pointmass), so
+        % nothing to deliberately exclude here.
+        vehicleParams.dryMass_kg = 109861 * lbs2kg;
+        % ixx/iyy/izz from C130.xml <mass_balance> (ixy/ixz/iyz given as -0, i.e. zero, in the
+        % source file); diagonal-only inertia, same simplification convention as every other
+        % vehicle in this switch.
+        vehicleParams.aircraftInertialBody_kgm2 = [3.66391e6*1.35581795 0 0; 0 2.38552e6*1.35581795 0; 0 0 5.9669e6*1.35581795];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        % <metrics>: wingspan=132.5 FT, wingarea=3070.18 FT2, chord=23.17 FT.
+        vehicleParams.bRef_m = 132.5 * ft2m;
+        vehicleParams.SRef_m2 = 3070.18 * (ft2m^2);
+        vehicleParams.cRef_m = 23.17 * ft2m;
+        % Same home field every other vehicle in this SIL uses. referenceAltitude_m is overridden
+        % below (mirroring c172pjsbsim's own 4.7ft override) to a rough gear-compressed-rest-height
+        % ESTIMATE derived from C130.xml's own gear <location> z=-140.8 IN (140.8/12=11.733 FT),
+        % not yet empirically corrected against a standalone settle test -- see
+        % aircraft/C130/c130JSBSimInit.xml's own header comment before trusting this for
+        % barometer/GPS-altitude datum accuracy.
+        referenceAltitude_m = 116 * ft2m;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
+    case "f22jsbsim"
+        % General Dynamics F-22A Raptor (JSBSim S-Function hybrid) -- see
+        % PLAN_JSBSIM_SFUNCTION_F22_C130.md. Same vestigial-physics rationale as "c172pjsbsim"/
+        % "c130jsbsim" above: f22jsbsim's own plant (real JSBSim, jsbsim/aircraft/f22/f22.xml)
+        % integrates mass/inertia/aero internally, so everything below is only used for its
+        % vestigial MassPropertiesBus (diagnostics/bus-shape compatibility only, not real dynamics).
+        % Unit conversions: 1 LBS=0.453592 kg, 1 FT=0.3048 m, 1 SLUG*FT2=1.35581795 kg*m2.
+        %
+        % Mass: emptywt=43430 LBS + pilot pointmass (230 LBS) = 43660 LBS. Dropping the pilot
+        % pointmass (matching c172p's own precedent of not carrying an onboard human pilot for an
+        % autonomous PX4 vehicle) would only change this by 230/43660 = 0.5% -- kept in here anyway
+        % since f22.xml's own emptywt+pointmass sum is what's actually being modeled internally by
+        % JSBSim regardless of what this vestigial bus says; excluding it here would just make this
+        % diagnostic-only field slightly wrong for no benefit.
+        vehicleParams.dryMass_kg = 43660 * lbs2kg;
+        % ixx/iyy/izz from f22.xml <mass_balance> (ixz given as 713 SLUG*FT2, non-negligible unlike
+        % c130/c172p's ~0 values -- but this switch's diagonal-only-inertia simplification
+        % convention is kept here too since this field is vestigial/diagnostic-only, not fed back
+        % into any real dynamics calculation).
+        vehicleParams.aircraftInertialBody_kgm2 = [56005*1.35581795 0 0; 0 280766*1.35581795 0; 0 0 354090*1.35581795];
+        vehicleParams.aircraftCg_m = [0; 0; 0];
+        vehicleParams.refCG_m = [0; 0; 0];
+        % <metrics>: wingspan=44.49 FT, wingarea=840.0 FT2, chord=23.06 FT.
+        vehicleParams.bRef_m = 44.49 * ft2m;
+        vehicleParams.SRef_m2 = 840.0 * (ft2m^2);
+        vehicleParams.cRef_m = 23.06 * ft2m;
+        % Same home field every other vehicle in this SIL uses. referenceAltitude_m is overridden
+        % below (mirroring c172pjsbsim's/c130jsbsim's own overrides) to match
+        % aircraft/f22/f22JSBSimInit.xml's own IC altitude (8.0 ft), itself a rough
+        % gear-compressed-rest-height ESTIMATE derived from f22.xml's own gear <location> z=-89.3 IN
+        % (89.3/12=7.442 FT, rounded up slightly for margin) -- not yet empirically corrected
+        % against a standalone settle test, see that file's own header comment before trusting this
+        % for barometer/GPS-altitude datum accuracy.
+        referenceAltitude_m = 116 * ft2m;
+        referenceLatitude_deg = 17.64450;
+        referenceLongitude_deg = -63.21988;
     otherwise
         error("setUpVehicle:NoPhysicsDefined", char("No real vehicle physics (mass/inertia/CG/aero) " + ...
             "defined yet for vehicleParams.type='" + setupVehicleType + "'. This vehicle previously " + ...
@@ -503,6 +570,21 @@ if strcmpi(setupVehicleType, "c172pjsbsim")
     % landing gear) below the ground plane, producing violent contact impulses and hundreds of
     % metres of false GPS-height motion before EKF2 can arm.
     referenceAltitude_m = 4.7 * ft2m;
+elseif strcmpi(setupVehicleType, "c130jsbsim")
+    % JSBSim initializes from c130JSBSimInit.xml rather than aircraftInitialPosInNED_m. Same
+    % zero-feet-is-wrong reasoning as c172pjsbsim above -- 11.733 ft is C130.xml's own raw
+    % (pre-strut-compression) gear <location> z=-140.8 IN converted to feet, NOT yet corrected
+    % against a real standalone settle test the way c172pjsbsim's 4.7ft value was (see
+    % aircraft/C130/c130JSBSimInit.xml's header comment). Revisit after Phase C's zero-actuator
+    % settle test confirms the true post-compression equilibrium height.
+    referenceAltitude_m = 11.733 * ft2m;
+elseif strcmpi(setupVehicleType, "f22jsbsim")
+    % JSBSim initializes from f22JSBSimInit.xml rather than aircraftInitialPosInNED_m. Same
+    % zero-feet-is-wrong reasoning as c172pjsbsim/c130jsbsim above -- 5.5 ft matches
+    % f22JSBSimInit.xml's own IC altitude exactly, itself corrected from an initial 8.0 ft
+    % raw-geometry estimate to the real empirically-confirmed gear-compressed settle height (see
+    % that file's header comment / PLAN_JSBSIM_SFUNCTION_F22_C130.md Phase C step 7 test results).
+    referenceAltitude_m = 5.5 * ft2m;
 end
 
 aircraftInitialPosInNED_m = [0, 0, -referenceAltitude_m];

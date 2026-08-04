@@ -1,0 +1,77 @@
+mission:
+  enabled: true
+  name: "f22JSBSim_fixedwing_departure_waypoints_rtl"
+
+  # First-ever mission for this vehicle (PLAN_JSBSIM_SFUNCTION_F22_C130.md Phase F). Same
+  # departure-corridor shape as mission_c130JSBSim.yaml (straight-line-ish gates along the runway
+  # heading, RTL+land after), scaled up for F-22's much higher trim/cruise speed: waypoints ~4000m
+  # apart (vs c130JSBSim's 2000m) along the SAME 110deg departure heading (matching
+  # aircraft/f22/f22JSBSimInit.xml's psi=110deg and this SIL's shared home lat/lon
+  # 17.64450/-63.21988), acceptance_radius_m scaled up to match.
+  # Turn-radius sanity check: R = V^2/(g*tan(bank)) with V=speed_m_s below, bank~=25deg (margin
+  # below the airframe's FW_R_LIM=45deg) -> R = 100^2/(9.81*tan(25deg)) ~= 2186m -- 4000m gate
+  # spacing gives comfortable margin for the turns between gates.
+  speed_m_s: 100.0
+  relative_altitude_m: 150.0
+  # At 100 m/s and a conservative 25 deg bank, the nominal turn radius is
+  # about 2186 m. A 400 m gate forces repeated recapture turns and produced
+  # a ground impact before WP4. Keep the gate just below half the 4000 m
+  # spacing so adjacent gates do not overlap while remaining flyable.
+  acceptance_radius_m: 1900.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  # An RTL followed by MAVSDK action.land() makes PX4 spiral down over Home at
+  # roughly 100 m/s. The F-22 reaches the ground with about 45 deg of bank.
+  # Use a positional NAV_LAND instead, approached from wp4 on the reciprocal
+  # runway heading, so PX4 can build a straight fixed-wing landing path.
+  rtl_after_mission: false
+  land_after_mission: true
+  include_land_item: true
+  # PX4 will hold above a bare NAV_LAND because it has no fixed-wing approach
+  # geometry. The first live attempt showed that the softened-roll F-22 flies
+  # an actual loiter radius near 4 km; a 2.2 km item could therefore never be
+  # reached. Put the orbit center 6 km down the departure course and use a
+  # 3.8 km radius. The tangent to Home is about 4.65 km. At 250 m that was
+  # slightly above PX4's capturable landing slope and produced "Holding at
+  # 213 m above landing waypoint". At 150 m the tangent glide is about 1.85
+  # degrees, safely below the nominal 3 degree slope while Home stays outside
+  # the orbit.
+  landing_approach_latitude_deg: 17.626046
+  landing_approach_longitude_deg: -63.166672
+  landing_approach_altitude_m: 150.0
+  landing_approach_radius_m: 3800.0
+  landing_latitude_deg: 17.64450
+  landing_longitude_deg: -63.21988
+  landing_relative_altitude_m: 0.0
+  landing_heading_deg: 290.0
+  takeoff_settle_s: 2.0
+  # Same ~10x wall-clock scaling rationale as mission_c130JSBSim.yaml -- this SIL's Accelerator-mode
+  # lockstep loop runs well slower than real time. F-22's higher thrust/weight ratio and faster
+  # spool (afterburning turbofans, no propeller RPM ramp) should reach cruise speed faster than
+  # c130JSBSim's turboprops, but this is a first-ever untested mission for this airframe -- kept the
+  # same generous timeout budget as c130JSBSim rather than assuming a faster completion.
+  mission_timeout_s: 4000
+  land_timeout_s: 1200
+
+  # Waypoints computed via the same flat-earth equirectangular approximation this SIL uses
+  # elsewhere (unpackF22JSBSimOutputs.m), NOT flight-tested -- expect to need correction after
+  # the first live run, same as every other mission in this harness's history.
+  waypoints:
+    - name: "wp1_departure"
+      latitude_deg: 17.632197
+      longitude_deg: -63.184408
+
+    - name: "wp2_departure"
+      latitude_deg: 17.619893
+      longitude_deg: -63.148936
+
+    - name: "wp3_departure"
+      latitude_deg: 17.607590
+      longitude_deg: -63.113463
+
+    - name: "wp4_departure"
+      latitude_deg: 17.595286
+      longitude_deg: -63.077991

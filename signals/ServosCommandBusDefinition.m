@@ -456,7 +456,7 @@ switch lower(vehicleType)
         ServosCommandBus.PreserveElementDimensions = 0;
         ServosCommandBus.Elements = elems;
         assignin('base', 'ServosCommandBus', ServosCommandBus);
-    case {"fixedwing_plane", "c172p", "c172pjsbsim"}
+    case {"fixedwing_plane", "c172p", "c172pjsbsim", "c130jsbsim", "f22jsbsim"}
         % Generic ala-fija servo command bus -- mirrors ServosCommandF16BusDefinition's field
         % names exactly (cmdAileron_nd/cmdElevator_nd/cmdRudder_nd) since fixedwing_plane's
         % actuators.slx is a direct clone of F16's, only the ServosCommandBus type name and the

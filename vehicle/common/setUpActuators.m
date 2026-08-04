@@ -370,6 +370,108 @@ switch lower(setupVehicleType)
         vehicleParams.prop.J_bkpts_CP_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 5.0];
         vehicleParams.prop.CP_data       = [0.0660 0.0700 0.0700 0.0660 0.0600 0.0530 0.0501 0.0469 0.0426 0.0360 0.0282 0.0191 0.0155 0.0191 0.0282 0.0360 0.0426 0.0469 0.0501 0.0516 0.0525 0.0525 0.0522 0.0511 0.0504 0.0493];
 
+    case "c130jsbsim"
+        % Lockheed C-130 Hercules (JSBSim S-Function hybrid) -- see
+        % PLAN_JSBSIM_SFUNCTION_F22_C130.md. Its own actuatorsC130JSBSim.slx (local copy, Phase C)
+        % is a byte-for-byte clone of actuatorsC172p.slx, INCLUDING its enginePistonPropC172p.slx
+        % Model Reference (also cloned in unchanged, same filename, alongside it) -- same "reuse a
+        % working sibling wholesale rather than perform novel surgery on a cloned .slx" discipline
+        % this repo has repeatedly favored (see optimAeroPX4SIL/CLAUDE.md section 4.6 and
+        % PLAN_JSBSIM_SFUNCTION_HYBRID_C172P.md's own build notes). Its engine/torque OUTPUT is
+        % discarded, exactly like c172pJSBSim's own actuatorsC172p.slx usage -- this aircraft's real
+        % propulsion (4x T56 turboprop, jsbsim/engine/t56.xml + jsbsim/engine/t56_prop.xml) is
+        % entirely owned by JSBSim itself. Only the achieved (rate-limited) surface positions are
+        % ever extracted downstream. The vehicleParams.prop.* fields below are therefore an inert,
+        % semantically-wrong-for-a-turboprop placeholder (literally c172p's real IO-320/prop_75in2f
+        % values) needed ONLY so enginePistonPropC172p.slx's Model Reference doesn't error at
+        % compile time for lack of these fields -- not used for any real C130 propulsion physics.
+        %
+        % Max deflections from C130.xml <flight_control> aerosurface_scale ranges (real JSBSim FCS
+        % data, not an estimate): elevator -0.35/+0.3 rad (-20.05/+17.19 deg), aileron +-0.35 rad
+        % (+-20.05 deg, symmetric left/right by construction -- see C130.xml's "Left/Right Aileron
+        % Control" blocks), rudder +-0.35 rad (+-20.05 deg) -- same "store the larger symmetric
+        % magnitude" convention as every other vehicle in this switch.
+        maxElevatorDefl_deg = 20.05;
+        maxAilDefl_deg = 20.05;
+        maxRudderDefl_deg = 20.05;
+        % Same reasoning as c172pjsbsim: C130.xml's own FCS drives these surfaces directly with no
+        % rate limit/lag of its own, so a PX4-autopilot-appropriate rate limit is an explicit
+        % engineering estimate, not sourced from C130.xml. Slower than c172pjsbsim's 60 deg/s
+        % GA-servo estimate -- larger, heavier transport-category control surfaces with
+        % correspondingly higher-inertia (likely hydraulically boosted, not electric-servo) actuation
+        % -- NOT flight-validated, expect to retune during Phase F live testing.
+        elevatorDeflRateLimit_degps = 30;
+        aileronDeflRateLimit_degps = 30;
+        rudderDeflRateLimit_degps = 30;
+        tauElevator_s = 0.2;
+        tauAilerons_s = 0.2;
+        tauRudder_s = 0.2;
+
+        % Inert placeholder -- see the case header comment above. Literal copy of the "c172p" case's
+        % own values; enginePistonPropC172p.slx's output is never wired to anything in
+        % actuatorsC130JSBSim.slx, so these numbers have no effect on this vehicle's real dynamics.
+        vehicleParams.prop.diameter_m = 75 * 0.0254;
+        vehicleParams.prop.maxRPM = 2700;
+        vehicleParams.prop.idleRPM = 550;
+        vehicleParams.prop.maxPower_W = 160 * 745.7;
+        vehicleParams.prop.tauEngine_s = 1.0;
+        vehicleParams.prop.J_bkpts_CT_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 5.0];
+        vehicleParams.prop.CT_data       = [0.073 0.073 0.072 0.071 0.069 0.066 0.062 0.055 0.045 0.034 0.024 0.013 -0.006 -0.013 -0.024 -0.034 -0.045 -0.055 -0.062 -0.066 -0.069 -0.071 -0.072 -0.073 -0.073];
+        vehicleParams.prop.J_bkpts_CP_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 5.0];
+        vehicleParams.prop.CP_data       = [0.0660 0.0700 0.0700 0.0660 0.0600 0.0530 0.0501 0.0469 0.0426 0.0360 0.0282 0.0191 0.0155 0.0191 0.0282 0.0360 0.0426 0.0469 0.0501 0.0516 0.0525 0.0525 0.0522 0.0511 0.0504 0.0493];
+
+    case "f22jsbsim"
+        % General Dynamics F-22A Raptor (JSBSim S-Function hybrid) -- see
+        % PLAN_JSBSIM_SFUNCTION_F22_C130.md. Its own actuatorsF22JSBSim.slx (local copy, Phase C)
+        % is a byte-for-byte clone of actuatorsC172p.slx, INCLUDING its enginePistonPropC172p.slx
+        % Model Reference (also cloned in unchanged, same filename, alongside it) -- same "reuse a
+        % working sibling wholesale rather than perform novel surgery on a cloned .slx" discipline
+        % already used for c130jsbsim above. Its engine/torque OUTPUT is discarded, exactly like
+        % c130JSBSim's own actuatorsC130JSBSim.slx usage -- this aircraft's real propulsion (2x
+        % F119-PW-100 turbofan, jsbsim/engine/F119-PW-1.xml + jsbsim/engine/direct.xml) is entirely
+        % owned by JSBSim itself (a <direct> thruster, not even a propeller -- see
+        % f22JSBSim_io.xml's own header comment). The vehicleParams.prop.* fields below are
+        % therefore an inert, semantically-meaningless-for-a-turbofan placeholder (literal copy of
+        % the "c172p" case's own values) needed ONLY so enginePistonPropC172p.slx's Model Reference
+        % doesn't error at compile time for lack of these fields -- not used for any real F-22
+        % propulsion physics.
+        %
+        % Max deflections from f22.xml <flight_control> aerosurface_scale ranges (real JSBSim FCS
+        % data, confirmed by direct grep, not an estimate -- see PLAN_JSBSIM_SFUNCTION_F22_C130.md
+        % Phase A): aileron +-0.436 rad (+-24.98 deg), elevator +-0.5236 rad (+-30 deg), rudder
+        % +-0.5236 rad (+-30 deg) -- same "store the larger symmetric magnitude" convention as every
+        % other vehicle in this switch.
+        maxElevatorDefl_deg = 30.0;
+        maxAilDefl_deg = 24.98;
+        maxRudderDefl_deg = 30.0;
+        % f22.xml's own FCS graph already includes actuator lag/rate-limiting internally (e.g. the
+        % "Rudder Control" channel's own <actuator name="fcs/rudder-act"> with
+        % <rate_limit>2.673</rate_limit> rad/s = ~153 deg/s) -- so this SIL's separate
+        % actuatorsF22JSBSim.slx rate limit is deliberately set faster than c130jsbsim's 30 deg/s
+        % transport-category estimate to avoid double-limiting a fighter-class hydraulic actuator
+        % against a value tuned for a much heavier/slower airframe. Still an explicit engineering
+        % estimate for THIS SIL's outer actuator model, not sourced from f22.xml directly -- NOT
+        % flight-validated, expect to retune during Phase F live testing.
+        elevatorDeflRateLimit_degps = 100;
+        aileronDeflRateLimit_degps = 100;
+        rudderDeflRateLimit_degps = 100;
+        tauElevator_s = 0.1;
+        tauAilerons_s = 0.1;
+        tauRudder_s = 0.1;
+
+        % Inert placeholder -- see the case header comment above. Literal copy of the "c172p" case's
+        % own values; enginePistonPropC172p.slx's output is never wired to anything in
+        % actuatorsF22JSBSim.slx, so these numbers have no effect on this vehicle's real dynamics.
+        vehicleParams.prop.diameter_m = 75 * 0.0254;
+        vehicleParams.prop.maxRPM = 2700;
+        vehicleParams.prop.idleRPM = 550;
+        vehicleParams.prop.maxPower_W = 160 * 745.7;
+        vehicleParams.prop.tauEngine_s = 1.0;
+        vehicleParams.prop.J_bkpts_CT_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 5.0];
+        vehicleParams.prop.CT_data       = [0.073 0.073 0.072 0.071 0.069 0.066 0.062 0.055 0.045 0.034 0.024 0.013 -0.006 -0.013 -0.024 -0.034 -0.045 -0.055 -0.062 -0.066 -0.069 -0.071 -0.072 -0.073 -0.073];
+        vehicleParams.prop.J_bkpts_CP_nd = [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 5.0];
+        vehicleParams.prop.CP_data       = [0.0660 0.0700 0.0700 0.0660 0.0600 0.0530 0.0501 0.0469 0.0426 0.0360 0.0282 0.0191 0.0155 0.0191 0.0282 0.0360 0.0426 0.0469 0.0501 0.0516 0.0525 0.0525 0.0522 0.0511 0.0504 0.0493];
+
     otherwise
         error("setUpActuators:NoActuatorModelDefined", char("No real actuator model (motor/ESC/" + ...
             "control-surface dynamics) defined yet for vehicleParams.type='" + setupVehicleType + ...

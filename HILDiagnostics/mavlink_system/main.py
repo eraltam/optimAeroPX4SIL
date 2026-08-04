@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import re
 import shutil
+import socket
+import subprocess
 import sys
 import threading
 import traceback
@@ -16,6 +19,56 @@ import yaml
 from controller_mavsdk import MavsdkInstructor
 from safety import print_safety_warning
 from session_paths import resolve_session_dir
+
+
+def _extract_udp_port(address: str, default: int = 14540) -> int:
+    """Pull the port out of a mavsdk 'udp://:14540'-style address string."""
+    match = re.search(r":(\d+)\s*$", address)
+    return int(match.group(1)) if match else default
+
+
+def free_stale_udp_port(port: int) -> None:
+    """Kill whatever process is already bound to `port`, if any.
+
+    Self-healing for a recurring failure mode: a previous session's `mavsdk_server.exe` child
+    process (spawned internally by mavsdk-python's `System()`) can survive an abrupt harness
+    kill (e.g. the WSL PX4 process being force-killed out from under it, or a Ctrl+C that didn't
+    reach the child) and keep squatting on the MAVSDK UDP port, causing the *next* session's
+    `System.connect()` to fail immediately with "bind error: No error" / "Connection failed:
+    Bind error" -- observed repeatedly across f22run19/run20 starts. No `psutil` dependency
+    available in this environment, so this shells out to `netstat`/`taskkill` (Windows-only,
+    matches the rest of this harness's Windows-hosted assumptions -- same as the WSL-relay split
+    used elsewhere in this repo). Best-effort: any failure here is non-fatal, the normal
+    connect_timeout_s-bounded connect attempt below will just fail with its usual clear error if
+    this doesn't actually clear the port.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.bind(("0.0.0.0", port))
+        return  # port was free
+    except OSError:
+        pass
+
+    try:
+        result = subprocess.run(
+            ["netstat", "-ano", "-p", "UDP"], capture_output=True, text=True, timeout=10
+        )
+    except Exception as exc:  # noqa: BLE001 - best-effort cleanup, never block the real connect attempt
+        print(f"main: could not enumerate UDP sockets to clear port {port}: {exc}")
+        return
+
+    pids: set[str] = set()
+    for line in result.stdout.splitlines():
+        parts = line.split()
+        if len(parts) >= 4 and parts[0].upper() == "UDP" and parts[1].endswith(f":{port}"):
+            pids.add(parts[-1])
+
+    for pid in pids:
+        print(f"main: port {port} still bound by PID {pid} from a prior session -- killing it")
+        try:
+            subprocess.run(["taskkill", "/PID", pid, "/F"], capture_output=True, timeout=10)
+        except Exception as exc:  # noqa: BLE001 - see docstring
+            print(f"main: could not kill stale PID {pid}: {exc}")
 
 
 class _Tee:
@@ -52,6 +105,9 @@ def resolve_mission_path(config: dict[str, Any], config_dir: Path) -> Path | Non
 
 async def run(config: dict[str, Any], base_dir: Path, config_dir: Path) -> None:
     print_safety_warning(config)
+
+    mavsdk_address = config.get("vehicle", {}).get("mavsdk_address", "udp://:14540")
+    free_stale_udp_port(_extract_udp_port(mavsdk_address))
 
     listener = None
     listener_thread = None

@@ -306,6 +306,16 @@ try
         % vehicle/c172pJSBSim/components/failureInputReadC172pJSBSim.slx, same local-copy rationale
         % as the c172p branch above (own folder's Model Reference, not cross-referenced).
         vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
+    elseif strcmpi(vehicleParams.baseVehicleType,"c130JSBSim")
+        % c130JSBSim (PLAN_JSBSIM_SFUNCTION_F22_C130.md) uses
+        % vehicle/c130JSBSim/components/failureInputReadC130JSBSim.slx, same local-copy rationale
+        % as the c172pJSBSim branch above.
+        vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
+    elseif strcmpi(vehicleParams.baseVehicleType,"f22JSBSim")
+        % f22JSBSim (PLAN_JSBSIM_SFUNCTION_F22_C130.md) uses
+        % vehicle/f22JSBSim/components/failureInputReadF22JSBSim.slx, same local-copy rationale
+        % as the c130JSBSim branch above.
+        vehicleParams.failureType = EnumF16FailureType(vehicleParams.failureType);
     end
 catch
     error("The selected failure type does not match the selected vehicle. Failure type must be an enum from " + ...
@@ -331,6 +341,14 @@ if strcmpi(opts.visualizationType, 'Matlab')
     load_system('VehicleSilSimulation.slx')
     warning("When using Matlab visualization the SIL simulator runs slower than FlightGear. Recommend setting simulink model to" + ...
         " accelerator mode.")
+    % Rendering the UAV Animation block at the inherited plant rate (250 Hz
+    % for these JSBSim vehicles) made MATLAB visualization run at roughly
+    % 0.1x real time.  The viewer does not participate in the plant/PX4/IMU
+    % feedback path, so update only the animation at 25 Hz while preserving
+    % the 0.004 s dynamics and lockstep rates.  This keeps motion visually
+    % smooth and makes full waypoint validation practical.
+    set_param('VehicleSilSimulation/visualizationVariant/MatlabVisualization/UAV Animation', ...
+        'SampleTime', '0.04');
     % 'UAV Animation' (Aerospace Blockset) only supports UAVType 'Multirotor' or
     % 'FixedWing' -- there is no third option to pick from, so ControllerType
     % "rover"/"boat"/"sub" vehicles are structurally unable to get a correct 3D
@@ -636,6 +654,14 @@ variantControls = {
         'strcmpi(vehicleParams.type, "c172pJSBSim")'
     'PX4 Interface/Command Output Variaint/C172pJSBSim Output Mapping', ...
         'strcmpi(vehicleParams.type, "c172pJSBSim") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/c130JSBSim', ...
+        'strcmpi(vehicleParams.type, "c130JSBSim")'
+    'PX4 Interface/Command Output Variaint/C130JSBSim Output Mapping', ...
+        'strcmpi(vehicleParams.type, "c130JSBSim") & strcmpi(vehicleParams.controllerType, "PX4")'
+    'Failure Injection/Variant Model/f22JSBSim', ...
+        'strcmpi(vehicleParams.type, "f22JSBSim")'
+    'PX4 Interface/Command Output Variaint/F22JSBSim Output Mapping', ...
+        'strcmpi(vehicleParams.type, "f22JSBSim") & strcmpi(vehicleParams.controllerType, "PX4")'
     };
 
 for ii = 1:size(variantControls, 1)

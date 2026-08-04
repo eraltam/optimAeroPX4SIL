@@ -21,10 +21,20 @@ mission:
 
   clear_existing: true
   include_takeoff_item: true
-  rtl_after_mission: true
-  # PX4 fixed-wing RTL ends in a home loiter for this airframe. Explicitly
-  # command LAND after the RTL mission item is reached, then require the
-  # harness to observe landed_state before declaring success.
+  # A standalone land() request leaves this fixed-wing in AUTO_LOITER rather
+  # than producing a landing approach.  Append a real MAV_CMD_NAV_LAND at Home
+  # to the raw mission.  wp4 lies east-southeast of Home, giving the C172 a
+  # usable straight final from its existing 50 m mission altitude.
+  rtl_after_mission: false
+  include_land_item: true
+  # Capture circle roughly 500 m east-southeast of Home.  Its 200 m tangent
+  # and 15 m altitude produce an approximately 1.9 degree final glide path;
+  # direct wp4 -> NAV_LAND was rejected by PX4 with "Holding at 53 m above
+  # landing waypoint" despite entering LANDING state.
+  landing_approach_latitude_deg: 17.643210
+  landing_approach_longitude_deg: -63.215240
+  landing_approach_altitude_m: 15.0
+  landing_approach_radius_m: 200.0
   land_after_mission: true
   takeoff_settle_s: 2.0
   # _wait_mission_complete()/_wait_landed() in controller_mavsdk.py use asyncio.wait_for, which

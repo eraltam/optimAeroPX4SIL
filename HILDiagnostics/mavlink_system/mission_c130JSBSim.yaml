@@ -1,0 +1,58 @@
+mission:
+  enabled: true
+  name: "c130JSBSim_fixedwing_departure_waypoints_rtl"
+
+  # First-ever mission for this vehicle (PLAN_JSBSIM_SFUNCTION_F22_C130.md Phase F.4). Same
+  # departure-corridor shape as mission_c172pJSBSim.yaml (straight-line gates along the runway
+  # heading, RTL+land after), but scaled up substantially for C130's much higher speed and
+  # turn radius: WP1 is 5km from the threshold and subsequent gates are 3km apart along the SAME 110deg departure
+  # heading (matching aircraft/C130/c130JSBSimInit.xml's psi=110deg and this SIL's shared home
+  # lat/lon 17.64450/-63.21988), acceptance_radius_m scaled up to match.
+  # Turn-radius sanity check: R = V^2/(g*tan(bank)) with V=speed_m_s below, bank~=25deg (margin
+  # below the airframe's FW_R_LIM=30deg) -> R = 65^2/(9.81*tan(25deg)) ~= 924m -- 2000m gate
+  # spacing gives comfortable margin. WP1 must remain well beyond the ~2.5km
+  # NAV_TAKEOFF roll/climb observed from a true braked standstill; the older
+  # 2km WP1 only worked when T56 idle thrust had already rolled the aircraft
+  # during MAVSDK startup, making the mission host-timing-dependent.
+  speed_m_s: 65.0
+  relative_altitude_m: 100.0
+  # The C130's ~924m nominal turn radius makes the old 300m gate smaller
+  # than the aircraft can reliably capture. A failed braked-standstill run
+  # measured closest approaches of 567m (WP1) and 1045m (WP2) before the
+  # controller entered recapture loops. 1200m is just above one turn radius
+  # and remains below half the 3000m gate spacing.
+  acceptance_radius_m: 1200.0
+  is_fly_through: true
+  loiter_time_s: 0.0
+
+  clear_existing: true
+  include_takeoff_item: true
+  rtl_after_mission: true
+  land_after_mission: true
+  takeoff_settle_s: 2.0
+  # Same ~10x wall-clock scaling rationale as mission_c172pJSBSim.yaml -- this SIL's Accelerator-mode
+  # lockstep loop runs well slower than real time, and a first-ever mission for a much larger/slower
+  # aircraft is likely to take longer in simulated time too (higher mass, larger turn radii, slower
+  # climb -- see 10045_optimAeroC130JSBSim's own FW_T_CLMB_R_SP=1.5 vs c172pJSBSim's 2.0).
+  mission_timeout_s: 4000
+  land_timeout_s: 1200
+
+  # Waypoints computed via the same flat-earth equirectangular approximation this SIL uses
+  # elsewhere (unpackC130JSBSimOutputs.m), NOT flight-tested -- expect to need correction after
+  # the first live run, same as every other mission in this harness's history.
+  waypoints:
+    - name: "wp1_departure"
+      latitude_deg: 17.629140
+      longitude_deg: -63.175575
+
+    - name: "wp2_departure"
+      latitude_deg: 17.619924
+      longitude_deg: -63.148992
+
+    - name: "wp3_departure"
+      latitude_deg: 17.610708
+      longitude_deg: -63.122409
+
+    - name: "wp4_departure"
+      latitude_deg: 17.601492
+      longitude_deg: -63.095826

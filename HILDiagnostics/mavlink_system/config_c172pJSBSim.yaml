@@ -23,6 +23,16 @@ vehicle:
   initial_latitude_deg: 17.64450
   initial_longitude_deg: -63.21988
   initial_position_timeout_s: 5
+  # session_run1 (2026-08-03) exhausted the default 4*2.0s=8s budget with "vertical velocity
+  # unstable"/"velocity estimate error"/"height estimate error" preflight fails only ~24s after
+  # PX4 boot -- the same transient-EKF-not-yet-converged symptom class documented for
+  # f22JSBSim/c130JSBSim in PLAN_JSBSIM_SFUNCTION_F22_C130.md section 7, where the fix was to
+  # raise this budget rather than chase a real bug. c172p has no parking-brake/idle-thrust
+  # interlock (see the comment below), so pre-arm ground disturbance timing varies run to run --
+  # prior sessions (a36/a41) happened to clear within 4 attempts, this one didn't. Matching
+  # f22/c130's own proven 15*5.0s=75s budget here too.
+  arm_attempts: 15
+  arm_retry_delay_s: 5.0
   auto_arm: true
   auto_takeoff: true
   auto_mission: true
@@ -39,8 +49,10 @@ vehicle:
 listener:
   enabled: true
   log_file: "mavlink_raw_log_c172pJSBSim.jsonl"
-  forward_to_mavsdk: true
-  relay_commands_to_simulink: true
+  # PX4 SITL has a direct Onboard link to MAVSDK on UDP 14540. The HITL-era
+  # relay duplicates mission packets and can trigger partner-id mismatch.
+  forward_to_mavsdk: false
+  relay_commands_to_simulink: false
   message_types:
     - HEARTBEAT
     - SYS_STATUS
