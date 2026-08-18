@@ -2,7 +2,7 @@
 ## Makefile generated for component 'VehiclePlant'. 
 ## 
 ## Makefile     : VehiclePlant.mk
-## Generated on : Fri Jul 10 15:48:12 2026
+## Generated on : Thu Aug 13 11:21:21 2026
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)/VehiclePlant_msf.mexw64
 ## Product type : shared library
 ## 
@@ -221,7 +221,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/AS/optimAeroPX4SIL/work/slprj/sim/VehiclePlant/VehiclePlantlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/environment/environmentlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/Air/Airlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/Earth/Earthlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/LocalTerrain/LocalTerrainlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexarotor/hexarotorlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/cgMassInertia/cgMassInertialib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gravity/gravitylib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexActuator/hexActuatorlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexMotorModel/hexMotorModellib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAddFm/hexAddFmlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexGroundContact/hexGroundContactlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/sensors/sensorslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib
+MODELREF_LIBS = C:/AS/optimAeroPX4SIL/work/slprj/sim/VehiclePlant/VehiclePlantlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/environment/environmentlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/Air/Airlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/Earth/Earthlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/LocalTerrain/LocalTerrainlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexarotor/hexarotorlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/cgMassInertia/cgMassInertialib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gravity/gravitylib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexActuator/hexActuatorlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexMotorModel/hexMotorModellib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAddFm/hexAddFmlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAero/hexAerolib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexAeroCoefficientsModel/hexAeroCoefficientsModellib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/hexGroundContact/hexGroundContactlib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/inertialDynamics/inertialDynamicslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/sensors/sensorslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello_v2/ins_anello_v2lib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_ideal/ins_ideallib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

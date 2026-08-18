@@ -1,5 +1,6 @@
-function [accel_meas, gyro_meas, mag_meas, accel_bias, gyro_bias, mag_bias] = ...
-         ANELLO_X3_IMU_fcn_SIL(accel_true, gyro_true, mag_true, T, reset)
+function [accel_meas, gyro_meas, mag_meas, accel_bias, gyro_bias, mag_bias, ...
+          raw_counts_by_fog, temp_clamp_flags, ic_clamp_flags, count_saturation_flags] = ...
+         ANELLO_X3_IMU_fcn_SIL(accel_true, gyro_true, mag_true, T, temperature_counts, outputMode, reset)
 % ANELLO_X3_IMU_FCN_SIL  Datasheet-parametric IMU sensor model, SIL sample-rate variant.
 %
 % Same algorithm and parameter VALUES as anelloX3Params_SIL.m (Ts = 0.004 s, matching
@@ -29,16 +30,41 @@ function [accel_meas, gyro_meas, mag_meas, accel_bias, gyro_bias, mag_bias] = ..
 % for use in plain MATLAB scripts (non-Simulink); keep the two in sync by hand if the
 % datasheet parameters ever change.
 %
+% GYRO PATH (2026-08-12): the gyroscope's generic deterministic scale-factor error and
+% Celsius thermal term are REPLACED by the real per-unit SiPhOG IC/TC/SFvT calibration
+% tables for SN261200001124 (ANELLO_X3_SiPhOG_CalibrationCore_fcn.m). The white/pink/RRW/
+% bias-instability stochastic recursions below are UNCHANGED (same persistents, same
+% randn() call order/count) -- only their sum is now routed through the calibration core
+% instead of being added directly to a scaled/thermal-biased truth signal. See
+% PLAN_ANELLO_X3_SIPHOG_TEMPERATURE_CALIBRATION_OUTPUT_MODES.md sections 3-4 and Phase C.
+% Accel and mag are unaffected by this change.
+%
 % Inputs:
-%   accel_true  [3x1]  true specific force, body frame [m/s^2]
-%   gyro_true   [3x1]  true angular rate,   body frame [rad/s]
-%   mag_true    [3x1]  true magnetic field,  body frame [Gauss]
-%   T           [1x1]  sensor temperature [deg C]
-%   reset       [1x1]  nonzero -> reset all bias states to zero
+%   accel_true          [3x1]  true specific force, body frame [m/s^2]
+%   gyro_true           [3x1]  true angular rate,   body frame [rad/s]
+%   mag_true            [3x1]  true magnetic field,  body frame [Gauss]
+%   T                   [1x1]  sensor temperature [deg C] (accel/mag thermal model only)
+%   temperature_counts  [1x1]  SiPhOG internal temperature, in raw temperature counts (NOT
+%                               Celsius -- see PLAN section 5). Used by the gyro TC/SFvT LUTs.
+%   outputMode          [1x1]  uint8-compatible: 0=RAW_COUNTS (debug-only fallback, see below),
+%                               1=UNCALIBRATED, 2=CALIBRATED (production default)
+%   reset               [1x1]  nonzero -> reset all bias states to zero
 %
 % Outputs:
 %   accel_meas, gyro_meas, mag_meas   [3x1]  measured signals
-%   accel_bias, gyro_bias, mag_bias   [3x1]  current bias drift (for debug)
+%   accel_bias, gyro_bias, mag_bias   [3x1]  current bias drift (for debug); gyro_bias is
+%                                              bias-instability + pink + RRW (excludes white
+%                                              noise), unchanged meaning from the prior version
+%   raw_counts_by_fog                [3x1]  modeled raw FOG counts, FOG-indexed (debug/
+%                                              telemetry only -- NEVER interpret as rad/s; see
+%                                              PLAN section 6.2). outputMode=RAW_COUNTS does NOT
+%                                              route counts onto gyro_meas; gyro_meas stays in
+%                                              rad/s (falls back to CALIBRATED) in that mode.
+%                                              Raw counts are always available here regardless
+%                                              of outputMode.
+%   temp_clamp_flags, ic_clamp_flags,
+%   count_saturation_flags           [3x1]  logical diagnostic flags, FOG-indexed (see
+%                                              ANELLO_X3_SiPhOG_CalibrationCore_fcn.m)
 
 %#codegen
 
@@ -65,6 +91,8 @@ if reset ~= 0
     if isempty(accel_true)          % reset-only call, return dummy outputs
         accel_meas = zeros(3,1);  gyro_meas = zeros(3,1);  mag_meas = zeros(3,1);
         accel_bias = zeros(3,1);  gyro_bias = zeros(3,1);  mag_bias = zeros(3,1);
+        raw_counts_by_fog = zeros(3,1); temp_clamp_flags = false(3,1);
+        ic_clamp_flags = false(3,1); count_saturation_flags = false(3,1);
         return;
     end
 end
@@ -81,12 +109,10 @@ T0  = 25.0;
 gyro_bias_radps     = 0.5 * d2r / 3600;                  % bias instability, < 0.5 deg/hr
 gyro_ARW_radps_sqrts = 0.05 * d2r / 60;                  % ARW, < 0.05 deg/sqrt(hr)
 gyro_sigma_radps    = gyro_ARW_radps_sqrts * sqrt(fs);
-gyro_scaleFactorErr = 0.001;                             % 0.1 %
 gyro_range_radps    = 400 * d2r;
-gyro_tempCoeff_radps_C = 5e-8;
-gyro_staticBias     = [0;0;0];
-gyro_misalignment   = eye(3);
-gyro_scaleFactor    = [gyro_scaleFactorErr; gyro_scaleFactorErr; gyro_scaleFactorErr];
+% NOTE: the generic 0.1% scale-factor error and 5e-8 rad/s/degC Celsius thermal term that
+% used to appear here are REPLACED by the real IC/TC/SFvT calibration tables below -- see
+% anelloX3Params_SIL.m's "LEGACY-ONLY" note on p.gyro.scaleFactorError/tempCoeff_radps_C.
 
 Tc_g       = 300.0;                              % correlation time [s]
 alpha_g    = exp(-Ts / Tc_g);
@@ -104,14 +130,33 @@ gy_pink = alphaPink_g .* gy_pink + gyro_pinkNoise_radps * sqrt(max(0.0, 1.0 - al
 gyro_rrw_radps_sqrts = 5.0e-6 * d2r;               % inertialNavSim_K_degps_sqrts = 5.0e-6 deg/s/sqrt(s)
 gy_rrw = gy_rrw + gyro_rrw_radps_sqrts * sqrt(Ts) .* randn(3,1);
 
-gy_stochastic = gy_bias + gy_pink + gy_rrw;
-
-g_scaled = gyro_misalignment * diag(1.0 + gyro_scaleFactor) * gyro_true;
-g_tbias  = gyro_tempCoeff_radps_C .* (T - T0) .* ones(3,1);
+% White noise (ARW) -- same call, same position in the draw order as before this change, so
+% the total random-draw count/order per timestep is unchanged from the pre-calibration model.
 g_noise  = gyro_sigma_radps .* randn(3,1);
-g_raw    = g_scaled + gyro_staticBias + g_tbias + gy_stochastic + g_noise;
 
-gyro_meas = min(max(g_raw, -gyro_range_radps .* ones(3,1)), gyro_range_radps .* ones(3,1));
+gy_stochastic = gy_bias + gy_pink + gy_rrw;
+gy_totalNoise_radps = gy_stochastic + g_noise;
+
+% One physical FOG sample -> raw counts + both engineering views, from the SAME noise
+% realization computed above. No random draws or state updates happen inside the core, so
+% selecting a view below can never change gy_bias/gy_pink/gy_rrw or the noise realization
+% for this sample (PLAN section 1's non-negotiable design rule).
+[raw_counts_by_fog, ~, ~, omega_uncal_body_radps, omega_cal_body_radps, ~, ~, ...
+    count_saturation_flags, temp_clamp_flags, ic_clamp_flags] = ...
+    ANELLO_X3_SiPhOG_CalibrationCore_fcn(gyro_true, gy_totalNoise_radps, temperature_counts);
+
+% Output-mode selection (PLAN section 6.1). RAW_COUNTS (0) is intentionally NOT routed onto
+% gyro_meas -- GyroSensorBus is documented rad/s, body axes; putting FOG counts there would be
+% a unit/frame violation (PLAN section 6.2). raw_counts_by_fog above is always populated
+% regardless of outputMode, so debug/standalone consumers still get raw counts in RAW_COUNTS
+% mode; gyro_meas itself falls back to the calibrated view in that mode.
+if outputMode == 1
+    g_selected = omega_uncal_body_radps;
+else
+    g_selected = omega_cal_body_radps;     % CALIBRATED (2, default) and RAW_COUNTS (0) fallback
+end
+
+gyro_meas = min(max(g_selected, -gyro_range_radps .* ones(3,1)), gyro_range_radps .* ones(3,1));
 gyro_bias = gy_stochastic;
 
 % =====================================================================

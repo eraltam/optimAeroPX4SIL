@@ -92,6 +92,9 @@ matlab_crash_dump.*
 # MATLAB Web App Server files
 *.mwapp
 
+# Large one-off capture not caught by the logs/ rule above (1.3GB static bench archive)
+static_a1_siphog_static_test.zip
+
 # Ignore directories
 output/
 results/

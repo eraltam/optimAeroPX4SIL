@@ -46,6 +46,13 @@ p.gyro.pinkNoise_radps = p.gyro.inertialNavSim_B_degps * p.d2r;
 p.gyro.rateRandomWalk_radps_sqrts = p.gyro.inertialNavSim_K_degps_sqrts * p.d2r;
 p.gyro.quantizationStep_radps = 0.0;
 
+% LEGACY-ONLY (2026-08-12): p.gyro.scaleFactorError and p.gyro.tempCoeff_radps_C below were the
+% generic deterministic gyro scale/thermal model before real per-unit SiPhOG calibration data
+% (IC/TC/SFvT LUTs for SN261200001124) was integrated. ANELLO_X3_IMU_fcn_SIL.m's LUT-active gyro
+% path (ANELLO_X3_SiPhOG_CalibrationCore_fcn.m) does NOT read or apply these two values -- they
+% are retained here only as historical documentation / for any plain-MATLAB script that still
+% wants the old generic model. Do not stack them on top of the real LUT calibration; see
+% PLAN_ANELLO_X3_SIPHOG_TEMPERATURE_CALIBRATION_OUTPUT_MODES.md section 2.3.
 p.gyro.scaleFactorError    = 0.001;
 p.gyro.scaleFactorOverTemp = 0.001;
 
@@ -53,7 +60,7 @@ p.gyro.bandwidth_Hz     = 100;
 p.gyro.wn_radps         = 2 * pi * 100;
 p.gyro.zeta             = 0.707;
 
-p.gyro.tempCoeff_radps_C = 5e-8;
+p.gyro.tempCoeff_radps_C = 5e-8;   % LEGACY-ONLY, see note above
 
 p.gyro.staticBias    = [0; 0; 0];
 p.gyro.scaleFactor   = [p.gyro.scaleFactorError;

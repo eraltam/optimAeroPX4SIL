@@ -19,7 +19,7 @@ rtP_aircraftInitialEuler_rad [ 3 ] ; real_T rtP_aircraftInitialPosInNED_m [ 3
 ] ; real_T rtP_aircraftInitialVelInBody_mps [ 3 ] ; const char *
 rt_GetMatSignalLoggingFileName ( void ) { return NULL ; } const char *
 rt_GetMatSigLogSelectorFileName ( void ) { return NULL ; } void *
-rt_GetOSigstreamManager ( void ) { return NULL ; } void * rt_slioCatalogue ( void ) { return NULL ; } void * rtwGetPointerFromUniquePtr ( void * uniquePtr ) { return NULL ; } void * CreateDiagnosticAsVoidPtr ( const char * id , int nargs , ... ) { void * voidPtrDiagnostic = NULL ; va_list args ; va_start ( args , nargs ) ; slmrCreateDiagnostic ( id , nargs , args , & voidPtrDiagnostic ) ; va_end ( args ) ; return voidPtrDiagnostic ; } void rt_ssSet_slErrMsg ( void * S , void * diag ) { SimStruct * simStrcut = ( SimStruct * ) S ; if ( ! _ssIsErrorStatusAslErrMsg ( simStrcut ) ) { _ssSet_slLocalErrMsg ( simStrcut , diag ) ; } else { _ssDiscardDiagnostic ( simStrcut , diag ) ; } } void rt_ssReportDiagnosticAsWarning ( void * S , void * diag ) { _ssReportDiagnosticAsWarning ( ( SimStruct * ) S , diag ) ; } void rt_ssReportDiagnosticAsInfo ( void * S , void * diag ) { _ssReportDiagnosticAsInfo ( ( SimStruct * ) S , diag ) ; } const char * rt_CreateFullPathToTop ( const char * toppath , const char * subpath ) { char * fullpath = NULL ; slmrCreateFullPathToTop ( toppath , subpath , & fullpath ) ; return fullpath ; } boolean_T slIsRapidAcceleratorSimulating ( void ) { return false ; } void rt_RAccelReplaceFromFilename ( SimStruct * S , const char * blockpath , char * fileName ) { ( void ) blockpath ; ( void ) fileName ; } void rt_RAccelReplaceToFilename ( SimStruct * S , const char * blockpath , char * fileName ) { ( void ) blockpath ; ( void ) fileName ; } void * slsa_malloc ( size_t s ) { return malloc ( s ) ; } void slsa_free ( void * ptr ) { free ( ptr ) ; } void slsaCacheDWorkPointerForSimTargetOP ( void * ss , void * * ptr ) { ( void ) ss ; ( void ) ptr ; } void slsaCacheDWorkDataForSimTargetOP ( void * ss , void * ptr , unsigned int sizeInBytes , bool restoreRequiresSolverReset ) { ( void ) ss ; ( void ) ptr ; ( void ) sizeInBytes ; ( void ) restoreRequiresSolverReset ; } void slsaSaveRawMemoryForSimTargetOP ( void * ss , const char * key , void * * ptr , unsigned int sizeInBytes , void * ( * customOPSaveFcn ) ( void * dworkPtr , unsigned int * sizeInBytes ) , void ( * customOPRestoreFcn ) ( void * dworkPtr , const void * data , unsigned int sizeInBytes ) ) { ( void ) ss ; ( void ) key ; ( void ) ptr ; ( void ) sizeInBytes ; ( void ) customOPSaveFcn ; ( void ) customOPRestoreFcn ; }
+rt_GetOSigstreamManager ( void ) { return NULL ; } void * rt_slioCatalogue ( void ) { return NULL ; } void * rtwGetPointerFromUniquePtr ( void * uniquePtr ) { return NULL ; } void * CreateDiagnosticAsVoidPtr ( const char * id , int nargs , ... ) { void * voidPtrDiagnostic = NULL ; va_list args ; va_start ( args , nargs ) ; slmrCreateDiagnostic ( id , nargs , args , & voidPtrDiagnostic ) ; va_end ( args ) ; return voidPtrDiagnostic ; } void rt_ssSet_slErrMsg ( void * S , void * diag ) { SimStruct * simStrcut = ( SimStruct * ) S ; if ( ! _ssIsErrorStatusAslErrMsg ( simStrcut ) ) { _ssSet_slLocalErrMsg ( simStrcut , diag ) ; } else { _ssDiscardDiagnostic ( simStrcut , diag ) ; } } void rt_ssReportDiagnosticAsWarning ( void * S , void * diag ) { _ssReportDiagnosticAsWarning ( ( SimStruct * ) S , diag ) ; } void rt_ssReportDiagnosticAsInfo ( void * S , void * diag ) { _ssReportDiagnosticAsInfo ( ( SimStruct * ) S , diag ) ; } const char * rt_CreateFullPathToTop ( const char * toppath , const char * subpath ) { char * fullpath = NULL ; slmrCreateFullPathToTop ( toppath , subpath , & fullpath ) ; return fullpath ; } boolean_T slIsRapidAcceleratorSimulating ( void ) { return false ; } void rt_RAccelReplaceFromFilename ( SimStruct * S , const char * blockpath , char * fileName ) { ( void ) blockpath ; ( void ) fileName ; } void rt_RAccelReplaceToFilename ( SimStruct * S , const char * blockpath , char * fileName ) { ( void ) blockpath ; ( void ) fileName ; } void * slsa_malloc ( size_t s ) { return malloc ( s ) ; } void slsa_free ( void * ptr ) { free ( ptr ) ; }
 #define MDL_PROCESS_PARAMETERS
 #if defined(MATLAB_MEX_FILE)
 static void mdlProcessParameters ( SimStruct * S ) { real_T * GlobalPrm_0 = ( real_T * ) NULL ; real_T * GlobalPrm_1 = ( real_T * ) NULL ; real_T * GlobalPrm_2 = ( real_T * ) NULL ; real_T * GlobalPrm_3 = ( real_T * ) NULL ; if ( ! ssGetModelRefGlobalParamData ( S , 0 , ( void * * ) ( & GlobalPrm_0 ) ) ) return ; if ( GlobalPrm_0 != NULL ) { ( void ) memcpy ( & ( rtP_aircraftInitialBodyRates_radps [ 0 ] ) , GlobalPrm_0 , sizeof ( real_T ) * 3 ) ; } if ( ! ssGetModelRefGlobalParamData ( S , 1 , ( void * * ) ( & GlobalPrm_1 ) ) ) return ; if ( GlobalPrm_1 != NULL ) { ( void ) memcpy ( & ( rtP_aircraftInitialEuler_rad [ 0 ] ) , GlobalPrm_1 , sizeof ( real_T ) * 3 ) ; } if ( ! ssGetModelRefGlobalParamData ( S , 2 , ( void * * ) ( & GlobalPrm_2 ) ) ) return ; if ( GlobalPrm_2 != NULL ) { ( void ) memcpy ( & ( rtP_aircraftInitialPosInNED_m [ 0 ] ) , GlobalPrm_2 , sizeof ( real_T ) * 3 ) ; } if ( ! ssGetModelRefGlobalParamData ( S , 3 , ( void * * ) ( & GlobalPrm_3 ) ) ) return ; if ( GlobalPrm_3 != NULL ) { ( void ) memcpy ( & ( rtP_aircraftInitialVelInBody_mps [ 0 ] ) , GlobalPrm_3 , sizeof ( real_T ) * 3 ) ; } }
@@ -381,7 +381,7 @@ toFileNames [ ] = { "" } ; static const char * fromFileNames [ ] = { "" } ;
 if ( ! ssSetModelRefFromFiles ( S , 0 , fromFileNames ) ) return ; if ( !
 ssSetModelRefToFiles ( S , 0 , toFileNames ) ) return ; } }
 #define MDL_SETUP_RUNTIME_RESOURCES
-static void mdlSetupRuntimeResources ( SimStruct * S ) { hjuis3flssz * dw = ( hjuis3flssz * ) ssGetDWork ( S , 0 ) ; bsfwj4wmdv * localX = ( bsfwj4wmdv * ) ssGetContStates ( S ) ; ssNonContDerivSigFeedingOutports mr_nonContOutput6 [ 1 ] ; ssNonContDerivSigFeedingOutports mr_nonContOutput8 [ 1 ] ; ssNonContDerivSigFeedingOutports * mr_nonContOutputArray [ 9 ] ; void * sysRanPtr = ( NULL ) ; int_T contextTid = 0 ; ssGetContextSysRanBCPtr ( S , & sysRanPtr ) ; ssGetContextSysTid ( S , & contextTid ) ; if ( contextTid == CONSTANT_TID ) { contextTid = 0 ; } mr_nonContOutputArray [ 0 ] = ( NULL ) ; mr_nonContOutputArray [ 1 ] = ( NULL ) ; mr_nonContOutputArray [ 2 ] = ( NULL ) ; mr_nonContOutputArray [ 3 ] = ( NULL ) ; mr_nonContOutputArray [ 4 ] = ( NULL ) ; mr_nonContOutputArray [ 5 ] = ( NULL ) ; mr_nonContOutputArray [ 6 ] = mr_nonContOutput6 ; mr_nonContOutputArray [ 7 ] = ( NULL ) ; mr_nonContOutputArray [ 8 ] = mr_nonContOutput8 ; b0l3jpudlu ( S , mr_nonContOutputArray , slmrGetTopTidFromMdlRefChildTid ( S , 0 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 1 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 2 , true ) , & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX , sysRanPtr , contextTid , ( ( NULL ) ) , ( ( NULL ) ) , 0 , - 1 ) ; ssSetModelMappingInfoPtr ( S , & ( dw -> rtm . DataMapInfo . mmi ) ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 6 , mr_nonContOutput6 ) ) return ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 8 , mr_nonContOutput8 ) ) return ; } hfomxlcg2i ( & ( dw -> rtm ) , & ( dw -> rtdw ) ) ; }
+static void mdlSetupRuntimeResources ( SimStruct * S ) { hjuis3flssz * dw = ( hjuis3flssz * ) ssGetDWork ( S , 0 ) ; bsfwj4wmdv * localX = ( bsfwj4wmdv * ) ssGetContStates ( S ) ; ssNonContDerivSigFeedingOutports mr_nonContOutput6 [ 1 ] ; ssNonContDerivSigFeedingOutports mr_nonContOutput8 [ 1 ] ; ssNonContDerivSigFeedingOutports * mr_nonContOutputArray [ 9 ] ; void * sysRanPtr = ( NULL ) ; int_T contextTid = 0 ; ssGetContextSysRanBCPtr ( S , & sysRanPtr ) ; ssGetContextSysTid ( S , & contextTid ) ; if ( contextTid == CONSTANT_TID ) { contextTid = 0 ; } mr_nonContOutputArray [ 0 ] = ( NULL ) ; mr_nonContOutputArray [ 1 ] = ( NULL ) ; mr_nonContOutputArray [ 2 ] = ( NULL ) ; mr_nonContOutputArray [ 3 ] = ( NULL ) ; mr_nonContOutputArray [ 4 ] = ( NULL ) ; mr_nonContOutputArray [ 5 ] = ( NULL ) ; mr_nonContOutputArray [ 6 ] = mr_nonContOutput6 ; mr_nonContOutputArray [ 7 ] = ( NULL ) ; mr_nonContOutputArray [ 8 ] = mr_nonContOutput8 ; simTgtAllocOPModelData ( S ) ; b0l3jpudlu ( S , mr_nonContOutputArray , slmrGetTopTidFromMdlRefChildTid ( S , 0 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 1 , false ) , slmrGetTopTidFromMdlRefChildTid ( S , 2 , true ) , & ( dw -> rtm ) , & ( dw -> rtb ) , & ( dw -> rtdw ) , localX , sysRanPtr , contextTid , ( ( NULL ) ) , ( ( NULL ) ) , 0 , - 1 ) ; ssSetModelMappingInfoPtr ( S , & ( dw -> rtm . DataMapInfo . mmi ) ) ; if ( S -> mdlInfo -> genericFcn != ( NULL ) ) { _GenericFcn fcn = S -> mdlInfo -> genericFcn ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 6 , mr_nonContOutput6 ) ) return ; if ( ! ( fcn ) ( S , GEN_FCN_REG_MODELREF_NONCONTSIGS , 8 , mr_nonContOutput8 ) ) return ; } hfomxlcg2i ( & ( dw -> rtm ) , & ( dw -> rtdw ) ) ; }
 #define MDL_START
 static void mdlStart ( SimStruct * S ) { hjuis3flssz * dw = ( hjuis3flssz * )
 ssGetDWork ( S , 0 ) ; mdlProcessParameters ( S ) ; myvohxmyhq ( & ( dw ->
@@ -417,7 +417,7 @@ ssGetOutputPortSignal ( S , 6 ) ; fwfvoq03ou * localXdot = ( fwfvoq03ou * )
 ssGetdX ( S ) ; bzjk22avbz ( o_o_B_21_6 , o_o_B_21_7 , & ( dw -> rtb ) ,
 localXdot ) ; } static void mdlTerminate ( SimStruct * S ) { hjuis3flssz * dw
 = ( hjuis3flssz * ) ssGetDWork ( S , 0 ) ; ef45itsocu ( & ( dw -> rtm ) ) ;
-return ; }
+simTgtFreeOPModelData ( S ) ; return ; }
 #define MDL_CLEANUP_RUNTIME_RESOURCES
 static void mdlCleanupRuntimeResources ( SimStruct * S ) { hjuis3flssz * dw =
 ( hjuis3flssz * ) ssGetDWork ( S , 0 ) ; n3buml54cw ( & ( dw -> rtm ) , & ( dw
@@ -426,32 +426,29 @@ static void mdlCleanupRuntimeResources ( SimStruct * S ) { hjuis3flssz * dw =
 #define MDL_SIM_STATE
 #endif
 static mxArray * mdlGetSimState ( SimStruct * S ) { static const char *
-simStateFieldNames [ 6 ] = { "localX" , "mdlrefDW" , "disallowedStateData" ,
-"tNext" , "tNextTid" , "nonContDerivSigInfoPrevVal" , } ; mxArray * ss =
-mxCreateStructMatrix ( 1 , 1 , 6 , simStateFieldNames ) ; { const bsfwj4wmdv
-* localX = ( const bsfwj4wmdv * ) ssGetContStates ( S ) ; const size_t
-numBytes = sizeof ( bsfwj4wmdv ) ; mxArray * storedX = mxCreateNumericMatrix
-( 1 , numBytes , mxUINT8_CLASS , mxREAL ) ; UINT8_T * rawData = ( UINT8_T * )
-mxGetData ( storedX ) ; memcpy ( & rawData [ 0 ] , localX , numBytes ) ;
-mxSetFieldByNumber ( ss , 0 , 0 , storedX ) ; } { mxArray * mdlrefDW =
-mr_inertialDynamics_GetDWork ( ssGetDWork ( S , 0 ) ) ; mxSetFieldByNumber ( ss
-, 0 , 1 , mdlrefDW ) ; } { mxArray * data =
+simStateFieldNames [ 7 ] = { "localX" , "mdlrefDW" , "disallowedStateData" ,
+"tNext" , "tNextTid" , "nonContDerivSigInfoPrevVal" , "voidMemoryData" , } ;
+mxArray * ss = mxCreateStructMatrix ( 1 , 1 , 7 , simStateFieldNames ) ; {
+const bsfwj4wmdv * localX = ( const bsfwj4wmdv * ) ssGetContStates ( S ) ;
+const size_t numBytes = sizeof ( bsfwj4wmdv ) ; mxArray * storedX =
+mxCreateNumericMatrix ( 1 , numBytes , mxUINT8_CLASS , mxREAL ) ; UINT8_T *
+rawData = ( UINT8_T * ) mxGetData ( storedX ) ; memcpy ( & rawData [ 0 ] ,
+localX , numBytes ) ; mxSetFieldByNumber ( ss , 0 , 0 , storedX ) ; } {
+mxArray * mdlrefDW = mr_inertialDynamics_GetDWork ( ssGetDWork ( S , 0 ) ) ;
+mxSetFieldByNumber ( ss , 0 , 1 , mdlrefDW ) ; } { mxArray * data =
 mr_inertialDynamics_GetSimStateDisallowedBlocks ( ) ; mxSetFieldByNumber ( ss
 , 0 , 2 , data ) ; } ; mxSetFieldByNumber ( ss , 0 , 3 , mxCreateDoubleScalar
 ( ( double ) ssGetTNext ( S ) ) ) ; mxSetFieldByNumber ( ss , 0 , 4 ,
-mxCreateDoubleScalar ( ( double ) ssGetTNextTid ( S ) ) ) ; return ss ; }
+mxCreateDoubleScalar ( ( double ) ssGetTNextTid ( S ) ) ) ; { mxArray *
+voidMemData = simTgtSerializeVoidMemoryOP ( S ) ; mxSetFieldByNumber ( ss , 0
+, 6 , voidMemData ) ; } return ss ; }
 #if !defined(MDL_SIM_STATE)
 #define MDL_SIM_STATE
 #endif
-static void mdlSetSimState ( SimStruct * S , const mxArray * ss ) { {
-bsfwj4wmdv * localX = ( bsfwj4wmdv * ) ssGetContStates ( S ) ; const size_t
-numBytes = sizeof ( bsfwj4wmdv ) ; const mxArray * storedX =
-mxGetFieldByNumber ( ss , 0 , 0 ) ; const UINT8_T * rawData = ( const UINT8_T
-* ) mxGetData ( storedX ) ; memcpy ( localX , & rawData [ 0 ] , numBytes ) ;
-} mr_inertialDynamics_SetDWork ( ssGetDWork ( S , 0 ) , mxGetFieldByNumber ( ss
-, 0 , 1 ) ) ; ssSetTNext ( S , ( time_T ) mxGetScalar ( mxGetFieldByNumber ( ss
-, 0 , 3 ) ) ) ; ssSetTNextTid ( S , ( int_T ) mxGetScalar ( mxGetFieldByNumber
-( ss , 0 , 4 ) ) ) ; }
+static void mdlSetSimState ( SimStruct * S , const mxArray * ss ) { { mxArray
+* voidMemData = mxGetFieldByNumber ( ss , 0 , 6 ) ;
+simTgtDeserializeVoidMemoryOP ( S , voidMemData ) ; } { bsfwj4wmdv * localX =
+( bsfwj4wmdv * ) ssGetContStates ( S ) ; const size_t numBytes = sizeof ( bsfwj4wmdv ) ; const mxArray * storedX = mxGetFieldByNumber ( ss , 0 , 0 ) ; const UINT8_T * rawData = ( const UINT8_T * ) mxGetData ( storedX ) ; memcpy ( localX , & rawData [ 0 ] , numBytes ) ; } mr_inertialDynamics_SetDWork ( ssGetDWork ( S , 0 ) , mxGetFieldByNumber ( ss , 0 , 1 ) ) ; ssSetTNext ( S , ( time_T ) mxGetScalar ( mxGetFieldByNumber ( ss , 0 , 3 ) ) ) ; ssSetTNextTid ( S , ( int_T ) mxGetScalar ( mxGetFieldByNumber ( ss , 0 , 4 ) ) ) ; }
 #ifdef MATLAB_MEX_FILE 
 #include "simulink.c"
 #include "fixedpoint.c"

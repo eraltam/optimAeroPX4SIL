@@ -1,0 +1,28 @@
+SYS_HITL = 0 (param_type=6)
+SYS_AUTOSTART = 1003 (param_type=6)
+SENS_ANELLX3_CFG = 102 (param_type=6)
+X3_ODATA_RATE = 100 (param_type=6)
+X3_LPA = 45 (param_type=6)
+X3_LPW = 45 (param_type=6)
+X3_LPO = 45 (param_type=6)
+Traceback (most recent call last):
+  File "C:\AS\optimAeroPX4SIL\HILDiagnostics\px4_int_param.py", line 105, in <module>
+    main()
+  File "C:\AS\optimAeroPX4SIL\HILDiagnostics\px4_int_param.py", line 79, in main
+    hb = master.wait_heartbeat(timeout=15)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Edison Altamirano\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymavlink\mavutil.py", line 557, in wait_heartbeat
+    return self.recv_match(type='HEARTBEAT', blocking=blocking, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Edison Altamirano\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymavlink\mavutil.py", line 518, in recv_match
+    m = self.recv_msg()
+        ^^^^^^^^^^^^^^^
+  File "C:\Users\Edison Altamirano\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymavlink\mavutil.py", line 497, in recv_msg
+    self.post_message(msg)
+  File "C:\Users\Edison Altamirano\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymavlink\mavutil.py", line 402, in post_message
+    add_message(self.sysid_state[src_system].messages, type, msg)
+  File "C:\Users\Edison Altamirano\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymavlink\mavutil.py", line 98, in add_message
+    messages[mtype]._instances[instance_value] = msg
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object does not support item assignment
+SDLOG_MODE = 0 (param_type=6)

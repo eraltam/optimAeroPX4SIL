@@ -2,7 +2,7 @@
 ## Makefile generated for component 'ins_anello'. 
 ## 
 ## Makefile     : ins_anello.mk
-## Generated on : Tue Jul 14 14:54:05 2026
+## Generated on : Wed Aug 12 16:39:46 2026
 ## Final product: ./ins_anellolib.lib
 ## Product type : static library
 ## 

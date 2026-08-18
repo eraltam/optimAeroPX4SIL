@@ -16,6 +16,13 @@ import yaml
 from safety import confirm_real_vehicle_allowed, validate_takeoff_altitude
 
 
+class GpsInnovationAbort(Exception):
+    """Raised by _wait_mission_complete once the automatic GPS-innovation abort has already
+    commanded hold()+land() (see _monitor_gps_innovation_abort). Callers should treat this as
+    a handled, deliberate abort -- not an error to retry or to work around by loosening the
+    EKF's own innovation gates."""
+
+
 class MavsdkInstructor:
     """High-level controller. This is the only class that sends flight commands."""
 
@@ -129,6 +136,12 @@ class MavsdkInstructor:
             return
         await self._run_action("land", self.drone.action.land)
 
+    async def hold(self) -> None:
+        if not confirm_real_vehicle_allowed(self.config):
+            print("MAVSDK DRY-RUN: hold()")
+            return
+        await self._run_action("hold", self.drone.action.hold)
+
     async def return_to_launch(self) -> None:
         if not confirm_real_vehicle_allowed(self.config):
             print("MAVSDK DRY-RUN: return_to_launch()")
@@ -241,10 +254,17 @@ class MavsdkInstructor:
 
         print("MAVSDK: starting waypoint mission")
         await self.drone.mission.start_mission()
-        await self._wait_mission_complete(
-            expected_total=len(mission_items),
-            timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
-        )
+        try:
+            await self._wait_mission_complete(
+                expected_total=len(mission_items),
+                timeout_s=float(mission_config.get("mission_timeout_s", 180.0)),
+            )
+        except GpsInnovationAbort as exc:
+            # _monitor_gps_innovation_abort already issued hold()+land() -- do not send a
+            # second, redundant land() here, and do not report this as MISSION SUCCESS.
+            print(f"MAVSDK: MISSION ABORTED (GPS innovation): {exc}")
+            await self._wait_landed(timeout_s=float(mission_config.get("land_timeout_s", 90.0)))
+            return
 
         if bool(mission_config.get("land_after_mission", True)):
             await self.land()
@@ -503,9 +523,21 @@ class MavsdkInstructor:
         progress_task = asyncio.create_task(
             self._monitor_mission_progress(expected_total, done_event)
         )
+        # GPS-innovation abort: only wired up when a PymavlinkListener is present (it's the
+        # one that actually watches ESTIMATOR_STATUS -- see listener_pymavlink.py). See
+        # HIL_GPS_FUSION_AND_ACTUATOR_OUTPUT_FIX section 5a for why this exists (the
+        # wp35->wp36 vibration-model-induced rejection) -- this is a mission-abort safety
+        # net, not a substitute for the EKF's own gates.
+        abort_task = (
+            asyncio.create_task(self._monitor_gps_innovation_abort())
+            if self.listener is not None
+            else None
+        )
         deadline = asyncio.get_running_loop().time() + timeout_s
         try:
             while True:
+                if abort_task is not None and abort_task.done():
+                    raise GpsInnovationAbort(abort_task.result())
                 if done_event.is_set() or await self.drone.mission.is_mission_finished():
                     print("MAVSDK: all mission waypoints reached")
                     return
@@ -515,6 +547,34 @@ class MavsdkInstructor:
         finally:
             progress_task.cancel()
             await asyncio.gather(progress_task, return_exceptions=True)
+            if abort_task is not None and not abort_task.done():
+                abort_task.cancel()
+                await asyncio.gather(abort_task, return_exceptions=True)
+
+    async def _monitor_gps_innovation_abort(self) -> str:
+        """Poll PymavlinkListener.gps_innovation_abort during mission execution. On trigger,
+        immediately hold() then land() -- deliberately NOT return_to_launch(): RTL depends on
+        the same horizontal position estimate that just failed its own innovation check, so
+        commanding a long-range return under that condition is exactly the wrong move.
+        """
+        assert self.listener is not None
+        while True:
+            if self.listener.gps_innovation_abort.is_set():
+                status = self.listener.gps_innovation_status()
+                info = status.get("trigger_info") or {}
+                message = (
+                    "GPS innovation abort: "
+                    f"vel_ratio={info.get('vel_ratio')} pos_horiz_ratio={info.get('pos_horiz_ratio')}"
+                )
+                print(f"MAVSDK: {message} -- holding then landing immediately")
+                try:
+                    await self.hold()
+                except ActionError as exc:
+                    print(f"MAVSDK: hold() during GPS-innovation abort failed, landing anyway: {exc}")
+                await asyncio.sleep(1.0)
+                await self.land()
+                return message
+            await asyncio.sleep(0.2)
 
     async def _monitor_mission_progress(self, expected_total: int, done_event: asyncio.Event) -> None:
         last_seen: tuple[int, int] | None = None

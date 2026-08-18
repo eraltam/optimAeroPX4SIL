@@ -14,9 +14,10 @@
 #endif
 #include "VehiclePlant_types.h"
 #include "environment.h"
-#include "sensors.h"
 #include "hexarotor.h"
+#include "sensors.h"
 #include <string.h>
+#include "rtGetInf.h"
 #include "rtGetNaN.h"
 #include "model_reference_types.h"
 #include "rtw_modelmap.h"
@@ -40,16 +41,16 @@ hi5wgo0pzs [ 3 ] ; real_T lflbnbwxow [ 3 ] ; real_T jb5suc3utz [ 3 ] ; real_T
 a545g2ksuw [ 3 ] ; real_T iofhgaqk00 [ 3 ] ; real_T izoq4rgghj [ 3 ] ; real_T
 g33wknofwp [ 3 ] ; real_T niniuhz0at ; real_T ivelzrae45 ; real_T hpcdwfht1y
 [ 3 ] ; real_T oh42dzxsr1 [ 3 ] ; boolean_T amcgr3jf34 ; lj3yonrq1cm
-nfw1ojnku2 ; b3bxwyuagcq l4fx0iisxh ; et34rxtuyzb azgnrl0ixm ; } j0qkcyobx0 ;
+nfw1ojnku2 ; et34rxtuyzb azgnrl0ixm ; b3bxwyuagcq l4fx0iisxh ; } j0qkcyobx0 ;
 typedef struct { ar45jsrhtq jn4jwo3o0t ; plypikssk0 nofzmjzb2u ; } hdulqcnnpv
 ; typedef struct { fgdgb2ruqd jn4jwo3o0t ; lpahjwu50g nofzmjzb2u ; }
 p1wcsoehle ; typedef struct { djcyjwlyeb jn4jwo3o0t ; bx03knnvpe nofzmjzb2u ;
-} o2ljf02bvi ; struct ks3glix3e01_ { real_T P_29 ; real_T P_30 ; real_T P_31
-; real_T P_32 ; real_T P_33 ; real_T P_34 ; real_T P_35 ; real_T P_36 ;
-real_T P_37 ; real_T P_38 ; real_T P_39 ; real_T P_40 ; real_T P_41 ; real_T
-P_42 ; real_T P_43 ; real_T P_44 ; real_T P_45 ; real_T P_46 ; real_T P_47 ;
-real_T P_48 ; real_T P_49 ; real_T P_50 ; real_T P_51 ; real_T P_52 ; real_T
-P_53 ; real_T P_54 ; boolean_T P_55 ; } ; struct d2l3uzft5j { struct
+} o2ljf02bvi ; struct ks3glix3e01_ { real_T P_32 ; real_T P_33 ; real_T P_34
+; real_T P_35 ; real_T P_36 ; real_T P_37 ; real_T P_38 ; real_T P_39 ;
+real_T P_40 ; real_T P_41 ; real_T P_42 ; real_T P_43 ; real_T P_44 ; real_T
+P_45 ; real_T P_46 ; real_T P_47 ; real_T P_48 ; real_T P_49 ; real_T P_50 ;
+real_T P_51 ; real_T P_52 ; real_T P_53 ; real_T P_54 ; real_T P_55 ; real_T
+P_56 ; real_T P_57 ; boolean_T P_58 ; } ; struct d2l3uzft5j { struct
 SimStruct_tag * _mdlRefSfcnS ; struct { uint8_T mr_nonContSig0 [ 8 ] ;
 uint8_T mr_nonContSig1 [ 72 ] ; uint8_T mr_nonContSig2 [ 24 ] ; uint8_T
 mr_nonContSig3 [ 8 ] ; uint8_T mr_nonContSig4 [ 24 ] ; uint8_T mr_nonContSig5
@@ -72,31 +73,34 @@ rtwCAPI_ModelMappingInfo * childMMI [ 3 ] ; sysRanDType * systemRan [ 2 ] ;
 int_T systemTid [ 2 ] ; } DataMapInfo ; struct { int_T mdlref_GlobalTID [ 4 ]
 ; time_T tStart ; } Timing ; } ; typedef struct { n4i4q3iehd rtb ; j0qkcyobx0
 rtdw ; hl0stsvgru rtm ; } owiw5mmjy2f ; extern struct_7BigaldNWGj33rb8sElmtH
-rtP_parameters ; extern real_T rtP_C_D [ 19 ] ; extern real_T rtP_C_L [ 19 ]
-; extern real_T rtP_INS_VARIANT ; extern real_T rtP_WIND_SOURCE ; extern
-real_T rtP_actuatorDelay_s ; extern real_T rtP_airDensityAtStd_kgpm3 ; extern
-real_T rtP_aircraftInitialBodyRates_radps [ 3 ] ; extern real_T
+rtP_parameters ; extern struct_EwMtsSUDbGvLjUwS89lioH rtP_vehicle ; extern
+real_T rtP_C_D [ 19 ] ; extern real_T rtP_C_L [ 19 ] ; extern real_T
+rtP_INS_VARIANT ; extern real_T rtP_WIND_SOURCE ; extern real_T
+rtP_actuatorDelay_s ; extern real_T rtP_airDensityAtStd_kgpm3 ; extern real_T
+rtP_aircraftInitialBodyRates_radps [ 3 ] ; extern real_T
 rtP_aircraftInitialEuler_rad [ 3 ] ; extern real_T
 rtP_aircraftInitialPosInNED_m [ 3 ] ; extern real_T
 rtP_aircraftInitialVelInBody_mps [ 3 ] ; extern real_T rtP_alphaBkpts_rad [
-19 ] ; extern real_T rtP_gustAmplitude_mps [ 3 ] ; extern real_T
-rtP_gustDuration_sec ; extern real_T rtP_gustLength_m [ 3 ] ; extern real_T
-rtP_gustStartTime_sec ; extern real_T rtP_referenceAltitude_m ; extern real_T
-rtP_referenceDecimalYear_years ; extern real_T rtP_rpm2radps ; extern real_T
-rtP_terrainHeightNED_m ; extern real_T rtP_turbulenceEndTime_sec ; extern
-real_T rtP_turbulenceMinAirspeed_mps ; extern real_T
-rtP_turbulenceStartTime_sec ; extern real_T rtP_turbulenceWingspan_m ; extern
-real_T rtP_xWindInNED_mps ; extern real_T rtP_yWindInNED_mps ; extern real_T
-rtP_zWindInNED_mps ; extern boolean_T rtP_gustEnabled ; extern boolean_T
-rtP_turbulenceEnabled ; extern void dwjsblzuar ( real_T * ecxaknsqkl , real_T
-lt4aghk1iw [ 3 ] , real_T ftw4ivecrm [ 9 ] , real_T * ko4m023alm , real_T
-n1zvrfkna2 [ 3 ] , real_T bgol22e1md [ 3 ] , real_T h0rreu5sbd [ 3 ] , real_T
-* kwufbgkpfu , SimStruct * _mdlRefSfcnS , ssNonContDerivSigFeedingOutports *
-* mr_nonContOutputArray , int_T mdlref_TID0 , int_T mdlref_TID1 , int_T
-mdlref_TID2 , int_T mdlref_TID3 , hl0stsvgru * const pyftoj5or2 , n4i4q3iehd
-* localB , j0qkcyobx0 * localDW , hdulqcnnpv * localX , void * sysRanPtr ,
-int_T contextTid , rtwCAPI_ModelMappingInfo * rt_ParentMMI , const char_T *
-rt_ChildPath , int_T rt_ChildMMIIdx , int_T rt_CSTATEIdx ) ; extern void
+19 ] ; extern real_T rtP_anelloSiPhOGTemperatureCounts ; extern real_T
+rtP_gustAmplitude_mps [ 3 ] ; extern real_T rtP_gustDuration_sec ; extern
+real_T rtP_gustLength_m [ 3 ] ; extern real_T rtP_gustStartTime_sec ; extern
+real_T rtP_referenceAltitude_m ; extern real_T rtP_referenceDecimalYear_years
+; extern real_T rtP_rpm2radps ; extern real_T rtP_terrainHeightNED_m ; extern
+real_T rtP_turbulenceEndTime_sec ; extern real_T
+rtP_turbulenceMinAirspeed_mps ; extern real_T rtP_turbulenceStartTime_sec ;
+extern real_T rtP_turbulenceWingspan_m ; extern real_T rtP_xWindInNED_mps ;
+extern real_T rtP_yWindInNED_mps ; extern real_T rtP_zWindInNED_mps ; extern
+boolean_T rtP_gustEnabled ; extern boolean_T rtP_turbulenceEnabled ; extern
+uint8_T rtP_anelloOutputMode ; extern void dwjsblzuar ( real_T * ecxaknsqkl ,
+real_T lt4aghk1iw [ 3 ] , real_T ftw4ivecrm [ 9 ] , real_T * ko4m023alm ,
+real_T n1zvrfkna2 [ 3 ] , real_T bgol22e1md [ 3 ] , real_T h0rreu5sbd [ 3 ] ,
+real_T * kwufbgkpfu , SimStruct * _mdlRefSfcnS ,
+ssNonContDerivSigFeedingOutports * * mr_nonContOutputArray , int_T
+mdlref_TID0 , int_T mdlref_TID1 , int_T mdlref_TID2 , int_T mdlref_TID3 ,
+hl0stsvgru * const pyftoj5or2 , n4i4q3iehd * localB , j0qkcyobx0 * localDW ,
+hdulqcnnpv * localX , void * sysRanPtr , int_T contextTid ,
+rtwCAPI_ModelMappingInfo * rt_ParentMMI , const char_T * rt_ChildPath , int_T
+rt_ChildMMIIdx , int_T rt_CSTATEIdx ) ; extern void
 mr_VehiclePlant_MdlInfoRegFcn ( SimStruct * mdlRefSfcnS , char_T * modelName
 , int_T * retVal ) ; extern mxArray * mr_VehiclePlant_GetDWork ( const
 owiw5mmjy2f * mdlrefDW ) ; extern void mr_VehiclePlant_SetDWork ( owiw5mmjy2f

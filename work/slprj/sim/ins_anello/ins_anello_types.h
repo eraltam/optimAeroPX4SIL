@@ -53,20 +53,39 @@ z_Gauss ; real_T temperature_degC ; } MagSensorBus ;
 typedef struct { GyroSensorBus GyroSensorBus ; MagSensorBus MagSensorBus ;
 AccelSensorBus AccelSensorBus ; } INSSensorBus ;
 #endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+#define DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+typedef struct { boolean_T debugEnable ; boolean_T residualThermalEnable ;
+uint8_T sl_padding0 [ 6 ] ; } struct_8daDgjHl69LL7sHFxHAfoF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+#define DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+typedef struct { struct_8daDgjHl69LL7sHFxHAfoF anello ; }
+struct_DBj3z2TsrHhthEcQUJuruF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+#define DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+typedef struct { real_T enable ; } struct_PnJy5R3HzCjafF7TLm4DbE ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+#define DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+typedef struct { struct_DBj3z2TsrHhthEcQUJuruF imu ;
+struct_PnJy5R3HzCjafF7TLm4DbE vibration ; } struct_EwMtsSUDbGvLjUwS89lioH ;
+#endif
 #ifndef struct_tag_sSnA7I0tk5aKb4sYk5Ud34C
 #define struct_tag_sSnA7I0tk5aKb4sYk5Ud34C
 struct tag_sSnA7I0tk5aKb4sYk5Ud34C { real_T r_IMU_CG [ 3 ] ; real_T
 R_sensor_body [ 9 ] ; real_T gravitySign ; } ;
 #endif
-#ifndef typedef_cqn2imq1f3
-#define typedef_cqn2imq1f3
-typedef struct tag_sSnA7I0tk5aKb4sYk5Ud34C cqn2imq1f3 ;
+#ifndef typedef_btckilxryq
+#define typedef_btckilxryq
+typedef struct tag_sSnA7I0tk5aKb4sYk5Ud34C btckilxryq ;
 #endif
 #ifndef SS_UINT64
-#define SS_UINT64 27
+#define SS_UINT64 31
 #endif
 #ifndef SS_INT64
-#define SS_INT64 28
+#define SS_INT64 32
 #endif
 typedef struct hfnefzrumxr_ hfnefzrumxr ; typedef struct m3pw3ynq10
 psmsewigyz ;

@@ -2,7 +2,7 @@
 ## Makefile generated for component 'rtwshared'. 
 ## 
 ## Makefile     : rtwshared.mk
-## Generated on : Tue Jul 07 15:38:51 2026
+## Generated on : Wed Aug 12 16:41:51 2026
 ## Final product: ./rtwshared.lib
 ## Product type : static library
 ## 
@@ -24,7 +24,7 @@ MAKEFILE                  = rtwshared.mk
 MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2026a
 MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2026a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/EDISON~1/DOCUME~1/ANELLO~1/OPTIMA~1/work
+START_DIR                 = C:/AS/optimAeroPX4SIL/work
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -195,7 +195,7 @@ DEFINES = $(DEFINES_BUILD_ARGS) $(DEFINES_CUSTOM) $(DEFINES_OPTS)
 ## SOURCE FILES
 ###########################################################################
 
-SRCS = $(START_DIR)/slprj/sim/_sharedutils/rt_nonfinite.c $(START_DIR)/slprj/sim/_sharedutils/binsearch_u32d_prevIdx.c $(START_DIR)/slprj/sim/_sharedutils/intrp2d_la_pw.c $(START_DIR)/slprj/sim/_sharedutils/plook_bincpa.c $(START_DIR)/slprj/sim/_sharedutils/rt_nrand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rt_urand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rtGetNaN.c $(START_DIR)/slprj/sim/_sharedutils/look1_binlxpw.c $(START_DIR)/slprj/sim/_sharedutils/rt_TDelayInterpolate.c $(START_DIR)/slprj/sim/_sharedutils/rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.c $(START_DIR)/slprj/sim/_sharedutils/CalcPAltCOESA.c $(START_DIR)/slprj/sim/_sharedutils/InitCalcAtmosCOESA.c $(START_DIR)/slprj/sim/_sharedutils/eml_rand_shr3cong_idhNEfES.c $(START_DIR)/slprj/sim/_sharedutils/genrand_uint32_vector_K67AoNKW.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_bUoLFLaa.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_mNGNhqv8.c
+SRCS = $(START_DIR)/slprj/sim/_sharedutils/rt_nonfinite.c $(START_DIR)/slprj/sim/_sharedutils/binsearch_u32d_prevIdx.c $(START_DIR)/slprj/sim/_sharedutils/intrp2d_la_pw.c $(START_DIR)/slprj/sim/_sharedutils/plook_bincpa.c $(START_DIR)/slprj/sim/_sharedutils/rt_nrand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rt_urand_Upu32_Yd_f_pw_snf.c $(START_DIR)/slprj/sim/_sharedutils/rtGetNaN.c $(START_DIR)/slprj/sim/_sharedutils/look1_binlxpw.c $(START_DIR)/slprj/sim/_sharedutils/rt_TDelayInterpolate.c $(START_DIR)/slprj/sim/_sharedutils/rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.c $(START_DIR)/slprj/sim/_sharedutils/CalcPAltCOESA.c $(START_DIR)/slprj/sim/_sharedutils/InitCalcAtmosCOESA.c $(START_DIR)/slprj/sim/_sharedutils/eml_rand_shr3cong_idhNEfES.c $(START_DIR)/slprj/sim/_sharedutils/genrand_uint32_vector_K67AoNKW.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_bUoLFLaa.c $(START_DIR)/slprj/sim/_sharedutils/genrandu_mNGNhqv8.c $(START_DIR)/slprj/sim/_sharedutils/ANELLO_X3_SiPhOG_CalibrationCore_fcn_9i1kdSth.c $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_MV1AHsVJ.c $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_sW2hD2eP.c $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_uUtwAjfd.c $(START_DIR)/slprj/sim/_sharedutils/anelloInverseMonotonicLUT_3rAST2f4.c $(START_DIR)/slprj/sim/_sharedutils/mldivide_sb69tVwh.c $(START_DIR)/slprj/sim/_sharedutils/norm_JbycqD5E.c $(START_DIR)/slprj/sim/_sharedutils/rtGetInf.c $(START_DIR)/slprj/sim/_sharedutils/mod_2dyRSiBP.c $(START_DIR)/slprj/sim/_sharedutils/mod_Qs6szQiy.c $(START_DIR)/slprj/sim/_sharedutils/sumColumnB_3njHGe5C.c $(START_DIR)/slprj/sim/_sharedutils/sumColumnB_OWxKJtGs.c $(START_DIR)/slprj/sim/_sharedutils/xorshift32_normal_8q3kMJMP.c
 
 ALL_SRCS = $(SRCS)
 
@@ -203,7 +203,7 @@ ALL_SRCS = $(SRCS)
 ## OBJECTS
 ###########################################################################
 
-OBJS = rt_nonfinite.obj binsearch_u32d_prevIdx.obj intrp2d_la_pw.obj plook_bincpa.obj rt_nrand_Upu32_Yd_f_pw_snf.obj rt_urand_Upu32_Yd_f_pw_snf.obj rtGetNaN.obj look1_binlxpw.obj rt_TDelayInterpolate.obj rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.obj CalcPAltCOESA.obj InitCalcAtmosCOESA.obj eml_rand_shr3cong_idhNEfES.obj genrand_uint32_vector_K67AoNKW.obj genrandu_bUoLFLaa.obj genrandu_mNGNhqv8.obj
+OBJS = rt_nonfinite.obj binsearch_u32d_prevIdx.obj intrp2d_la_pw.obj plook_bincpa.obj rt_nrand_Upu32_Yd_f_pw_snf.obj rt_urand_Upu32_Yd_f_pw_snf.obj rtGetNaN.obj look1_binlxpw.obj rt_TDelayInterpolate.obj rt_mrdivide_U1d1x3_U2d3x3_Yd1x3_snf.obj CalcPAltCOESA.obj InitCalcAtmosCOESA.obj eml_rand_shr3cong_idhNEfES.obj genrand_uint32_vector_K67AoNKW.obj genrandu_bUoLFLaa.obj genrandu_mNGNhqv8.obj ANELLO_X3_SiPhOG_CalibrationCore_fcn_9i1kdSth.obj anelloInterp1Clamped_MV1AHsVJ.obj anelloInterp1Clamped_sW2hD2eP.obj anelloInterp1Clamped_uUtwAjfd.obj anelloInverseMonotonicLUT_3rAST2f4.obj mldivide_sb69tVwh.obj norm_JbycqD5E.obj rtGetInf.obj mod_2dyRSiBP.obj mod_Qs6szQiy.obj sumColumnB_3njHGe5C.obj sumColumnB_OWxKJtGs.obj xorshift32_normal_8q3kMJMP.obj
 
 ALL_OBJS = $(OBJS)
 
@@ -473,6 +473,58 @@ genrandu_bUoLFLaa.obj : $(START_DIR)/slprj/sim/_sharedutils/genrandu_bUoLFLaa.c
 
 
 genrandu_mNGNhqv8.obj : $(START_DIR)/slprj/sim/_sharedutils/genrandu_mNGNhqv8.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+ANELLO_X3_SiPhOG_CalibrationCore_fcn_9i1kdSth.obj : $(START_DIR)/slprj/sim/_sharedutils/ANELLO_X3_SiPhOG_CalibrationCore_fcn_9i1kdSth.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+anelloInterp1Clamped_MV1AHsVJ.obj : $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_MV1AHsVJ.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+anelloInterp1Clamped_sW2hD2eP.obj : $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_sW2hD2eP.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+anelloInterp1Clamped_uUtwAjfd.obj : $(START_DIR)/slprj/sim/_sharedutils/anelloInterp1Clamped_uUtwAjfd.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+anelloInverseMonotonicLUT_3rAST2f4.obj : $(START_DIR)/slprj/sim/_sharedutils/anelloInverseMonotonicLUT_3rAST2f4.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+mldivide_sb69tVwh.obj : $(START_DIR)/slprj/sim/_sharedutils/mldivide_sb69tVwh.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+norm_JbycqD5E.obj : $(START_DIR)/slprj/sim/_sharedutils/norm_JbycqD5E.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+rtGetInf.obj : $(START_DIR)/slprj/sim/_sharedutils/rtGetInf.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+mod_2dyRSiBP.obj : $(START_DIR)/slprj/sim/_sharedutils/mod_2dyRSiBP.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+mod_Qs6szQiy.obj : $(START_DIR)/slprj/sim/_sharedutils/mod_Qs6szQiy.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+sumColumnB_3njHGe5C.obj : $(START_DIR)/slprj/sim/_sharedutils/sumColumnB_3njHGe5C.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+sumColumnB_OWxKJtGs.obj : $(START_DIR)/slprj/sim/_sharedutils/sumColumnB_OWxKJtGs.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+xorshift32_normal_8q3kMJMP.obj : $(START_DIR)/slprj/sim/_sharedutils/xorshift32_normal_8q3kMJMP.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 

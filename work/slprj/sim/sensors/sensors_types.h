@@ -21,6 +21,30 @@ DiffPressureSensorBus ; } ADCSensorBus ;
 typedef struct { real_T device_id ; real_T x_mps2 ; real_T y_mps2 ; real_T
 z_mps2 ; real_T temperature_degC ; } AccelSensorBus ;
 #endif
+#ifndef DEFINED_TYPEDEF_FOR_ComponentForcesMomentsBus_
+#define DEFINED_TYPEDEF_FOR_ComponentForcesMomentsBus_
+typedef struct { real_T forcesInBody_N [ 3 ] ; real_T momentsInBody_Nm [ 3 ]
+; } ComponentForcesMomentsBus ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_PropulsionBus_
+#define DEFINED_TYPEDEF_FOR_PropulsionBus_
+typedef struct { real_T rotorAngVel_radps [ 6 ] ; ComponentForcesMomentsBus
+EngineForcesMomentsBus ; } PropulsionBus ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_ServosHexBus_
+#define DEFINED_TYPEDEF_FOR_ServosHexBus_
+typedef struct { real_T rotor1_rpm ; real_T rotor2_rpm ; real_T rotor3_rpm ;
+real_T rotor4_rpm ; real_T rotor5_rpm ; real_T rotor6_rpm ; } ServosHexBus ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_ServosBus_
+#define DEFINED_TYPEDEF_FOR_ServosBus_
+typedef struct { ServosHexBus ServosHexBus ; } ServosBus ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_ActuatorBus_
+#define DEFINED_TYPEDEF_FOR_ActuatorBus_
+typedef struct { ServosBus ServosBus ; PropulsionBus PropulsionBus ; }
+ActuatorBus ;
+#endif
 #ifndef DEFINED_TYPEDEF_FOR_AirDataBus_
 #define DEFINED_TYPEDEF_FOR_AirDataBus_
 typedef struct { real_T airspeedInBody_mps [ 3 ] ; real_T alpha_rad ; real_T
@@ -32,11 +56,6 @@ typedef struct { real_T airTemperature_K ; real_T airPressure_Pa ; real_T
 airDensity_kgpm3 ; real_T windSpeedInNED_mps [ 3 ] ; real_T speedOfSound_mps
 ; real_T windsAloftInNED_mps [ 3 ] ; real_T gustInNED_mps [ 3 ] ; real_T
 turbulenceInNED_mps [ 3 ] ; } AirEnvironmentBus ;
-#endif
-#ifndef DEFINED_TYPEDEF_FOR_ComponentForcesMomentsBus_
-#define DEFINED_TYPEDEF_FOR_ComponentForcesMomentsBus_
-typedef struct { real_T forcesInBody_N [ 3 ] ; real_T momentsInBody_Nm [ 3 ]
-; } ComponentForcesMomentsBus ;
 #endif
 #ifndef DEFINED_TYPEDEF_FOR_AircraftForcesMomentsBus_
 #define DEFINED_TYPEDEF_FOR_AircraftForcesMomentsBus_
@@ -161,16 +180,35 @@ struct_IVpqA0yyKk8nRugFEHRJDE mag ; struct_xSxKrgCnQGn980yRf6NLJD baro ;
 struct_Phs4FavQbVrPK50520HBKB thermo ; struct_rs1DZdtWDGxlEyRlO4xwxF engine ;
 } struct_7BigaldNWGj33rb8sElmtH ;
 #endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+#define DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+typedef struct { boolean_T debugEnable ; boolean_T residualThermalEnable ;
+uint8_T sl_padding0 [ 6 ] ; } struct_8daDgjHl69LL7sHFxHAfoF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+#define DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+typedef struct { struct_8daDgjHl69LL7sHFxHAfoF anello ; }
+struct_DBj3z2TsrHhthEcQUJuruF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+#define DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+typedef struct { real_T enable ; } struct_PnJy5R3HzCjafF7TLm4DbE ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+#define DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+typedef struct { struct_DBj3z2TsrHhthEcQUJuruF imu ;
+struct_PnJy5R3HzCjafF7TLm4DbE vibration ; } struct_EwMtsSUDbGvLjUwS89lioH ;
+#endif
 #ifndef DEFINED_TYPEDEF_FOR_struct_gcu1l27Ac4krknw6L9ArAE_
 #define DEFINED_TYPEDEF_FOR_struct_gcu1l27Ac4krknw6L9ArAE_
 typedef struct { real_T lat_deg ; real_T lon_deg ; real_T alt_m ; real_T
 yawAngle_rad ; } struct_gcu1l27Ac4krknw6L9ArAE ;
 #endif
 #ifndef SS_UINT64
-#define SS_UINT64 50
+#define SS_UINT64 60
 #endif
 #ifndef SS_INT64
-#define SS_INT64 51
+#define SS_INT64 61
 #endif
 typedef struct irkooafj3n fcgqozqvuz ;
 #endif

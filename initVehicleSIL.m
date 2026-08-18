@@ -44,6 +44,13 @@
 % opts.hitlQGCPort:              Local UDP port the HITL connector relays the MAVLink stream to so
 %                                QGroundControl can connect concurrently with the Simulink HITL link.
 %                                Defaults to 14550 (QGC's standard MAVLink UDP port).
+% opts.hilSensorDelaySamples:    Block I (latency sensitivity, HIL_TEST_STATUS_AND_NEXT_PRIORITIES.md
+%                                sec 6.9/3): integer-sample delay injected on the Acc/Gyro/Mag paths
+%                                feeding "PX4 HITL Interface/HIL Sensor" (Acc_Delay/Gyro_Delay/Mag_Delay
+%                                blocks in VehicleSilSimulation.slx), simulating added sensor/comms
+%                                latency before PX4 sees the measurement. Defaults to 0 (no added
+%                                latency -- regression baseline, compile-verified 2026-07-22). 1 sample
+%                                = stepSize_s = 4ms at this model's fixed step.
 % ======================================================================================================================
 %                                                    EXAMPLE USAGE
 % ======================================================================================================================
@@ -75,6 +82,13 @@ function initVehicleSIL(opts)
 arguments
     opts.launchFullSIL        (1,1) logical = false
     opts.vehicleType          (1,1) string  = "hexarotor"       % "F-16", "hexarotor"
+    opts.hexMassConfig        (1,1) string  {mustBeMember(opts.hexMassConfig, ...
+        ["Empty","StandardBattery","LongEnduranceBattery","StandardBatterySensorsMounts", ...
+         "LongEnduranceBatterySensorsMounts"])} = "StandardBatterySensorsMounts"
+        % hexarotor mass/inertia configuration, see setUpVehicle.m and
+        % PLAN_HEXAROTOR_VEHICLE_PLANT_AUDIT_AND_VIBRATION_MODEL.md Section 3.2. Default matches
+        % the "nominal standard experimental configuration" this project actually flies. Ignored
+        % for vehicleType="F-16".
     opts.visualizationType    (1,1) string  = "Matlab"          % "PassThrough", "FlightGear", or "Matlab"
     opts.simHostIP            (1,1) string  = "auto"            % Replace with your IP address (not WSL's IP)
     opts.controllerType       (1,1) string  = "PX4"             % Currently PX4 is the only controller that can be used
@@ -93,10 +107,12 @@ arguments
     opts.hitlSerialPort       (1,1) string  = "auto"            % e.g. "COM5". Required (non-"auto") when controllerRuntime="HITL"
     opts.hitlBaudRate         (1,1) double  = 921600            % matches jMAVSim's PX4 HITL baud rate
     opts.hitlQGCPort          (1,1) double  = 14550             % QGroundControl UDP relay port
+    opts.hilSensorDelaySamples (1,1) double = 0                 % Block I latency sweep, 0 = no added latency (default)
 end
 restoredefaultpath
 % Note: In future versions these will be arguments
 vehicleParams.type                   = opts.vehicleType;
+vehicleParams.massConfig             = opts.hexMassConfig;  % see setUpVehicle.m, hexarotor case
 vehicleParams.controllerType         = opts.controllerType;
 vehicleParams.failureType            = opts.failureType;
 visualizationParams.flightGearFreq_Hz      = opts.flightGearFreq_Hz;
@@ -226,6 +242,11 @@ else
     CONTROLLER_RUNTIME = 1;
 end
 setUpHITLConnection
+
+% Block I (latency sensitivity) -- integer-sample delay on the Acc/Gyro/Mag paths into
+% "PX4 HITL Interface/HIL Sensor" (Acc_Delay/Gyro_Delay/Mag_Delay blocks, added 2026-07-22).
+% 0 = no added latency (default, regression-compile-verified).
+HIL_SENSOR_DELAY_SAMPLES = opts.hilSensorDelaySamples;
 
 % If no failureType selected, disable joystick failure injection.
 % If failureType selected, set Joystick1 so failure can be injected into plant.

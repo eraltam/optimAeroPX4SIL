@@ -79,10 +79,20 @@ add_block('simulink/Math Operations/Product', [modelName '/g_body_MatMul'], ...
     'Position', [420, 250, 460, 290], 'Multiplication', 'Matrix(*)');
 
 %% ====================================================================
-%% reset / device_id constants
+%% reset / device_id / SiPhOG calibration config constants
 %% ====================================================================
 add_block('simulink/Sources/Constant', [modelName '/reset_const'], ...
     'Position', [280, 420, 320, 440], 'Value', '0');
+
+% Direct temperature-count input (PLAN section 5 item 1: constant counts for normal SIL/HIL
+% operation) and output-mode selector (PLAN section 6.1), both configurable from the base
+% workspace -- same flat-variable convention already used for INS_VARIANT in setUpSensors.m,
+% not the plan's illustrative vehicle.imu.anello.* struct shape (this repo does not use that
+% struct anywhere else; see optimAeroPX4SIL/CLAUDE.md section 4.6).
+add_block('simulink/Sources/Constant', [modelName '/TemperatureCounts_const'], ...
+    'Position', [280, 460, 320, 480], 'Value', 'anelloSiPhOGTemperatureCounts');
+add_block('simulink/Sources/Constant', [modelName '/OutputMode_const'], ...
+    'Position', [280, 500, 320, 520], 'Value', 'anelloOutputMode');
 
 add_block('simulink/Sources/Constant', [modelName '/accel_device_id'], ...
     'Position', [780, 60, 840, 80], 'Value', '1310988');
@@ -108,21 +118,37 @@ if isempty(charts)
 else
     chart = charts(1);
     chart.Script = [ ...
-'function [Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias] = ...' newline ...
-'         ins_anello_wrapper(Ab, omega, omegaDot, g_body, mag_nav_G, DCM_be, T, reset)' newline ...
+'function [Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias, ...' newline ...
+'          raw_counts_by_fog, temp_clamp_flags, ic_clamp_flags, count_saturation_flags] = ...' newline ...
+'         ins_anello_wrapper(Ab, omega, omegaDot, g_body, mag_nav_G, DCM_be, T, ...' newline ...
+'                             temperature_counts, outputMode, reset)' newline ...
 '%#codegen' newline ...
 'R_bn_vec = DCM_be(:);' newline ...
-'[Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias] = ...' newline ...
-'    ANELLO_X3_IMU_Vehicle_fcn_SIL(Ab, omega, omegaDot, g_body, mag_nav_G, R_bn_vec, T, reset);' newline ...
+'[Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias, ...' newline ...
+'    raw_counts_by_fog, temp_clamp_flags, ic_clamp_flags, count_saturation_flags] = ...' newline ...
+'    ANELLO_X3_IMU_Vehicle_fcn_SIL(Ab, omega, omegaDot, g_body, mag_nav_G, R_bn_vec, T, ...' newline ...
+'        temperature_counts, outputMode, reset);' newline ...
 'end'];
 end
 
 %% ====================================================================
 %% TERMINATORS for unused debug outputs
+%%
+%% OPEN ITEM (Phase D, not yet done): these four SiPhOG calibration debug signals
+%% (raw_counts_by_fog, temp_clamp_flags, ic_clamp_flags, count_saturation_flags) are
+%% terminated here exactly like the pre-existing accel_bias/gyro_bias/mag_bias debug
+%% outputs -- computed every step but not logged or exposed on a port. PLAN section 7's
+%% full debug telemetry contract (a real logging/bus path, gated by debugEnable) is not
+%% implemented; this is the same gap that already existed for the three bias outputs,
+%% now also true for the four new signals. Do not describe this as "debug telemetry done."
 %% ====================================================================
 add_block('simulink/Sinks/Terminator', [modelName '/Term_accel_bias'], 'Position', [740, 90, 760, 110]);
 add_block('simulink/Sinks/Terminator', [modelName '/Term_gyro_bias'],  'Position', [740, 230, 760, 250]);
 add_block('simulink/Sinks/Terminator', [modelName '/Term_mag_bias'],   'Position', [740, 370, 760, 390]);
+add_block('simulink/Sinks/Terminator', [modelName '/Term_raw_counts'],      'Position', [740, 440, 760, 460]);
+add_block('simulink/Sinks/Terminator', [modelName '/Term_temp_clamp'],      'Position', [740, 470, 760, 490]);
+add_block('simulink/Sinks/Terminator', [modelName '/Term_ic_clamp'],        'Position', [740, 500, 760, 520]);
+add_block('simulink/Sinks/Terminator', [modelName '/Term_count_saturation'],'Position', [740, 530, 760, 550]);
 
 %% ====================================================================
 %% DEMUX
@@ -179,7 +205,8 @@ add_line(modelName, 'Zero2/1', 'g_nav_Mux/2', 'autorouting', 'on');
 add_line(modelName, 'Select_Body/1', 'g_body_MatMul/1', 'autorouting', 'on');
 add_line(modelName, 'g_nav_Mux/1',   'g_body_MatMul/2', 'autorouting', 'on');
 
-% MATLAB Function inputs: Ab, omega, omegaDot, g_body, mag_nav_G, DCM_be, T, reset
+% MATLAB Function inputs: Ab, omega, omegaDot, g_body, mag_nav_G, DCM_be, T,
+%                          temperature_counts, outputMode, reset
 add_line(modelName, 'Select_Body/2', [get_param(fcn_blk,'Name') '/1'], 'autorouting', 'on');
 add_line(modelName, 'Select_Body/3', [get_param(fcn_blk,'Name') '/2'], 'autorouting', 'on');
 add_line(modelName, 'Select_Body/4', [get_param(fcn_blk,'Name') '/3'], 'autorouting', 'on');
@@ -187,9 +214,12 @@ add_line(modelName, 'g_body_MatMul/1', [get_param(fcn_blk,'Name') '/4'], 'autoro
 add_line(modelName, 'nT_to_Gauss/1', [get_param(fcn_blk,'Name') '/5'], 'autorouting', 'on');
 add_line(modelName, 'Select_Body/1', [get_param(fcn_blk,'Name') '/6'], 'autorouting', 'on');
 add_line(modelName, 'K_to_degC/1',   [get_param(fcn_blk,'Name') '/7'], 'autorouting', 'on');
-add_line(modelName, 'reset_const/1', [get_param(fcn_blk,'Name') '/8'], 'autorouting', 'on');
+add_line(modelName, 'TemperatureCounts_const/1', [get_param(fcn_blk,'Name') '/8'], 'autorouting', 'on');
+add_line(modelName, 'OutputMode_const/1',        [get_param(fcn_blk,'Name') '/9'], 'autorouting', 'on');
+add_line(modelName, 'reset_const/1', [get_param(fcn_blk,'Name') '/10'], 'autorouting', 'on');
 
-% MATLAB Function outputs: Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias
+% MATLAB Function outputs: Ameas, omegaMeas, magMeas, accel_bias, gyro_bias, mag_bias,
+%                           raw_counts_by_fog, temp_clamp_flags, ic_clamp_flags, count_saturation_flags
 fcnName = get_param(fcn_blk, 'Name');
 add_line(modelName, [fcnName '/1'], 'Demux_Accel/1', 'autorouting', 'on');
 add_line(modelName, [fcnName '/2'], 'Demux_Gyro/1',  'autorouting', 'on');
@@ -197,6 +227,10 @@ add_line(modelName, [fcnName '/3'], 'Demux_Mag/1',   'autorouting', 'on');
 add_line(modelName, [fcnName '/4'], 'Term_accel_bias/1', 'autorouting', 'on');
 add_line(modelName, [fcnName '/5'], 'Term_gyro_bias/1',  'autorouting', 'on');
 add_line(modelName, [fcnName '/6'], 'Term_mag_bias/1',   'autorouting', 'on');
+add_line(modelName, [fcnName '/7'], 'Term_raw_counts/1',       'autorouting', 'on');
+add_line(modelName, [fcnName '/8'], 'Term_temp_clamp/1',       'autorouting', 'on');
+add_line(modelName, [fcnName '/9'], 'Term_ic_clamp/1',         'autorouting', 'on');
+add_line(modelName, [fcnName '/10'],'Term_count_saturation/1', 'autorouting', 'on');
 
 % Accel bus: device_id, x, y, z, temperature
 add_line(modelName, 'accel_device_id/1', 'AccelSensorBus_Creator/1', 'autorouting', 'on');

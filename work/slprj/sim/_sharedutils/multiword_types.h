@@ -2,9 +2,20 @@
 #define MULTIWORD_TYPES_H
 #include "rtwtypes.h"
 
+/*
+ * Definitions supporting external data access
+ */
 typedef int64_T chunk_T;
 typedef uint64_T uchunk_T;
+
+/*
+ * MultiWord supporting definitions
+ */
 typedef long long longlong_T;
+
+/*
+ * MultiWord types
+ */
 typedef struct {
   uint64_T chunks[2];
 } int128m_T;
@@ -59,4 +70,4 @@ typedef struct {
   uint256m_T im;
 } cuint256m_T;
 
-#endif
+#endif                                 /* MULTIWORD_TYPES_H */

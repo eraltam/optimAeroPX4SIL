@@ -19,6 +19,8 @@ arguments
     opts.sessionRoot (1,1) string = ""
     opts.sessionId (1,1) string = ""
     opts.preflightWindow_s (1,1) double = 10
+    opts.insVariant (1,1) double = NaN  % override sensors/setUpSensors.m's default (2); e.g. 4 = AnelloV2 candidate. NaN = do not override.
+    opts.candidateSeed (1,1) double = NaN  % sets ins_anello_v2/SeedConst when insVariant selects the v2 candidate. NaN = do not touch.
 end
 
 repoRoot = fileparts(fileparts(mfilename("fullpath")));
@@ -60,6 +62,18 @@ initVehicleSIL( ...
     "hitlBaudRate", opts.hitlBaudRate, ...
     "hitlQGCPort", opts.hitlQGCPort, ...
     "clearSLCache", opts.clearSLCache);
+
+if ~isnan(opts.insVariant)
+    assignin("base", "INS_VARIANT", opts.insVariant);
+    fprintf("INS_VARIANT overridden to %d\n", opts.insVariant);
+end
+if ~isnan(opts.candidateSeed)
+    if ~bdIsLoaded("ins_anello_v2")
+        load_system("ins_anello_v2");
+    end
+    set_param("ins_anello_v2/SeedConst", "Value", num2str(opts.candidateSeed));
+    fprintf("ins_anello_v2/SeedConst set to %d\n", opts.candidateSeed);
+end
 
 modelName = "VehicleSilSimulation";
 load_system(modelName);

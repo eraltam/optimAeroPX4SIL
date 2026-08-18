@@ -8,10 +8,10 @@
 #define TARGET_CONST
 #define TARGET_STRING(s) (s)
 #ifndef SS_UINT64
-#define SS_UINT64 27
+#define SS_UINT64 31
 #endif
 #ifndef SS_INT64
-#define SS_INT64 28
+#define SS_INT64 32
 #endif
 #else
 #include "builtin_typeid_types.h"
@@ -41,15 +41,15 @@ rtwCAPI_SCALAR , 0 , 0 , 0 } } ; static uint_T rtDimensionArray [ ] = { 0 } ;
 static rtwCAPI_FixPtMap rtFixPtMap [ ] = { { ( NULL ) , ( NULL ) ,
 rtwCAPI_FIX_RESERVED , 0 , 0 , ( boolean_T ) 0 } , } ; static
 rtwCAPI_SampleTimeMap rtSampleTimeMap [ ] = { { ( NULL ) , ( NULL ) , 0 , 0 }
-} ; static int_T rtContextSystems [ 3 ] ; static rtwCAPI_LoggingMetaInfo
+} ; static int_T rtContextSystems [ 4 ] ; static rtwCAPI_LoggingMetaInfo
 loggingMetaInfo [ ] = { { 0 , 0 , "" , 0 } } ; static
-rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 3 ,
+rtwCAPI_ModelMapLoggingStaticInfo mmiStaticInfoLogging = { 4 ,
 rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 } , 0 , ( NULL ) } ; static rtwCAPI_ModelMappingStaticInfo mmiStatic = { {
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 622020846U , 749783510U , 3985676213U , 486274046U } , &
+{ 43058559U , 2120697379U , 2662294927U , 2937528918U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * ins_anello_GetCAPIStaticMap ( void ) {
 return & mmiStatic ; }
@@ -59,9 +59,10 @@ sysRanDType * systemRan [ ] , a4mpwoagne * localDW , int_T systemTid [ ] ,
 void * rootSysRanPtr , int rootTid ) { UNUSED_PARAMETER ( ckf43r0kru ) ;
 UNUSED_PARAMETER ( localDW ) ; systemRan [ 0 ] = ( sysRanDType * )
 rootSysRanPtr ; systemRan [ 1 ] = ( NULL ) ; systemRan [ 2 ] = ( NULL ) ;
-systemTid [ 1 ] = rootTid ; systemTid [ 2 ] = rootTid ; systemTid [ 0 ] =
-rootTid ; rtContextSystems [ 0 ] = 0 ; rtContextSystems [ 1 ] = 0 ;
-rtContextSystems [ 2 ] = 0 ; }
+systemRan [ 3 ] = ( NULL ) ; systemTid [ 1 ] = rootTid ; systemTid [ 2 ] =
+rootTid ; systemTid [ 3 ] = rootTid ; systemTid [ 0 ] = rootTid ;
+rtContextSystems [ 0 ] = 0 ; rtContextSystems [ 1 ] = 0 ; rtContextSystems [
+2 ] = 0 ; rtContextSystems [ 3 ] = 0 ; }
 #endif
 #ifndef HOST_CAPI_BUILD
 void ins_anello_InitializeDataMapInfo ( psmsewigyz * const ckf43r0kru ,

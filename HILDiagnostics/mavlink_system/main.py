@@ -7,6 +7,7 @@ import asyncio
 import shutil
 import sys
 import threading
+import time
 import traceback
 from pathlib import Path
 from typing import Any, TextIO
@@ -71,18 +72,41 @@ async def run(config: dict[str, Any], base_dir: Path, config_dir: Path) -> None:
             listener = PymavlinkListener(config, base_dir=base_dir)
 
             def listener_main() -> None:
+                # Default of 30s (the method's own default) is too tight in practice: the
+                # HITL Simulink session needs real time to compile/initialize before it ever
+                # starts producing HEARTBEAT traffic, and that startup window is often
+                # started independently of this process (e.g. a human or another tool
+                # launching the Simulink run around the same time, not perfectly
+                # synchronized). Reuses vehicle.connect_timeout_s (already used for MAVSDK's
+                # own connect, default 60s) rather than adding a separate config key.
+                pymavlink_connect_timeout_s = float(
+                    config.get("vehicle", {}).get("connect_timeout_s", 60.0)
+                )
+                # RETRY (added 2026-07-31): pymavlink's mavutil.add_message() has a known,
+                # intermittent thread-unsafe bug ("TypeError: 'NoneType' object does not support
+                # item assignment" on messages[mtype]._instances) that can fire while processing
+                # whatever message happens to arrive during wait_heartbeat()'s recv_match() loop
+                # at connect time -- observed once in session_compass_probe_02's console.log,
+                # NOT present in any earlier session today, so this is a rare timing-dependent
+                # library issue, not something introduced by this project's own code. A single hit
+                # used to permanently kill the listener thread for the rest of the session (the
+                # outer except below has no retry). Give connect() a few attempts before giving up
+                # -- listener.connect() creates a fresh self.master each call, so retrying is safe.
+                max_connect_attempts = 3
+                connected = False
+                for attempt in range(1, max_connect_attempts + 1):
+                    try:
+                        listener.connect(timeout_s=pymavlink_connect_timeout_s)
+                        connected = True
+                        break
+                    except Exception as exc:  # noqa: BLE001 - retry loop must not crash the thread.
+                        print(f"pymavlink: connect attempt {attempt}/{max_connect_attempts} failed: {exc}")
+                        if attempt < max_connect_attempts:
+                            time.sleep(2.0)
+                if not connected:
+                    print("pymavlink: listener giving up after repeated connect failures")
+                    return
                 try:
-                    # Default of 30s (the method's own default) is too tight in practice: the
-                    # HITL Simulink session needs real time to compile/initialize before it ever
-                    # starts producing HEARTBEAT traffic, and that startup window is often
-                    # started independently of this process (e.g. a human or another tool
-                    # launching the Simulink run around the same time, not perfectly
-                    # synchronized). Reuses vehicle.connect_timeout_s (already used for MAVSDK's
-                    # own connect, default 60s) rather than adding a separate config key.
-                    pymavlink_connect_timeout_s = float(
-                        config.get("vehicle", {}).get("connect_timeout_s", 60.0)
-                    )
-                    listener.connect(timeout_s=pymavlink_connect_timeout_s)
                     listener.listen_forever()
                 except Exception as exc:  # noqa: BLE001 - background thread must report and exit cleanly.
                     print(f"pymavlink: listener stopped with error: {exc}")

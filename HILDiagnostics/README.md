@@ -320,3 +320,69 @@ aunque parezca que sí en la UI.
 **Nota de PowerShell:** rutas de dispositivo Windows crudas (`\\.\COM4`) se rompen en Git-Bash
 (pierde una barra). Usá la tool de PowerShell, no Bash, para cualquier script que tome un argumento
 de ese estilo.
+
+---
+
+## 7. Cómo reproducir la matriz de 4 sesiones (misión reconstruida, IMU × viento)
+
+Esto documenta cómo se corrieron las sesiones `session_wind_matched_generic_01` (S1),
+`session_wind_synth_generic_01` (S2), `session_wind_matched_anello_01` (S3),
+`session_wind_synth_anello_01` (S4) — la comparación real-vs-HIL con la misión de 55
+waypoints reconstruida de `nav_hil_ground_truth.ulg` (ver `PLAN_RECONSTRUCCION_MISION_HIL_Y_COMPARACION_4VIAS.md`
+y `AnalysisIMU/four_way_wind_comparison/`). Sirve para volver a correr la matriz completa o
+una sesión suelta más adelante.
+
+### 7.1 Configuración ya persistida (no hace falta rehacerla, solo confirmar)
+
+- `mavlink_system/config.yaml`:
+  - `vehicle.mission_file: C:\AS\AnalysisIMU\mission_reconstruction\run_mission_reconstructed_from_real.yaml`
+    (55 waypoints, no el `mission.yaml` de 19 waypoints original).
+  - `vehicle.connect_timeout_s: 600` (subido de 180s — esta misión tarda más en compilar en
+    Simulink que el modelo de build/compile que asumía el timeout viejo).
+  - `safety.max_mission_altitude_m: 2400.0` (la misión reconstruida usa altitudes relativas
+    reales de hasta ~2280m en el campo `relative_altitude_m`; no es una altura física real
+    del banco, es solo el límite de validación de contenido de misión).
+- `run_mission_reconstructed_from_real.yaml`: `mission_timeout_s: 1200`, `land_timeout_s: 150`
+  (subidos con margen de seguridad de hardware respecto a los defaults, ver plan sección Fase B).
+
+### 7.2 Los dos interruptores que definen cada sesión de la matriz
+
+| Sesión | `INS_VARIANT` (`sensors/setUpSensors.m`) | `WIND_SOURCE` (`environment/setUpEnvironment.m`) |
+|---|---|---|
+| S1 — generic + viento real | `1` | `2` (replay real desde `.ulg`) |
+| S2 — generic + viento sintético | `1` | `1` (Dryden + gust) |
+| S3 — ANELLO + viento real | `2` | `2` |
+| S4 — ANELLO + viento sintético | `2` | `1` |
+
+Editar esos dos archivos (una línea cada uno) **antes** de arrancar el paso 2 de la sección 2
+(MATLAB), para cada sesión de la matriz. `INS_VARIANT`/`WIND_SOURCE` no son argumentos de
+`run_hil_automated_session` — son variables de workspace que esos dos scripts `setUp*.m`
+definen, así que el cambio tiene que estar guardado en el archivo antes de que
+`initVehicleSIL`/`run_hil_automated_session` los ejecute.
+
+### 7.3 Procedimiento por sesión
+
+1. Editar `INS_VARIANT` y `WIND_SOURCE` según la tabla de 7.2.
+2. Seguir la sección 2 normal (Terminal 1: `run_hitl_session.py --session-id <nombre_de_la_tabla>`,
+   Terminal 2: MATLAB `run_hil_automated_session(..., "sessionId", "<mismo_nombre>")`). Usar
+   `stopTime_s` generoso (esta misión completa tarda ~550-580s de vuelo real, más el tiempo de
+   preflight/arm — 900s de margen es lo que se usó).
+3. **Reiniciar MATLAB por completo entre sesiones** (`bdclose('all')` no es suficiente para
+   garantizar que no queda estado viejo de Simulink — se perdió una corrida completa así una vez,
+   ver `matlab_session.mat` de la sesión y confirmar `armed_observed: true` /
+   `was_airborne_at_any_point: true` en `matlab_summary.json` antes de dar la sesión por buena).
+4. Confirmar éxito: `Select-String "MISSION SUCCESS" .\logs\session_<nombre>\console.log` y
+   `mission_result.seq_reached == mission_result.seq_total` al final.
+5. Bajar el log de a bordo (paso 4 de la sección 2) — necesario para el análisis de innovaciones
+   EKF (Fase C.6), que solo está en el `.ulg` descargado de la placa, no en el relay en vivo.
+6. Repetir para las 4 combinaciones. Al terminar, `INS_VARIANT`/`WIND_SOURCE` quedan en lo último
+   que se haya corrido — revisar antes de asumir cuál es la config "activa" para una sesión nueva.
+
+### 7.4 Reanálisis
+
+Los scripts de extracción/alineación/comparación de las 4 sesiones están en
+`C:\AS\AnalysisIMU\four_way_wind_comparison\scripts\` (`build_manifest_4way.py`,
+`export_simulink_sessions_4way.m`, `fase_c2_events_and_alignment.py` ... `fase_c9_trajectory_figures.py`),
+pensados para correrse en orden sobre las 4 carpetas de sesión nuevas. Ver
+`AnalysisIMU/four_way_wind_comparison/comparison_report_4way.md` para el resumen de resultados y
+`C:\AS\ANELLO_X3_HIL_vs_RealGroundTruth_Summary.tex` para la versión concisa con tablas/figuras.

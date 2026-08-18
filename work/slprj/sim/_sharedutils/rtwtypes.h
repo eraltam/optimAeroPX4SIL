@@ -8,6 +8,7 @@ typedef void * pointer_T;
 
 #endif
 
+/* Logical type definitions */
 #if (!defined(__cplusplus))
 #ifndef false
 #define false                          (0U)
@@ -35,6 +36,9 @@ typedef unsigned long long uint64_T;
 #define MAX_uint64_T                   ((uint64_T)(0xFFFFFFFFFFFFFFFFULL))
 #endif
 
+/*===========================================================================*
+ * Additional complex number type definitions                                           *
+ *===========================================================================*/
 #ifndef CINT64_T
 #define CINT64_T
 
@@ -54,4 +58,4 @@ typedef struct {
 } cuint64_T;
 
 #endif
-#endif
+#endif                                 /* RTWTYPES_H */

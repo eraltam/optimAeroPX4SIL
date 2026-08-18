@@ -3,6 +3,7 @@
 #ifndef BUILTIN_TYPEID_TYPES
 #define BUILTIN_TYPEID_TYPES
 
+/* Enumeration of built-in data types */
 typedef enum {
   SS_DOUBLE = 0,
   SS_SINGLE = 1,
@@ -17,7 +18,10 @@ typedef enum {
 
 #define SS_NUM_BUILT_IN_DTYPE          ((int)SS_BOOLEAN+1)
 
+/* Enumeration for MAT-file logging code */
 typedef int DTypeId;
+
+/* Enumeration of pre-defined data types */
 typedef enum {
   SS_FCN_CALL = 9,
   SS_INTEGER = 10,
@@ -27,5 +31,5 @@ typedef enum {
   SS_CONNECTION_TYPE = 14
 } PreDefinedDTypeId;
 
-#endif
-#endif
+#endif                                 /* BUILTIN_TYPEID_TYPES */
+#endif                                 /* BUILTIN_TYPEID_TYPES_H */

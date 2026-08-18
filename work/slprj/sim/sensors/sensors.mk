@@ -2,7 +2,7 @@
 ## Makefile generated for component 'sensors'. 
 ## 
 ## Makefile     : sensors.mk
-## Generated on : Fri Jul 10 15:48:08 2026
+## Generated on : Thu Aug 13 11:21:00 2026
 ## Final product: ./sensorslib.lib
 ## Product type : static library
 ## 
@@ -220,7 +220,7 @@ PREBUILT_OBJS =
 ## LIBRARIES
 ###########################################################################
 
-MODELREF_LIBS = C:/AS/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib
+MODELREF_LIBS = C:/AS/optimAeroPX4SIL/work/slprj/sim/adc/adclib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/gps/gpslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins/inslib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello/ins_anellolib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_anello_v2/ins_anello_v2lib.lib C:/AS/optimAeroPX4SIL/work/slprj/sim/ins_ideal/ins_ideallib.lib
 
 LIBS = $(START_DIR)/slprj/sim/_sharedutils/rtwshared.lib
 

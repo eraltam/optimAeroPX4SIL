@@ -23,14 +23,7 @@ rt_ssReportDiagnosticAsInfo ( void * S , void * diag ) ; extern const char_T
 ; extern boolean_T slIsRapidAcceleratorSimulating ( void ) ; extern void
 rt_RAccelReplaceFromFilename ( SimStruct * S , const char_T * blockpath ,
 char_T * fileNam ) ; extern void rt_RAccelReplaceToFilename ( SimStruct * S ,
-const char_T * blockpath , char_T * fileNam ) ; extern void
-slsaCacheDWorkPointerForSimTargetOP ( void * ss , void * * ptr ) ; extern
-void slsaCacheDWorkDataForSimTargetOP ( void * ss , void * ptr , unsigned int
-sizeInBytes , bool restoreRequiresSolverReset ) ; extern void
-slsaSaveRawMemoryForSimTargetOP ( void * ss , const char_T * key , void * *
-ptr , unsigned int sizeInBytes , void * ( * customOPSaveFcn ) ( void *
-dworkPtr , unsigned int * sizeInBytes ) , void ( * customOPRestoreFcn ) ( void
-* dworkPtr , const void * data , unsigned int sizeInBytes ) ) ; extern void *
+const char_T * blockpath , char_T * fileNam ) ; extern void *
 gblLoggingInterval ;
 #ifndef rtmCancelTimerToRaiseEvent
 #define rtmCancelTimerToRaiseEvent(rtm, timerIndex) simTgtCancelTimerToRaiseEvent(_ssGetRootSS((rtm)->_mdlRefSfcnS), [timerIndex])

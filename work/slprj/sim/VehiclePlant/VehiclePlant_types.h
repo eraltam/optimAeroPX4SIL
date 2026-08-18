@@ -206,16 +206,35 @@ struct_IVpqA0yyKk8nRugFEHRJDE mag ; struct_xSxKrgCnQGn980yRf6NLJD baro ;
 struct_Phs4FavQbVrPK50520HBKB thermo ; struct_rs1DZdtWDGxlEyRlO4xwxF engine ;
 } struct_7BigaldNWGj33rb8sElmtH ;
 #endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+#define DEFINED_TYPEDEF_FOR_struct_8daDgjHl69LL7sHFxHAfoF_
+typedef struct { boolean_T debugEnable ; boolean_T residualThermalEnable ;
+uint8_T sl_padding0 [ 6 ] ; } struct_8daDgjHl69LL7sHFxHAfoF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+#define DEFINED_TYPEDEF_FOR_struct_DBj3z2TsrHhthEcQUJuruF_
+typedef struct { struct_8daDgjHl69LL7sHFxHAfoF anello ; }
+struct_DBj3z2TsrHhthEcQUJuruF ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+#define DEFINED_TYPEDEF_FOR_struct_PnJy5R3HzCjafF7TLm4DbE_
+typedef struct { real_T enable ; } struct_PnJy5R3HzCjafF7TLm4DbE ;
+#endif
+#ifndef DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+#define DEFINED_TYPEDEF_FOR_struct_EwMtsSUDbGvLjUwS89lioH_
+typedef struct { struct_DBj3z2TsrHhthEcQUJuruF imu ;
+struct_PnJy5R3HzCjafF7TLm4DbE vibration ; } struct_EwMtsSUDbGvLjUwS89lioH ;
+#endif
 #ifndef DEFINED_TYPEDEF_FOR_struct_gcu1l27Ac4krknw6L9ArAE_
 #define DEFINED_TYPEDEF_FOR_struct_gcu1l27Ac4krknw6L9ArAE_
 typedef struct { real_T lat_deg ; real_T lon_deg ; real_T alt_m ; real_T
 yawAngle_rad ; } struct_gcu1l27Ac4krknw6L9ArAE ;
 #endif
 #ifndef SS_UINT64
-#define SS_UINT64 58
+#define SS_UINT64 62
 #endif
 #ifndef SS_INT64
-#define SS_INT64 59
+#define SS_INT64 63
 #endif
 typedef struct ks3glix3e01_ ks3glix3e01 ; typedef struct d2l3uzft5j
 hl0stsvgru ;

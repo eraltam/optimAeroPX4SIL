@@ -27,8 +27,10 @@ parameters, and 8-test validation suite.
 | `sensors/components/build_ins_anello.m` | new | Programmatic builder (Simulink API script, same pattern as `newIMU_model/models/build_ANELLO_X3_IMU.m`) for `ins_anello.slx`. Re-run this if the model needs to be rebuilt from scratch. |
 | `sensors/components/ins_anello.slx` | new | Drop-in alternative to `ins.slx`: same interface (`EnvironmentBus`, `BodyStatesBus` in; `INSSensorBus` out), built around the ANELLO X3 datasheet model instead of the generic Aerospace IMU block. |
 | `sensors/components/wire_ins_variant.m` | new | Script that replaces `sensors/sensors.slx`'s `ins` block with a selector subsystem (see section 5). Re-run if `sensors.slx` needs to be rebuilt. |
-| `sensors/sensors.slx` | modified | `ins` is now a small subsystem containing both `Generic` (`ins.slx`) and `AnelloX3` (`ins_anello.slx`) Model blocks feeding a Multiport Switch selected by `INS_VARIANT`. |
-| `sensors/setUpSensors.m` | modified | Added `INS_VARIANT = 1;` (1=Generic default, 2=AnelloX3) plus a comment explaining the switch. |
+| `sensors/components/build_ins_ideal.m` | new (2026-07-21) | Programmatic builder for `ins_ideal.slx` -- the "D1 ideal IMU" variant from `HIL_TEST_STATUS_AND_NEXT_PRIORITIES.md` (repo root). Copies `ins.slx` and strips all sensor error (see section 4.7). |
+| `sensors/components/ins_ideal.slx` | new (2026-07-21) | Drop-in third INS choice, `INS_VARIANT=3`: zero-error, zero-dynamics pass-through of plant truth, used as a baseline to separate "IMU noise-model effect" from "any sensor noise vs. none at all" in the existing pairwise (`fase_c7_c8`) HIL comparison. |
+| `sensors/sensors.slx` | modified | `ins` is now a small subsystem containing `Generic` (`ins.slx`), `AnelloX3` (`ins_anello.slx`), and `Ideal` (`ins_ideal.slx`) Model blocks feeding a Multiport Switch selected by `INS_VARIANT`. |
+| `sensors/setUpSensors.m` | modified | Added `INS_VARIANT = 2;` (1=Generic, 2=AnelloX3 default, 3=Ideal) plus a comment explaining the switch. |
 | `sensors/components/ins.slx` | unchanged | Still the generic baseline, selectable via `INS_VARIANT=1`. |
 
 ---
@@ -211,6 +213,44 @@ both are lightweight. If a true Variant Subsystem is wanted later (e.g. for code
 the unused branch), revisit with a newer/different MATLAB release or build it interactively via the
 GUI's fix-it action rather than headlessly.
 
+### 4.7 `ins_ideal.slx` (D1 "ideal IMU" variant, added 2026-07-21)
+
+The HIL validation plan's Block D1 calls for a mission run with an "ideal IMU" -- a raw pass-through
+of plant truth with zero sensor error -- as a baseline to separate "IMU noise-model effect" from
+"any sensor noise vs. none at all" (see `HIL_TEST_STATUS_AND_NEXT_PRIORITIES.md`, repo root,
+sections 3-5). Rather than re-deriving the specific-force/gravity-mixing formula from scratch (a
+sign-convention footgun -- see section 4.1), `ins_ideal.slx` is built by **copying `ins.slx` file-for-file**
+(`copyfile` + `load_system`, not `new_system(...,'Model',...)` -- that API expects a subsystem
+block handle, not a whole model to duplicate) and then, on the copied `Three-axis Inertial
+Measurement Unit` block:
+- `dtype_a`/`dtype_g` (2nd-order sensor dynamics for accel/gyro) -> `off`, so there is no lag/filter
+  settling time -- confirmed by direct comparison (see below): Generic's accel.z at t=3 samples
+  after a step to rest was still settling (-8.77 m/s^2 vs. true -9.80665), Ideal already reads the
+  exact value.
+- `i_rand` (internal white-noise generator) -> `off`
+- `a_bias`/`g_bias`/`g_sens` -> `[0 0 0]`, `a_sf_cc`/`g_sf_cc` -> `eye(3)`, `a_sat`/`g_sat` widened to
+  `+-1e6` -- all inlined as literals rather than references to `setUpSensors.m`'s `parameters`
+  struct, so this variant stays "ideal" even if Generic's own parameters change later.
+- The ad hoc magnetometer noise (`ins.slx`'s `Gain` block feeding the Band-Limited White Noise into
+  the mag Add junction) is set to `1e-4` (not `0` -- see the live-HITL finding in section 5: a truly
+  zero mag noise made PX4 flag the sensor as stuck) rather than removed structurally, to keep the
+  block diagram/port structure identical to `ins.slx`.
+
+Because the block and wiring are otherwise byte-identical to `ins.slx`, the gravity-sign and
+specific-force convention is guaranteed identical to Generic by construction -- no independent
+derivation needed. Verified numerically (throwaway harness, static rest condition, DCM_be=I,
+gravityScalar=9.80665, mag=[200 0 400] nT): Ideal reports `accel.z = -9.80665` exactly and
+`mag = [0.002, 0, 0.004]` G exactly (bare nT->Gauss conversion of the input, no noise), gyro exactly
+zero on all axes -- matching Generic's sign/units convention with the noise and dynamics-settling
+error subtracted out.
+
+Wired into `sensors/sensors.slx`'s `ins` selector subsystem as a third `Model` block (`Ideal` ->
+`ins_ideal.slx`) feeding a third data port on the existing `INS_Select` Multiport Switch (`Inputs`
+bumped from `2` to `3`); `INS_VARIANT==3` selects it, following the same one-based-contiguous
+indexing already used for `1`/`2`. `sensors/setUpSensors.m` documents the new value but the default
+is left at `2` (AnelloX3) -- switching to `INS_VARIANT=3` is a deliberate per-run choice for D1
+testing, not a new default.
+
 ---
 
 ## 5. Validation performed
@@ -223,8 +263,31 @@ GUI's fix-it action rather than headlessly.
   `aircraftInitial`, etc. -- `sensors.slx` was never designed to compile in isolation from the rest
   of the SIL init sequence; this is pre-existing, not introduced here).
 - `update_diagram` compile check on the **full** `VehicleSilSimulation.slx`, after running
-  `initVehicleSIL("launchFullSIL", false, "vehicleType", "hexarotor")`: **passes for both**
-  `INS_VARIANT=1` (Generic) **and** `INS_VARIANT=2` (AnelloX3).
+  `initVehicleSIL("launchFullSIL", false, "vehicleType", "hexarotor")`: **passes for all three**
+  `INS_VARIANT=1` (Generic), `INS_VARIANT=2` (AnelloX3), **and** `INS_VARIANT=3` (Ideal, added
+  2026-07-21 -- see section 4.7).
+- `ins_ideal.slx` additionally checked with a static-rest numeric comparison against `ins.slx`
+  (throwaway harness, not committed): confirms matching gravity sign/units and zero residual gyro,
+  with noise and dynamics-settling error absent as designed -- see section 4.7.
+- **`INS_VARIANT=3` flown live against the real Cube Orange+ over HITL (2026-07-22)**: not just a
+  compile check -- `session_ideal_verify_02` flew the full 19-waypoint `mission.yaml` (byte-identical
+  to the two baseline sessions', SHA-256-verified) end to end: armed, took off, all 19 waypoints
+  reached, landed, `console.log` shows `MISSION SUCCESS`. Registered as `hil_ideal_success` in
+  `AnalysisIMU/three_way_comparison/scripts/build_manifest.py` and folded into a new three-way
+  pairwise RMSE/Pearson-r comparison (`fase12_three_way_pairwise_effects.py`) against
+  `hil_generic_success`/`hil_anello_success` -- see `HIL_TEST_STATUS_AND_NEXT_PRIORITIES.md` section
+  5 item 4 for the (mixed, not over-interpreted) result.
+  - **First attempt failed and revealed a real finding, not just a bug in this integration**: a
+    genuinely zero-noise magnetometer (`Gain=0`) produced ~37% bit-identical consecutive samples,
+    which PX4's sensor-health monitor reads as a stuck sensor (`MAG #0 failed: STALE!`), triggering a
+    failsafe/auto-land ~53s into the mission. Fixed by setting the mag gain to `1e-4` instead of `0`
+    (still ~100x smaller than Generic's, negligible for any noise analysis) -- confirmed both
+    numerically (200-step harness, zero exact-repeat diffs) and by the successful retry. **Practical
+    implication for anyone building a "zero-error" sensor model for live PX4 HITL**: literal zero
+    noise is not flyable -- PX4 needs some minimal per-sample dither to consider a sensor "alive."
+    accel/gyro showed the identical ~37% repeat rate (same disabled dynamics/noise) but were never
+    flagged, so this specific staleness check is evidently mag-specific or has a much stricter
+    threshold there than for accel/gyro.
 
 **Not yet done** (next phase, needs an interactive session / real PX4 connection -- out of scope
 for this automated pass):
@@ -237,6 +300,11 @@ for this automated pass):
 3. Decide whether `INS_VARIANT` should default to `2` (AnelloX3) once validated, currently defaults
    to `1` (Generic) in `sensors/setUpSensors.m` for safety/regression-baseline reasons.
 4. File/fix the MATLAB Function block struct-compile bug in `newIMU_model` (section 3).
+5. **Run an actual D1 HIL/mission session with `INS_VARIANT=3`** (real PX4 hardware or SITL loop,
+   not just a compile check) and fold its output into `AnalysisIMU/three_way_comparison/scripts/fase_c7_c8_pairwise_effects.py`
+   as a third arm, per `HIL_TEST_STATUS_AND_NEXT_PRIORITIES.md` section 5 item 4. Only the Simulink
+   model side (this section) is done so far -- the session capture and analysis fold-in are
+   still open.
 
 ---
 
@@ -247,8 +315,10 @@ for this automated pass):
 | `sensors/sensors.slx` | Top-level sensor subsystem; routes to gps/ins/adc, builds `SensorsBus` |
 | `sensors/components/ins.slx` | Generic INS baseline (Aerospace block + ad hoc mag), `INS_VARIANT=1` |
 | `sensors/components/ins_anello.slx` | ANELLO X3 datasheet INS, `INS_VARIANT=2` |
+| `sensors/components/ins_ideal.slx` | Zero-error pass-through INS (D1 baseline), `INS_VARIANT=3` |
 | `sensors/components/build_ins_anello.m` | Rebuild script for `ins_anello.slx` |
-| `sensors/components/wire_ins_variant.m` | Rebuild script for `sensors.slx`'s `ins` selector |
+| `sensors/components/build_ins_ideal.m` | Rebuild script for `ins_ideal.slx` |
+| `sensors/components/wire_ins_variant.m` | Rebuild script for `sensors.slx`'s `ins` selector (built the `INS_VARIANT=1/2` selector; the `INS_VARIANT=3` port was added directly via `model_edit`, not a rerun of this script -- update it by hand if `sensors.slx` is ever rebuilt from scratch) |
 | `sensors/components/anelloX3/` | ANELLO X3 MATLAB functions/params, SIL-rate variants (see section 3 for why they're not 1:1 copies of `newIMU_model`) |
 | `sensors/setUpSensors.m` | Generic sensor parameters + `INS_VARIANT` switch |
 | `signals/BusDefinition.m` | Authoritative bus contracts (`AccelSensorBus`, `GyroSensorBus`, `MagSensorBus`, `INSSensorBus`, `SensorsBus`, `EnvironmentBus`, `BodyStateBus`) |

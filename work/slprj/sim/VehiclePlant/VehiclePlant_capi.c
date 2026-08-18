@@ -8,10 +8,10 @@
 #define TARGET_CONST
 #define TARGET_STRING(s) (s)
 #ifndef SS_UINT64
-#define SS_UINT64 58
+#define SS_UINT64 62
 #endif
 #ifndef SS_INT64
-#define SS_INT64 59
+#define SS_INT64 63
 #endif
 #else
 #include "builtin_typeid_types.h"
@@ -49,7 +49,7 @@ rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 2950155044U , 56637378U , 3011580782U , 486467798U } , &
+{ 3523986931U , 2900122761U , 4057171369U , 4216969918U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * VehiclePlant_GetCAPIStaticMap ( void ) {
 return & mmiStatic ; }

@@ -11,7 +11,11 @@ vehicle:
   # initVehicleSIL, then model build/compile) -- 60s proved too tight in practice. Generous on
   # purpose since waiting costs nothing but time; a genuinely broken connection still times out
   # eventually.
-  connect_timeout_s: 180
+  # Raised from 180s (2026-07-17): the reconstructed 55-waypoint mission
+  # (run_mission_reconstructed_from_real.yaml) is the largest/most complex mission run on
+  # this bench so far, and Simulink's build/compile-to-first-HEARTBEAT time exceeded 180s
+  # twice in a row even when MATLAB was started immediately after this relay came up.
+  connect_timeout_s: 600
   telemetry_timeout_s: 15
   # Was 60s. Sessions 9/11/12 all showed "vertical velocity unstable"/"High Accelerometer
   # Bias" still recurring at the 60s mark with no sign of clearing (session_8 is the only
@@ -29,7 +33,14 @@ vehicle:
   auto_arm: true
   auto_takeoff: true
   auto_mission: true
-  mission_file: "mission.yaml"
+  mission_file: "C:\\AS\\optimAeroPX4SIL\\HILDiagnostics\\mavlink_system\\mission.yaml"
+  # Switched back to the standard 19-wp mission 2026-08-13 for a quick SiPhOG-calibration
+  # smoke-test (short iteration time, stopTime_s ~300-400s is enough -- see
+  # PLAN_ANELLO_X3_SIPHOG_TEMPERATURE_CALIBRATION_OUTPUT_MODES.md). The 55-wp reconstructed
+  # mission this replaced (run_mission_reconstructed_from_real.yaml, needs stopTime_s>=900,
+  # see HILDiagnostics/README.md section 7) is still the comparison-deliverable mission for
+  # the four-way wind matrix -- switch mission_file back to it (and restore the removed
+  # comment above about session_vibration_repaired_19wp_01) before running that matrix again.
 
 listener:
   enabled: true
@@ -84,3 +95,17 @@ safety:
   max_mission_altitude_m: 2400.0
   allow_real_vehicle_commands: true
   allow_pymavlink_commands: true
+  # Automatic GPS-innovation abort (added 2026-07-31, see
+  # HIL_GPS_FUSION_AND_ACTUATOR_OUTPUT_FIX_2026-07-31.md section 5a): the wp35->wp36 EKF2
+  # GPS-aiding rejection in session_vibration_full_mission_06 (vel_ratio=4.19,
+  # pos_horiz_ratio=7.93) was a real, correct rejection of a genuinely bad sensor/trajectory
+  # disagreement caused by the (since-fixed) vibration-model gain bug -- NOT a reason to loosen
+  # the EKF's own gates. This is a mission-abort safety net for the next time vibration is
+  # re-enabled: if ESTIMATOR_STATUS.vel_ratio or .pos_horiz_ratio continuously exceeds
+  # gps_innovation_ratio_threshold for gps_innovation_sustained_s, PymavlinkListener latches
+  # gps_innovation_abort and MavsdkInstructor._monitor_gps_innovation_abort immediately holds
+  # then lands (not RTL -- see that method's docstring for why). Only takes effect during
+  # mission execution (_wait_mission_complete), not during climb/landing.
+  gps_innovation_abort_enabled: true
+  gps_innovation_ratio_threshold: 1.0
+  gps_innovation_sustained_s: 1.0

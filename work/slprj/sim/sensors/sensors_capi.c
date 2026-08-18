@@ -8,10 +8,10 @@
 #define TARGET_CONST
 #define TARGET_STRING(s) (s)
 #ifndef SS_UINT64
-#define SS_UINT64 50
+#define SS_UINT64 60
 #endif
 #ifndef SS_INT64
-#define SS_INT64 51
+#define SS_INT64 61
 #endif
 #else
 #include "builtin_typeid_types.h"
@@ -49,7 +49,7 @@ rtContextSystems , loggingMetaInfo , 0 , ( NULL ) , { 0 , ( NULL ) , ( NULL )
 rtBlockSignals , 0 , ( NULL ) , 0 , ( NULL ) , 0 } , { ( NULL ) , 0 , ( NULL
 ) , 0 } , { rtBlockStates , 0 } , { rtDataTypeMap , rtDimensionMap ,
 rtFixPtMap , rtElementMap , rtSampleTimeMap , rtDimensionArray } , "float" ,
-{ 890702132U , 604393315U , 684663243U , 2861528081U } , &
+{ 2906297622U , 1730345578U , 796051512U , 2793179006U } , &
 mmiStaticInfoLogging , 0 , ( boolean_T ) 0 , rt_LoggedStateIdxList } ; const
 rtwCAPI_ModelMappingStaticInfo * sensors_GetCAPIStaticMap ( void ) { return &
 mmiStatic ; }
@@ -71,7 +71,7 @@ rtwCAPI_SetLoggingStaticMap ( nxtbamgl1k -> DataMapInfo . mmi , &
 mmiStaticInfoLogging ) ; rtwCAPI_SetPath ( nxtbamgl1k -> DataMapInfo . mmi ,
 ( NULL ) ) ; rtwCAPI_SetFullPath ( nxtbamgl1k -> DataMapInfo . mmi , ( NULL )
 ) ; rtwCAPI_SetInstanceLoggingInfo ( nxtbamgl1k -> DataMapInfo . mmi , &
-nxtbamgl1k -> DataMapInfo . mmiLogInstanceInfo ) ; rtwCAPI_SetChildMMIArray ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( nxtbamgl1k -> DataMapInfo . mmi , 4 ) ; sensors_InitializeSystemRan ( nxtbamgl1k , nxtbamgl1k -> DataMapInfo . systemRan , localDW , nxtbamgl1k -> DataMapInfo . systemTid , sysRanPtr , contextTid ) ; rtwCAPI_SetSystemRan ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . systemRan ) ; rtwCAPI_SetSystemTid ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . systemTid ) ; rtwCAPI_SetGlobalTIDMap ( nxtbamgl1k -> DataMapInfo . mmi , & nxtbamgl1k -> Timing . mdlref_GlobalTID [ 0 ] ) ; }
+nxtbamgl1k -> DataMapInfo . mmiLogInstanceInfo ) ; rtwCAPI_SetChildMMIArray ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( nxtbamgl1k -> DataMapInfo . mmi , 6 ) ; sensors_InitializeSystemRan ( nxtbamgl1k , nxtbamgl1k -> DataMapInfo . systemRan , localDW , nxtbamgl1k -> DataMapInfo . systemTid , sysRanPtr , contextTid ) ; rtwCAPI_SetSystemRan ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . systemRan ) ; rtwCAPI_SetSystemTid ( nxtbamgl1k -> DataMapInfo . mmi , nxtbamgl1k -> DataMapInfo . systemTid ) ; rtwCAPI_SetGlobalTIDMap ( nxtbamgl1k -> DataMapInfo . mmi , & nxtbamgl1k -> Timing . mdlref_GlobalTID [ 0 ] ) ; }
 #else
 #ifdef __cplusplus
 extern "C" {
@@ -87,11 +87,15 @@ adc_host_InitializeDataMapInfo ( & ( dataMap -> child0 ) , "sensors/adc" ) ;
 dataMap -> childMMI [ 1 ] = & ( dataMap -> child1 . mmi ) ;
 gps_host_InitializeDataMapInfo ( & ( dataMap -> child1 ) , "sensors/gps" ) ;
 dataMap -> childMMI [ 2 ] = & ( dataMap -> child2 . mmi ) ;
-ins_anello_host_InitializeDataMapInfo ( & ( dataMap -> child2 ) ,
-"sensors/ins/AnelloX3" ) ; dataMap -> childMMI [ 3 ] = & ( dataMap -> child3
-. mmi ) ; ins_host_InitializeDataMapInfo ( & ( dataMap -> child3 ) ,
-"sensors/ins/Generic" ) ; rtwCAPI_SetChildMMIArray ( dataMap -> mmi , dataMap
--> childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( dataMap -> mmi , 4 ) ; }
+ins_anello_v2_host_InitializeDataMapInfo ( & ( dataMap -> child2 ) ,
+"sensors/ins/AnelloV2" ) ; dataMap -> childMMI [ 3 ] = & ( dataMap -> child3
+. mmi ) ; ins_anello_host_InitializeDataMapInfo ( & ( dataMap -> child3 ) ,
+"sensors/ins/AnelloX3" ) ; dataMap -> childMMI [ 4 ] = & ( dataMap -> child4
+. mmi ) ; ins_host_InitializeDataMapInfo ( & ( dataMap -> child4 ) ,
+"sensors/ins/Generic" ) ; dataMap -> childMMI [ 5 ] = & ( dataMap -> child5 .
+mmi ) ; ins_ideal_host_InitializeDataMapInfo ( & ( dataMap -> child5 ) ,
+"sensors/ins/Ideal" ) ; rtwCAPI_SetChildMMIArray ( dataMap -> mmi , dataMap
+-> childMMI ) ; rtwCAPI_SetChildMMIArrayLen ( dataMap -> mmi , 6 ) ; }
 #ifdef __cplusplus
 }
 #endif

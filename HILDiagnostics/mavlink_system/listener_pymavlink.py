@@ -81,6 +81,27 @@ class PymavlinkListener:
         self._shell_buffer: list[str] = []
         self._shell_lock = threading.Lock()
 
+        # GPS-innovation abort (added 2026-07-31, see HIL_GPS_FUSION_AND_ACTUATOR_OUTPUT_FIX
+        # section 5a / the vibration-model root-cause finding): the wp35->wp36 rejection in
+        # session_vibration_full_mission_06 was a real EKF2 rejection of a genuinely bad
+        # sensor/trajectory disagreement (vel_ratio=4.19, pos_horiz_ratio=7.93), not something
+        # to paper over -- do NOT loosen the EKF's own GPS innovation gates to avoid tripping
+        # this. Instead, treat a sustained gate-exceeding innovation as a mission-abort signal:
+        # track how long ESTIMATOR_STATUS.vel_ratio/pos_horiz_ratio have continuously exceeded
+        # the threshold, and latch self.gps_innovation_abort once that holds for
+        # gps_innovation_sustained_s. controller_mavsdk.MavsdkInstructor polls this flag during
+        # mission execution and is the one that actually issues hold()/land() -- this class
+        # only detects and latches, consistent with "MavsdkInstructor is the only class that
+        # sends flight commands."
+        safety_config = config.get("safety", {})
+        self._gps_innovation_abort_enabled = bool(safety_config.get("gps_innovation_abort_enabled", True))
+        self._gps_innovation_threshold = float(safety_config.get("gps_innovation_ratio_threshold", 1.0))
+        self._gps_innovation_sustained_s = float(safety_config.get("gps_innovation_sustained_s", 1.0))
+        self._gps_innovation_lock = threading.Lock()
+        self._gps_innovation_bad_since: float | None = None
+        self._gps_innovation_trigger_info: dict[str, Any] | None = None
+        self.gps_innovation_abort = threading.Event()
+
     def connect(self, timeout_s: float = 30.0) -> None:
         print(f"pymavlink: connecting to {self.address}")
         self.master = mavutil.mavlink_connection(self.address)
@@ -170,6 +191,29 @@ class PymavlinkListener:
             if self.logger is not None:
                 self.logger.write(f"MAVSDK_OUT_{msg_type}", msg.to_dict())
 
+    def _heal_broken_instance_caches(self) -> int:
+        """Repair pymavlink's own add_message() bug (mavutil.py): if a message type's
+        instance field is None on its first occurrence, add_message() takes the "simple"
+        path and never sets messages[mtype]._instances -- it stays whatever the generated
+        message class defaults to (None). If a *later* message of that same type arrives
+        with a non-None instance value, add_message() does
+        `messages[mtype]._instances[instance_value] = msg`, which raises exactly
+        "'NoneType' object does not support item assignment" since _instances is still
+        None. Catching that TypeError (see listen_once()) stops the crash but does not fix
+        the underlying None, so every future message of that type fails the same way for
+        the rest of the session. Scan and reset any broken entries to {} so they recover.
+        Returns how many entries were healed (for logging)."""
+        if self.master is None:
+            return 0
+        healed = 0
+        for key, value in list(self.master.messages.items()):
+            if isinstance(key, str) and "[" in key:
+                continue  # per-instance copy (e.g. "GPS_RAW_INT[0]"), not the base entry
+            if getattr(value, "_instances", "missing") is None:
+                value._instances = {}
+                healed += 1
+        return healed
+
     def listen_once(self, timeout_s: float = 1.0) -> bool:
         if self.master is None:
             raise RuntimeError("pymavlink listener is not connected")
@@ -181,7 +225,29 @@ class PymavlinkListener:
             # decodes as None (see mavutil.py add_message/_instances). We never
             # read that internal cache ourselves, so just skip this message
             # instead of letting the whole listener thread die.
-            print(f"pymavlink: recv_match internal error, skipping message: {exc}")
+            healed = self._heal_broken_instance_caches()
+            print(
+                f"pymavlink: recv_match internal error, skipping message "
+                f"(healed {healed} broken instance cache entr{'y' if healed == 1 else 'ies'}): {exc}"
+            )
+            return False
+        except ConnectionResetError:
+            # Same Windows-specific quirk already handled in _relay_commands_to_simulink:
+            # sendto() to a port nothing is listening on yet triggers an ICMP
+            # port-unreachable, which Windows then delivers as ECONNRESET on the *next*
+            # recv on this socket, even though UDP is connectionless and this is harmless.
+            # Unlike the relay thread, this main receive loop had no protection at all --
+            # confirmed 2026-07-31 (session_gps_fix_verify_01): this killed the whole
+            # listener (via listen_forever()'s bare `except KeyboardInterrupt`) right after
+            # GPS fusion started publishing several new estimator_aid_src_gnss_* topics,
+            # which plausibly triggered a fresh burst of port-unreachable replies. Log once
+            # and keep going instead of treating it as fatal.
+            print("pymavlink: listener: ignoring transient ECONNRESET (UDP port-unreachable)")
+            return False
+        except OSError as exc:
+            if self._stop:
+                return False
+            print(f"pymavlink: recv_match OS error, skipping message: {exc}")
             return False
         if msg is None:
             return False
@@ -195,6 +261,8 @@ class PymavlinkListener:
         msg_type = msg.get_type()
         if msg_type == "SERIAL_CONTROL":
             self._capture_serial_control(msg)
+        if msg_type == "ESTIMATOR_STATUS":
+            self._check_gps_innovation(msg)
         if not self.message_types or msg_type in self.message_types:
             payload = msg.to_dict()
             print(_format_message(msg_type, payload))
@@ -231,6 +299,56 @@ class PymavlinkListener:
             finally:
                 self.master = None
         print("pymavlink: listener closed")
+
+    def _check_gps_innovation(self, msg: Any) -> None:
+        """Latch self.gps_innovation_abort if ESTIMATOR_STATUS.vel_ratio or .pos_horiz_ratio
+        has continuously exceeded the configured threshold (default 1.0, i.e. the innovation
+        gate itself) for gps_innovation_sustained_s (default 1.0s). See the __init__ comment
+        for why this exists and why it must not be used to justify loosening the EKF's gates.
+        """
+        if not self._gps_innovation_abort_enabled or self.gps_innovation_abort.is_set():
+            return
+        vel_ratio = getattr(msg, "vel_ratio", None)
+        pos_horiz_ratio = getattr(msg, "pos_horiz_ratio", None)
+        if vel_ratio is None or pos_horiz_ratio is None:
+            return
+        now = time.time()
+        bad = vel_ratio > self._gps_innovation_threshold or pos_horiz_ratio > self._gps_innovation_threshold
+        with self._gps_innovation_lock:
+            if not bad:
+                self._gps_innovation_bad_since = None
+                return
+            if self._gps_innovation_bad_since is None:
+                self._gps_innovation_bad_since = now
+                return
+            if now - self._gps_innovation_bad_since < self._gps_innovation_sustained_s:
+                return
+            self._gps_innovation_trigger_info = {
+                "vel_ratio": vel_ratio,
+                "pos_horiz_ratio": pos_horiz_ratio,
+                "bad_since": self._gps_innovation_bad_since,
+                "triggered_at": now,
+            }
+            self.gps_innovation_abort.set()
+        print(
+            f"{time.strftime('%H:%M:%S')} pymavlink: GPS INNOVATION ABORT TRIGGERED -- "
+            f"vel_ratio={vel_ratio:.3f} pos_horiz_ratio={pos_horiz_ratio:.3f} sustained "
+            f">= {self._gps_innovation_sustained_s:.1f}s (threshold {self._gps_innovation_threshold:.1f})"
+        )
+        if self.logger is not None:
+            self.logger.write("GPS_INNOVATION_ABORT", self._gps_innovation_trigger_info)
+
+    def gps_innovation_status(self) -> dict[str, Any]:
+        """Thread-safe snapshot for the async side (MavsdkInstructor) to read."""
+        with self._gps_innovation_lock:
+            return {
+                "enabled": self._gps_innovation_abort_enabled,
+                "triggered": self.gps_innovation_abort.is_set(),
+                "bad_since": self._gps_innovation_bad_since,
+                "trigger_info": dict(self._gps_innovation_trigger_info)
+                if self._gps_innovation_trigger_info
+                else None,
+            }
 
     def _capture_serial_control(self, msg: Any) -> None:
         try:
